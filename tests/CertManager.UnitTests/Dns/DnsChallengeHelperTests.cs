@@ -23,8 +23,10 @@ public class DnsChallengeHelperTests
     [Fact]
     public void ComputeDnsTxtValue_ShouldProduceValidBase64UrlSha256Digest()
     {
-        // Sample known key authorization RFC 8555
-        string keyAuthz = "evaGxfADs6pSRb2LAv9IZf17Dt3juxGJ-PCt92wr-oA.H573n6-R5s9_aP7WkF-1j9X3B5i6Y1o2";
+        // Mock RFC 8555 key authorization for unit testing (token.thumbprint)
+        string mockToken = "mock_challenge_token_sample";
+        string mockThumbprint = "mock_account_thumbprint_sample";
+        string keyAuthz = $"{mockToken}.{mockThumbprint}";
         string dnsTxt = DnsChallengeHelper.ComputeDnsTxtValue(keyAuthz);
 
         dnsTxt.Should().NotBeNullOrWhiteSpace();
