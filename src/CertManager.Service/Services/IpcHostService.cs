@@ -183,6 +183,14 @@ public class IpcHostService : BackgroundService
                 return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(logs));
             }
 
+            case "GetProfiles":
+            {
+                var profiles = await db.CertificateProfiles
+                    .AsNoTracking()
+                    .ToListAsync();
+                return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(profiles));
+            }
+
             default:
                 return IpcResponse.Fail(request.RequestId, $"Unknown action '{request.Action}'.");
         }

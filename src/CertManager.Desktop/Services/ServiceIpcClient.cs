@@ -108,6 +108,28 @@ public class ServiceIpcClient
         return Array.Empty<NotificationRecord>();
     }
 
+    public async Task<IReadOnlyList<CertificateProfile>> GetProfilesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var request = new IpcRequest { Action = "GetProfiles" };
+            var response = await _client.SendAsync(request, cancellationToken);
+
+            if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
+            {
+                return JsonSerializer.Deserialize<List<CertificateProfile>>(
+                    response.PayloadJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<CertificateProfile>();
+            }
+        }
+        catch
+        {
+            // Service offline or error
+        }
+
+        return Array.Empty<CertificateProfile>();
+    }
+
     public async Task<CertificateRequestStatusResult?> RequestCertificateAsync(
         CertificateRequestModel requestModel,
         CancellationToken cancellationToken = default)

@@ -152,7 +152,19 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Style="{StaticResource SidebarNavBtn}" Command="{Binding NavigateCommand}" CommandParameter="Profiles">
+                    <!-- Certificate Profiles Nav Button -->
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="Profiles">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SidebarNavBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveSection}" Value="Profiles">
+                                        <Setter Property="Background" Value="#0284C7"/>
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📑" Margin="0,0,10,0"/>
                             <TextBlock Text="Certificate Profiles"/>
@@ -161,7 +173,19 @@
 
                     <TextBlock Text="SETTINGS &amp; SYSTEM" Foreground="#475569" FontSize="10" FontWeight="Bold" Margin="8,20,0,10"/>
 
-                    <Button Style="{StaticResource SidebarNavBtn}" Command="{Binding NavigateCommand}" CommandParameter="AcmeAccounts">
+                    <!-- ACME Accounts Nav Button -->
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="AcmeAccounts">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SidebarNavBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveSection}" Value="AcmeAccounts">
+                                        <Setter Property="Background" Value="#0284C7"/>
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🔐" Margin="0,0,10,0"/>
                             <TextBlock Text="ACME Accounts"/>
@@ -227,6 +251,14 @@
                 <!-- Activity Logs Mapping -->
                 <DataTemplate DataType="{x:Type vm:LogsViewModel}">
                     <views:LogsView/>
+                </DataTemplate>
+                <!-- Certificate Profiles Mapping -->
+                <DataTemplate DataType="{x:Type vm:ProfilesViewModel}">
+                    <views:ProfilesView/>
+                </DataTemplate>
+                <!-- ACME Accounts Mapping -->
+                <DataTemplate DataType="{x:Type vm:AcmeAccountsViewModel}">
+                    <views:AcmeAccountsView/>
                 </DataTemplate>
             </ContentControl.Resources>
         </ContentControl>

@@ -13,6 +13,8 @@ public class MainViewModel : ViewModelBase
         DashboardVM = new DashboardViewModel();
         WebsitesVM = new WebsitesViewModel();
         CertificatesVM = new CertificatesViewModel();
+        ProfilesVM = new ProfilesViewModel();
+        AcmeAccountsVM = new AcmeAccountsViewModel();
         LogsVM = new LogsViewModel();
 
         _currentView = DashboardVM;
@@ -36,6 +38,14 @@ public class MainViewModel : ViewModelBase
                         CurrentView = CertificatesVM;
                         _ = CertificatesVM.LoadCertificatesAsync();
                         break;
+                    case "Profiles":
+                        CurrentView = ProfilesVM;
+                        _ = ProfilesVM.LoadProfilesAsync();
+                        break;
+                    case "AcmeAccounts":
+                        CurrentView = AcmeAccountsVM;
+                        _ = AcmeAccountsVM.LoadAccountsAsync();
+                        break;
                     case "Logs":
                         CurrentView = LogsVM;
                         _ = LogsVM.LoadLogsAsync();
@@ -51,6 +61,8 @@ public class MainViewModel : ViewModelBase
     public DashboardViewModel DashboardVM { get; }
     public WebsitesViewModel WebsitesVM { get; }
     public CertificatesViewModel CertificatesVM { get; }
+    public ProfilesViewModel ProfilesVM { get; }
+    public AcmeAccountsViewModel AcmeAccountsVM { get; }
     public LogsViewModel LogsVM { get; }
 
     public object CurrentView
