@@ -14,34 +14,39 @@
       <stop offset="100%" stop-color="#22D3EE"/>
     </linearGradient>
     <filter id="sealBlueGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#0284C7" flood-opacity="0.5"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#0284C7" flood-opacity="0.6"/>
     </filter>
   </defs>
 
-  <!-- Background Squircle -->
-  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#bgSealBlue)"/>
-  <rect x="16" y="16" width="224" height="224" rx="52" fill="none" stroke="#1E293B" stroke-width="2"/>
+  <!-- Background Squircle (Fills canvas with elegant rounded corners) -->
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#bgSealBlue)"/>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="none" stroke="#1E293B" stroke-width="2.5"/>
 
-  <!-- Outer Cryptographic Orbital Ring -->
-  <circle cx="128" cy="128" r="74" fill="none" stroke="url(#sealRingGradA)" stroke-width="10" stroke-linecap="round" stroke-dasharray="380 40" filter="url(#sealBlueGlow)"/>
+  <!-- Outer Cryptographic Orbital Ring (Scaled up to radius 100 for maximum visibility) -->
+  <circle cx="128" cy="128" r="100" fill="none" stroke="url(#sealRingGradA)" stroke-width="15" stroke-linecap="round" stroke-dasharray="520 60" filter="url(#sealBlueGlow)"/>
 
-  <!-- Inner Interlocking Verification Ring -->
-  <circle cx="128" cy="128" r="54" fill="none" stroke="url(#sealRingGradB)" stroke-width="5" stroke-dasharray="12 8" opacity="0.85"/>
+  <!-- Inner Interlocking Verification Ring (Radius 74, Dashed Cyan) -->
+  <circle cx="128" cy="128" r="74" fill="none" stroke="url(#sealRingGradB)" stroke-width="7" stroke-dasharray="16 10" opacity="0.9"/>
 
   <!-- Center Digital Certificate Stamp Core -->
-  <circle cx="128" cy="128" r="38" fill="#2563EB"/>
-  <circle cx="128" cy="128" r="32" fill="#0F172A"/>
+  <circle cx="128" cy="128" r="52" fill="#2563EB"/>
+  <circle cx="128" cy="128" r="44" fill="#0F172A"/>
 
-  <!-- Central TLS Lock & Flow Vector (Crisp White & Cyan) -->
-  <path d="M 122,118 C 122,114 125,111 128,111 C 131,111 134,114 134,118 L 134,124 L 122,124 Z" 
-        fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
-  <rect x="117" y="124" width="22" height="17" rx="4" fill="#FFFFFF"/>
-  <circle cx="128" cy="131" r="2.5" fill="#0284C7"/>
-  <path d="M 128,133.5 L 128,137.5" stroke="#0284C7" stroke-width="2" stroke-linecap="round"/>
+  <!-- Central High-Visibility TLS Padlock (Large & Razor-Sharp) -->
+  <!-- Padlock Shackle -->
+  <path d="M 115,108 C 115,100 120,95 128,95 C 136,95 141,100 141,108 L 141,118 L 115,118 Z" 
+        fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+  <!-- Padlock Body -->
+  <rect x="108" y="118" width="40" height="30" rx="7" fill="#FFFFFF"/>
+  <!-- Blue Keyhole Core -->
+  <circle cx="128" cy="130" r="4" fill="#0284C7"/>
+  <path d="M 128,133 L 128,140" stroke="#0284C7" stroke-width="3.5" stroke-linecap="round"/>
 
-  <!-- Orbital Trust Verification Nodes -->
-  <circle cx="128" cy="54" r="6" fill="#22D3EE"/>
-  <circle cx="128" cy="54" r="2.5" fill="#FFFFFF"/>
-  <circle cx="128" cy="202" r="6" fill="#38BDF8"/>
-  <circle cx="128" cy="202" r="2.5" fill="#FFFFFF"/>
+  <!-- Orbital Trust Verification Nodes (Prominent & Clear) -->
+  <!-- Top Node -->
+  <circle cx="128" cy="28" r="10" fill="#22D3EE"/>
+  <circle cx="128" cy="28" r="4" fill="#FFFFFF"/>
+  <!-- Bottom Node -->
+  <circle cx="128" cy="228" r="10" fill="#38BDF8"/>
+  <circle cx="128" cy="228" r="4" fill="#FFFFFF"/>
 </svg>

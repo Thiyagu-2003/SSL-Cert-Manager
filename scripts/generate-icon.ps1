@@ -24,73 +24,73 @@ foreach ($size in $sizes) {
     $bgBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop([System.Windows.Media.Color]::FromRgb(15, 23, 42), 1.0)))   # #0F172A
 
     $borderPen = New-Object System.Windows.Media.Pen(
-        (New-Object System.Windows.Media.SolidColorBrush([System.Windows.Media.Color]::FromRgb(30, 41, 59))), 2.0)
+        (New-Object System.Windows.Media.SolidColorBrush([System.Windows.Media.Color]::FromRgb(30, 41, 59))), 2.5)
 
-    $rect = New-Object System.Windows.Rect(8, 8, 240, 240)
+    $rect = New-Object System.Windows.Rect(6, 6, 244, 244)
     $context.DrawRoundedRectangle($bgBrush, $borderPen, $rect, 52, 52)
 
-    # 2. Outer Cryptographic Orbital Ring (Radius 74, Cyan-Blue Gradient)
+    # 2. Outer Cryptographic Orbital Ring (Scaled up to radius 100 for maximum visibility)
     $ringBrush = New-Object System.Windows.Media.LinearGradientBrush
-    $ringBrush.StartPoint = New-Object System.Windows.Point(54, 54)
-    $ringBrush.EndPoint = New-Object System.Windows.Point(202, 202)
+    $ringBrush.StartPoint = New-Object System.Windows.Point(28, 28)
+    $ringBrush.EndPoint = New-Object System.Windows.Point(228, 228)
     $ringBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop([System.Windows.Media.Color]::FromRgb(34, 211, 238), 0.0))) # #22D3EE
     $ringBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop([System.Windows.Media.Color]::FromRgb(2, 132, 199), 0.5)))  # #0284C7
     $ringBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop([System.Windows.Media.Color]::FromRgb(37, 99, 235), 1.0)))  # #2563EB
 
     $center = New-Object System.Windows.Point(128.0, 128.0)
-    $outerPen = New-Object System.Windows.Media.Pen($ringBrush, 10.0)
+    $outerPen = New-Object System.Windows.Media.Pen($ringBrush, 15.0)
     $outerPen.StartLineCap = [System.Windows.Media.PenLineCap]::Round
     $outerPen.EndLineCap = [System.Windows.Media.PenLineCap]::Round
-    $context.DrawEllipse($null, $outerPen, $center, 74.0, 74.0)
+    $context.DrawEllipse($null, $outerPen, $center, 100.0, 100.0)
 
-    # 3. Inner Interlocking Verification Ring (Radius 54, Dashed Cyan)
-    $dashedCyanBrush = New-Object System.Windows.Media.SolidColorBrush([System.Windows.Media.Color]::FromArgb(220, 56, 189, 248)) # #38BDF8
-    $innerPen = New-Object System.Windows.Media.Pen($dashedCyanBrush, 5.0)
+    # 3. Inner Dashed Interlocking Verification Ring (Radius 74)
+    $dashedCyanBrush = New-Object System.Windows.Media.SolidColorBrush([System.Windows.Media.Color]::FromArgb(235, 56, 189, 248)) # #38BDF8
+    $innerPen = New-Object System.Windows.Media.Pen($dashedCyanBrush, 7.0)
     $innerPen.DashStyle = [System.Windows.Media.DashStyles]::Dash
-    $context.DrawEllipse($null, $innerPen, $center, 54.0, 54.0)
+    $context.DrawEllipse($null, $innerPen, $center, 74.0, 74.0)
 
     # 4. Center Digital Certificate Stamp Core
     $stampCoreOuter = New-Object System.Windows.Media.SolidColorBrush([System.Windows.Media.Color]::FromRgb(37, 99, 235)) # #2563EB
-    $context.DrawEllipse($stampCoreOuter, $null, $center, 38.0, 38.0)
+    $context.DrawEllipse($stampCoreOuter, $null, $center, 52.0, 52.0)
 
     $stampCoreInner = New-Object System.Windows.Media.SolidColorBrush([System.Windows.Media.Color]::FromRgb(15, 23, 42))  # #0F172A
-    $context.DrawEllipse($stampCoreInner, $null, $center, 32.0, 32.0)
+    $context.DrawEllipse($stampCoreInner, $null, $center, 44.0, 44.0)
 
-    # 5. Central TLS Padlock & Keyway (sample_ssl_3_cert_seal)
+    # 5. Central High-Visibility TLS Padlock (sample_ssl_3_cert_seal)
     $whiteBrush = New-Object System.Windows.Media.SolidColorBrush([System.Windows.Media.Colors]::White)
     
     # Padlock Shackle
-    $shackleData = "M 122,118 C 122,114 125,111 128,111 C 131,111 134,114 134,118 L 134,124 L 122,124 Z"
+    $shackleData = "M 115,108 C 115,100 120,95 128,95 C 136,95 141,100 141,108 L 141,118 L 115,118 Z"
     $shackleGeom = [System.Windows.Media.Geometry]::Parse($shackleData)
-    $shacklePen = New-Object System.Windows.Media.Pen($whiteBrush, 3.5)
+    $shacklePen = New-Object System.Windows.Media.Pen($whiteBrush, 6.0)
     $shacklePen.StartLineCap = [System.Windows.Media.PenLineCap]::Round
     $shacklePen.EndLineCap = [System.Windows.Media.PenLineCap]::Round
     $context.DrawGeometry($null, $shacklePen, $shackleGeom)
 
     # Padlock Body
-    $lockBodyRect = New-Object System.Windows.Rect(117, 124, 22, 17)
-    $context.DrawRoundedRectangle($whiteBrush, $null, $lockBodyRect, 4, 4)
+    $lockBodyRect = New-Object System.Windows.Rect(108, 118, 40, 30)
+    $context.DrawRoundedRectangle($whiteBrush, $null, $lockBodyRect, 7, 7)
 
     # Keyhole
     $blueKeywayBrush = New-Object System.Windows.Media.SolidColorBrush([System.Windows.Media.Color]::FromRgb(2, 132, 199))
-    $keyCenter = New-Object System.Windows.Point(128.0, 131.0)
-    $context.DrawEllipse($blueKeywayBrush, $null, $keyCenter, 2.5, 2.5)
+    $keyCenter = New-Object System.Windows.Point(128.0, 130.0)
+    $context.DrawEllipse($blueKeywayBrush, $null, $keyCenter, 4.0, 4.0)
 
-    $keySlotPen = New-Object System.Windows.Media.Pen($blueKeywayBrush, 2.0)
+    $keySlotPen = New-Object System.Windows.Media.Pen($blueKeywayBrush, 3.5)
     $keySlotPen.StartLineCap = [System.Windows.Media.PenLineCap]::Round
     $keySlotPen.EndLineCap = [System.Windows.Media.PenLineCap]::Round
-    $context.DrawLine($keySlotPen, (New-Object System.Windows.Point(128.0, 133.5)), (New-Object System.Windows.Point(128.0, 137.5)))
+    $context.DrawLine($keySlotPen, (New-Object System.Windows.Point(128.0, 133.0)), (New-Object System.Windows.Point(128.0, 140.0)))
 
-    # 6. Orbital Trust Verification Nodes (Top: 128, 54; Bottom: 128, 202)
+    # 6. Orbital Trust Verification Nodes (Top: 128, 28; Bottom: 128, 228)
     $nodeCyanBrush = New-Object System.Windows.Media.SolidColorBrush([System.Windows.Media.Color]::FromRgb(34, 211, 238)) # #22D3EE
-    $topNodeCenter = New-Object System.Windows.Point(128.0, 54.0)
-    $context.DrawEllipse($nodeCyanBrush, $null, $topNodeCenter, 6.0, 6.0)
-    $context.DrawEllipse($whiteBrush, $null, $topNodeCenter, 2.5, 2.5)
+    $topNodeCenter = New-Object System.Windows.Point(128.0, 28.0)
+    $context.DrawEllipse($nodeCyanBrush, $null, $topNodeCenter, 10.0, 10.0)
+    $context.DrawEllipse($whiteBrush, $null, $topNodeCenter, 4.0, 4.0)
 
     $nodeBlueBrush = New-Object System.Windows.Media.SolidColorBrush([System.Windows.Media.Color]::FromRgb(56, 189, 248)) # #38BDF8
-    $bottomNodeCenter = New-Object System.Windows.Point(128.0, 202.0)
-    $context.DrawEllipse($nodeBlueBrush, $null, $bottomNodeCenter, 6.0, 6.0)
-    $context.DrawEllipse($whiteBrush, $null, $bottomNodeCenter, 2.5, 2.5)
+    $bottomNodeCenter = New-Object System.Windows.Point(128.0, 228.0)
+    $context.DrawEllipse($nodeBlueBrush, $null, $bottomNodeCenter, 10.0, 10.0)
+    $context.DrawEllipse($whiteBrush, $null, $bottomNodeCenter, 4.0, 4.0)
 
     $context.Pop() # Pop scale transform
     $context.Close()
@@ -145,4 +145,4 @@ for ($i = 0; $i -lt $sizes.Length; $i++) {
 $bw.Close()
 $fs.Close()
 
-Write-Output "Successfully generated sample_ssl_3_cert_seal multi-resolution certflow.ico ($sizes)"
+Write-Output "Successfully generated enlarged high-visibility sample_ssl_3_cert_seal certflow.ico ($sizes)"
