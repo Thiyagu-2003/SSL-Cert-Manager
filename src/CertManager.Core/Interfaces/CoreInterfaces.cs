@@ -28,6 +28,18 @@ public record DeploymentResult(bool Success, string? ErrorMessage, string? Previ
 public record HealthCheckResult(bool IsHealthy, string? StatusMessage);
 public record NotificationMessage(string Subject, string Body, string Level);
 
+public record DnsZone(string Id, string Name, string Status);
+public record DnsRecord(string Id, string ZoneId, string Name, string Type, string Value, int Ttl);
+
+public interface IDnsProvider
+{
+    string ProviderName { get; }
+    Task<IReadOnlyList<DnsZone>> GetZonesAsync(CancellationToken cancellationToken = default);
+    Task<DnsRecord> CreateTxtRecordAsync(string zoneId, string name, string value, CancellationToken cancellationToken = default);
+    Task DeleteTxtRecordAsync(string zoneId, string recordId, CancellationToken cancellationToken = default);
+    Task<bool> IsTxtRecordVisibleAsync(string name, string expectedValue, CancellationToken cancellationToken = default);
+}
+
 public interface ICertificateAuthorityClient
 {
     Task<AcmeAccountInfo> RegisterAccountAsync(AcmeAccountOptions options, CancellationToken cancellationToken = default);

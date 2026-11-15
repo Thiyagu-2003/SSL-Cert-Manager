@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Certes;
 using Certes.Acme;
 using Certes.Acme.Resource;
+using CertManager.Core.Common;
 
 namespace CertManager.Acme.Clients;
 
@@ -13,12 +14,17 @@ public record AcmeChallengeItem(
     string Domain,
     string Token,
     string KeyAuthorization,
+    string DnsTxtValue,
+    string ChallengeType, // "http-01" or "dns-01"
     IChallengeContext ChallengeContext);
 
 public interface IAcmeCertificateClient
 {
     Task<string> InitializeAccountAsync(string email, bool isStaging, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<AcmeChallengeItem>> CreateOrderAndGetChallengesAsync(IReadOnlyList<string> domains, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<AcmeChallengeItem>> CreateOrderAndGetChallengesAsync(
+        IReadOnlyList<string> domains, 
+        string validationMethod = "Http01", 
+        CancellationToken cancellationToken = default);
     Task<bool> SubmitChallengeAsync(AcmeChallengeItem challengeItem, CancellationToken cancellationToken = default);
     Task<byte[]> FinalizeOrderAndExportPfxAsync(string friendlyName, string password, CancellationToken cancellationToken = default);
 }
@@ -41,6 +47,7 @@ public class CertesAcmeClient : IAcmeCertificateClient
 
     public async Task<IReadOnlyList<AcmeChallengeItem>> CreateOrderAndGetChallengesAsync(
         IReadOnlyList<string> domains,
+        string validationMethod = "Http01",
         CancellationToken cancellationToken = default)
     {
         if (_context == null)
@@ -51,21 +58,44 @@ public class CertesAcmeClient : IAcmeCertificateClient
         _currentOrder = await _context.NewOrder(domains.ToList());
         var authorizations = await _currentOrder.Authorizations();
         var challengeItems = new List<AcmeChallengeItem>();
+        bool isDns = string.Equals(validationMethod, "Dns01", StringComparison.OrdinalIgnoreCase) ||
+                     domains.Any(d => d.StartsWith("*.", StringComparison.Ordinal));
 
         foreach (var authz in authorizations)
         {
             var authzResource = await authz.Resource();
             string domain = authzResource.Identifier.Value;
-            var httpChallenge = await authz.Http();
 
-            if (httpChallenge != null)
+            if (isDns)
             {
-                challengeItems.Add(new AcmeChallengeItem(
-                    domain,
-                    httpChallenge.Token,
-                    httpChallenge.KeyAuthz,
-                    httpChallenge
-                ));
+                var dnsChallenge = await authz.Dns();
+                if (dnsChallenge != null)
+                {
+                    string dnsTxt = DnsChallengeHelper.ComputeDnsTxtValue(dnsChallenge.KeyAuthz);
+                    challengeItems.Add(new AcmeChallengeItem(
+                        domain,
+                        dnsChallenge.Token,
+                        dnsChallenge.KeyAuthz,
+                        dnsTxt,
+                        "dns-01",
+                        dnsChallenge
+                    ));
+                }
+            }
+            else
+            {
+                var httpChallenge = await authz.Http();
+                if (httpChallenge != null)
+                {
+                    challengeItems.Add(new AcmeChallengeItem(
+                        domain,
+                        httpChallenge.Token,
+                        httpChallenge.KeyAuthz,
+                        string.Empty,
+                        "http-01",
+                        httpChallenge
+                    ));
+                }
             }
         }
 

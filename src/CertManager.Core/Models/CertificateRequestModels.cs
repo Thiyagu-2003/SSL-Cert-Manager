@@ -9,6 +9,9 @@ public class CertificateRequestModel
     public string ContactEmail { get; set; } = string.Empty;
     public bool IsStaging { get; set; } = true;
     public string ValidationMethod { get; set; } = "Http01";
+    public string? DnsProvider { get; set; } // "Cloudflare", "Manual"
+    public string? DnsApiToken { get; set; }
+    public string? DnsZoneId { get; set; }
 }
 
 public class CertificateRequestStatusResult

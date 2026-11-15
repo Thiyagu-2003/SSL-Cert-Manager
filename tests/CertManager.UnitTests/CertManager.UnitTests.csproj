@@ -26,6 +26,7 @@
     <ProjectReference Include="..\..\src\CertManager.Application\CertManager.Application.csproj" />
     <ProjectReference Include="..\..\src\CertManager.Infrastructure\CertManager.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\CertManager.Integrations.Iis\CertManager.Integrations.Iis.csproj" />
+    <ProjectReference Include="..\..\src\CertManager.Integrations.Dns\CertManager.Integrations.Dns.csproj" />
   </ItemGroup>
 
 </Project>

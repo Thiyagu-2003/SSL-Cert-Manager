@@ -16,6 +16,10 @@ public class CertificateWizardViewModel : ViewModelBase
     private string _domainName = string.Empty;
     private string _contactEmail = string.Empty;
     private bool _isStaging = true;
+    private bool _isDns01;
+    private string _dnsProvider = "Cloudflare";
+    private string _dnsApiToken = string.Empty;
+    private string _dnsZoneId = string.Empty;
     private bool _isExecuting;
     private string _currentStep = "Ready";
     private string _statusMessage = string.Empty;
@@ -31,6 +35,11 @@ public class CertificateWizardViewModel : ViewModelBase
         _siteName = siteName;
         _domainName = defaultDomain;
         _contactEmail = $"admin@{defaultDomain.TrimStart('*', '.')}";
+
+        if (_domainName.StartsWith("*.", StringComparison.Ordinal))
+        {
+            _isDns01 = true;
+        }
 
         StartIssuanceCommand = new RelayCommand(async () => await StartIssuanceAsync(), () => !IsExecuting && !string.IsNullOrWhiteSpace(DomainName) && !string.IsNullOrWhiteSpace(ContactEmail));
     }
@@ -50,7 +59,16 @@ public class CertificateWizardViewModel : ViewModelBase
     public string DomainName
     {
         get => _domainName;
-        set => SetProperty(ref _domainName, value);
+        set
+        {
+            if (SetProperty(ref _domainName, value))
+            {
+                if (!string.IsNullOrWhiteSpace(value) && value.Contains('*'))
+                {
+                    IsDns01 = true;
+                }
+            }
+        }
     }
 
     public string ContactEmail
@@ -63,6 +81,36 @@ public class CertificateWizardViewModel : ViewModelBase
     {
         get => _isStaging;
         set => SetProperty(ref _isStaging, value);
+    }
+
+    public bool IsDns01
+    {
+        get => _isDns01;
+        set => SetProperty(ref _isDns01, value);
+    }
+
+    public bool IsHttp01
+    {
+        get => !_isDns01;
+        set => IsDns01 = !value;
+    }
+
+    public string DnsProvider
+    {
+        get => _dnsProvider;
+        set => SetProperty(ref _dnsProvider, value);
+    }
+
+    public string DnsApiToken
+    {
+        get => _dnsApiToken;
+        set => SetProperty(ref _dnsApiToken, value);
+    }
+
+    public string DnsZoneId
+    {
+        get => _dnsZoneId;
+        set => SetProperty(ref _dnsZoneId, value);
     }
 
     public bool IsExecuting
@@ -126,11 +174,16 @@ public class CertificateWizardViewModel : ViewModelBase
                 DomainName = DomainName.Trim(),
                 ContactEmail = ContactEmail.Trim(),
                 IsStaging = IsStaging,
-                ValidationMethod = "Http01"
+                ValidationMethod = IsDns01 ? "Dns01" : "Http01",
+                DnsProvider = DnsProvider,
+                DnsApiToken = DnsApiToken?.Trim(),
+                DnsZoneId = DnsZoneId?.Trim()
             };
 
-            CurrentStep = "Automated Issuance in Progress";
-            StatusMessage = "Provisioning HTTP-01 challenge, finalizing certificate, and binding to IIS...";
+            CurrentStep = IsDns01 ? "DNS-01 ACME Challenge in Progress" : "Automated HTTP-01 Issuance in Progress";
+            StatusMessage = IsDns01 
+                ? "Creating TXT records via DNS provider, checking propagation, and finalizing certificate..."
+                : "Provisioning HTTP-01 challenge, finalizing certificate, and binding to IIS...";
 
             var result = await _ipcClient.RequestCertificateAsync(request);
 
@@ -140,7 +193,7 @@ public class CertificateWizardViewModel : ViewModelBase
                 CurrentStep = "Successfully Completed";
                 IssuedThumbprint = result.Thumbprint ?? "N/A";
                 IssuedExpiration = result.ExpiresAt?.ToString("yyyy-MM-dd HH:mm UTC") ?? "90 Days from issuance";
-                StatusMessage = "Certificate installed into Windows Store and bound to IIS HTTPS port 443 with SNI.";
+                StatusMessage = "Certificate installed into Windows Store and configured with SNI.";
             }
             else
             {
