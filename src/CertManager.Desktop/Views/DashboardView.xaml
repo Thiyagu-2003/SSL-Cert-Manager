@@ -4,18 +4,24 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="700" d:DesignWidth="950">
+             d:DesignHeight="700" d:DesignWidth="950"
+             FontFamily="Segoe UI, sans-serif"
+             TextOptions.TextFormattingMode="Display"
+             TextOptions.TextRenderingMode="ClearType"
+             RenderOptions.ClearTypeHint="Enabled"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
 
-        <!-- Animated Modern Metric Card Style with Hover Lift & Shadow Glow -->
+        <!-- Animated Modern Metric Card Style with Crisp Border & Defined Shadow -->
         <Style x:Key="MetricCardBorder" TargetType="Border">
             <Setter Property="Background" Value="#FFFFFF"/>
             <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="Padding" Value="22"/>
             <Setter Property="Margin" Value="0,0,16,0"/>
-            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="RenderTransform">
                 <Setter.Value>
@@ -24,11 +30,12 @@
             </Setter>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="14" Opacity="0.04" ShadowDepth="4" Color="#0F172A"/>
+                    <DropShadowEffect BlurRadius="12" Opacity="0.05" ShadowDepth="3" Color="#0F172A"/>
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="#0284C7"/>
                     <Trigger.EnterActions>
                         <BeginStoryboard>
                             <Storyboard>
@@ -41,7 +48,7 @@
                                 <DoubleAnimation Storyboard.TargetProperty="Effect.Opacity"
                                                  To="0.12" Duration="0:0:0.25"/>
                                 <DoubleAnimation Storyboard.TargetProperty="Effect.BlurRadius"
-                                                 To="22" Duration="0:0:0.25"/>
+                                                 To="20" Duration="0:0:0.25"/>
                             </Storyboard>
                         </BeginStoryboard>
                     </Trigger.EnterActions>
@@ -55,9 +62,9 @@
                                     </DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
                                 <DoubleAnimation Storyboard.TargetProperty="Effect.Opacity"
-                                                 To="0.04" Duration="0:0:0.25"/>
+                                                 To="0.05" Duration="0:0:0.25"/>
                                 <DoubleAnimation Storyboard.TargetProperty="Effect.BlurRadius"
-                                                 To="14" Duration="0:0:0.25"/>
+                                                 To="12" Duration="0:0:0.25"/>
                             </Storyboard>
                         </BeginStoryboard>
                     </Trigger.ExitActions>
@@ -69,9 +76,9 @@
         <Style x:Key="ActionCardBorder" TargetType="Border">
             <Setter Property="Background" Value="#FFFFFF"/>
             <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="18"/>
+            <Setter Property="Padding" Value="20"/>
             <Setter Property="Margin" Value="0,0,16,16"/>
-            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="RenderTransform">
                 <Setter.Value>
@@ -114,9 +121,9 @@
             <Setter Property="Background" Value="#0284C7"/>
             <Setter Property="Foreground" Value="#FFFFFF"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,9"/>
+            <Setter Property="Padding" Value="15,9"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -138,28 +145,33 @@
             </Setter>
         </Style>
 
-        <!-- Secondary Button Style -->
+        <!-- Secondary Button Style with Distinct Border and Crisp Typography -->
         <Style x:Key="SecondaryActionBtn" TargetType="Button">
-            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
             <Setter Property="Foreground" Value="#0F172A"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
             <Setter Property="Padding" Value="14,8"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="secBorder" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="8" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="secBorder" Property="Background" Value="#E2E8F0"/>
+                                <Setter TargetName="secBorder" Property="Background" Value="#F1F5F9"/>
+                                <Setter TargetName="secBorder" Property="BorderBrush" Value="#94A3B8"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="secBorder" Property="Background" Value="#CBD5E1"/>
+                                <Setter TargetName="secBorder" Property="Background" Value="#E2E8F0"/>
+                                <Setter TargetName="secBorder" Property="BorderBrush" Value="#64748B"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -203,13 +215,13 @@
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="Operations Dashboard" FontSize="26" FontWeight="Bold" Foreground="#0F172A"/>
                     <TextBlock Text="Automated SSL/TLS discovery, Let's Encrypt issuance, and IIS bindings" 
-                               FontSize="13" Foreground="#64748B" Margin="0,5,0,0"/>
+                               FontSize="13.5" FontWeight="Medium" Foreground="#334155" Margin="0,5,0,0"/>
                 </StackPanel>
 
                 <!-- Refresh Button & Timestamp -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="{Binding LastRefreshed, StringFormat='Synced: {0}'}" 
-                               Foreground="#94A3B8" FontSize="12" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                               Foreground="#475569" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,14,0"/>
                     <Button Command="{Binding RefreshCommand}" Style="{StaticResource PrimaryActionBtn}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="↻" FontSize="14" Margin="0,0,6,0" FontWeight="Bold"/>
@@ -220,13 +232,13 @@
             </Grid>
 
             <!-- Service Status Banner with Glowing Pulse Indicator -->
-            <Border CornerRadius="12" Margin="0,0,0,26" Padding="18,14" BorderThickness="1">
+            <Border CornerRadius="12" Margin="0,0,0,26" Padding="18,14" BorderThickness="1.5">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
                                 <Setter Property="Background" Value="#F0FDF4"/>
-                                <Setter Property="BorderBrush" Value="#BBF7D0"/>
+                                <Setter Property="BorderBrush" Value="#86EFAC"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
                                 <Setter Property="Background" Value="#FEF2F2"/>
@@ -282,7 +294,7 @@
                                 <Style TargetType="Ellipse">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
-                                            <Setter Property="Fill" Value="#16A34A"/>
+                                            <Setter Property="Fill" Value="#15803D"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
                                             <Setter Property="Fill" Value="#DC2626"/>
@@ -294,12 +306,12 @@
                     </Grid>
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding StatusMessage}" FontWeight="SemiBold" FontSize="13">
+                        <TextBlock Text="{Binding StatusMessage}" FontWeight="Bold" FontSize="13.5">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
-                                            <Setter Property="Foreground" Value="#166534"/>
+                                            <Setter Property="Foreground" Value="#15803D"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
                                             <Setter Property="Foreground" Value="#991B1B"/>
@@ -309,12 +321,12 @@
                             </TextBlock.Style>
                         </TextBlock>
                         <TextBlock Text="Named Pipe: CertManager.Ipc • Renewals run autonomously without UI active" 
-                                   FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                                   FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,3,0,0"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Command="{Binding StartEngineCommand}" Background="#0284C7" Foreground="#FFFFFF"
-                                Padding="10,4" Margin="0,0,8,0" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="0">
+                                Padding="12,5" Margin="0,0,8,0" FontWeight="SemiBold" FontSize="11.5" Cursor="Hand" BorderThickness="0">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -335,11 +347,11 @@
                                 <TextBlock Text="Start In-Process Engine"/>
                             </StackPanel>
                         </Button>
-                        <Border Background="#E2E8F0" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
-                            <TextBlock Text="{Binding Version}" FontSize="11" FontWeight="SemiBold" Foreground="#334155"/>
+                        <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="9,4" Margin="0,0,8,0">
+                            <TextBlock Text="{Binding Version}" FontSize="11.5" FontWeight="Bold" Foreground="#0F172A"/>
                         </Border>
-                        <Border Background="#E2E8F0" CornerRadius="6" Padding="8,4">
-                            <TextBlock Text="{Binding Uptime, StringFormat='Uptime: {0}'}" FontSize="11" FontWeight="Medium" Foreground="#334155"/>
+                        <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="9,4">
+                            <TextBlock Text="{Binding Uptime, StringFormat='Uptime: {0}'}" FontSize="11.5" FontWeight="SemiBold" Foreground="#0F172A"/>
                         </Border>
                     </StackPanel>
                 </Grid>
@@ -358,11 +370,11 @@
                 <Border Grid.Column="0" Style="{StaticResource MetricCardBorder}">
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
-                            <TextBlock Text="TOTAL CERTS" FontSize="11" FontWeight="Bold" Foreground="#64748B"/>
+                            <TextBlock Text="TOTAL CERTS" FontSize="11.5" FontWeight="Bold" Foreground="#334155"/>
                             <TextBlock Text="🛡️" HorizontalAlignment="Right" FontSize="18"/>
                         </Grid>
                         <TextBlock Text="{Binding TotalCertificates}" FontSize="34" FontWeight="Bold" Foreground="#0F172A"/>
-                        <TextBlock Text="Active in Windows Store" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
+                        <TextBlock Text="Active in Windows Store" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,6,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -370,11 +382,11 @@
                 <Border Grid.Column="1" Style="{StaticResource MetricCardBorder}">
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
-                            <TextBlock Text="EXPIRING SOON" FontSize="11" FontWeight="Bold" Foreground="#D97706"/>
+                            <TextBlock Text="EXPIRING SOON" FontSize="11.5" FontWeight="Bold" Foreground="#B45309"/>
                             <TextBlock Text="⚠️" HorizontalAlignment="Right" FontSize="18"/>
                         </Grid>
                         <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="34" FontWeight="Bold" Foreground="#D97706"/>
-                        <TextBlock Text="Due within 30 days" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
+                        <TextBlock Text="Due within 30 days" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,6,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -382,11 +394,11 @@
                 <Border Grid.Column="2" Style="{StaticResource MetricCardBorder}">
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
-                            <TextBlock Text="ACTIVE ACME ORDERS" FontSize="11" FontWeight="Bold" Foreground="#2563EB"/>
+                            <TextBlock Text="ACTIVE ACME ORDERS" FontSize="11.5" FontWeight="Bold" Foreground="#1D4ED8"/>
                             <TextBlock Text="🔄" HorizontalAlignment="Right" FontSize="18"/>
                         </Grid>
                         <TextBlock Text="{Binding ActiveOrdersCount}" FontSize="34" FontWeight="Bold" Foreground="#2563EB"/>
-                        <TextBlock Text="In-flight challenges" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
+                        <TextBlock Text="In-flight challenges" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,6,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -394,17 +406,17 @@
                 <Border Grid.Column="3" Style="{StaticResource MetricCardBorder}" Margin="0">
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
-                            <TextBlock Text="RENEWAL POLICY" FontSize="11" FontWeight="Bold" Foreground="#059669"/>
+                            <TextBlock Text="RENEWAL POLICY" FontSize="11.5" FontWeight="Bold" Foreground="#047857"/>
                             <TextBlock Text="⚡" HorizontalAlignment="Right" FontSize="18"/>
                         </Grid>
-                        <TextBlock Text="ARI + 33%" FontSize="24" FontWeight="Bold" Foreground="#059669" Margin="0,6,0,0"/>
-                        <TextBlock Text="Percentage &amp; ARI window" FontSize="11" Foreground="#94A3B8" Margin="0,8,0,0"/>
+                        <TextBlock Text="ARI + 33%" FontSize="24" FontWeight="Bold" Foreground="#047857" Margin="0,6,0,0"/>
+                        <TextBlock Text="Percentage &amp; ARI window" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,8,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
             <!-- Quick Action Cards Section -->
-            <TextBlock Text="Quick Actions &amp; Lifecycle Management" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,16"/>
+            <TextBlock Text="Quick Actions &amp; Lifecycle Management" FontSize="16" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,16"/>
             
             <Grid Margin="0,0,0,26">
                 <Grid.ColumnDefinitions>
@@ -416,9 +428,9 @@
                 <!-- Action 1 -->
                 <Border Grid.Column="0" Style="{StaticResource ActionCardBorder}">
                     <StackPanel>
-                        <TextBlock Text="➕ Request Certificate" FontWeight="SemiBold" FontSize="14" Foreground="#0F172A"/>
+                        <TextBlock Text="➕ Request Certificate" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A"/>
                         <TextBlock Text="Request a new SSL/TLS certificate via Let's Encrypt using HTTP-01 or DNS-01." 
-                                   TextWrapping="Wrap" FontSize="12" Foreground="#64748B" Margin="0,6,0,16"/>
+                                   TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
                         <Button Content="New Certificate Wizard" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
@@ -426,9 +438,9 @@
                 <!-- Action 2 -->
                 <Border Grid.Column="1" Style="{StaticResource ActionCardBorder}">
                     <StackPanel>
-                        <TextBlock Text="🔍 Discover IIS Sites" FontWeight="SemiBold" FontSize="14" Foreground="#0F172A"/>
+                        <TextBlock Text="🔍 Discover IIS Sites" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A"/>
                         <TextBlock Text="Scan local Microsoft IIS web server for existing sites, hostnames, and HTTPS bindings." 
-                                   TextWrapping="Wrap" FontSize="12" Foreground="#64748B" Margin="0,6,0,16"/>
+                                   TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
                         <Button Content="Scan IIS Web Server" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
@@ -436,18 +448,18 @@
                 <!-- Action 3 -->
                 <Border Grid.Column="2" Style="{StaticResource ActionCardBorder}" Margin="0,0,0,16">
                     <StackPanel>
-                        <TextBlock Text="📋 Test ACME Staging" FontWeight="SemiBold" FontSize="14" Foreground="#0F172A"/>
+                        <TextBlock Text="📋 Test ACME Staging" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A"/>
                         <TextBlock Text="Validate end-to-end issuance without hitting Let's Encrypt production rate limits." 
-                                   TextWrapping="Wrap" FontSize="12" Foreground="#64748B" Margin="0,6,0,16"/>
+                                   TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
                         <Button Content="Run Staging Pre-flight" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
-            <!-- System Architecture Snapshot -->
-            <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20">
+            <!-- System Capabilities & Architecture -->
+            <Border Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="12" Padding="20">
                 <StackPanel>
-                    <TextBlock Text="System Capabilities &amp; Architecture" FontSize="14" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,0,12"/>
+                    <TextBlock Text="System Capabilities &amp; Architecture" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,14"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -456,21 +468,21 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="ACME PROTOCOL" FontSize="10" FontWeight="Bold" Foreground="#94A3B8"/>
-                            <TextBlock Text="RFC 8555 + RFC 8737 (ARI)" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
-                            <TextBlock Text="Let's Encrypt Staging / Prod" FontSize="11" Foreground="#64748B"/>
+                            <TextBlock Text="ACME PROTOCOL" FontSize="11" FontWeight="Bold" Foreground="#1E293B"/>
+                            <TextBlock Text="RFC 8555 + RFC 8737 (ARI)" FontSize="12.5" FontWeight="Bold" Foreground="#0284C7" Margin="0,3,0,0"/>
+                            <TextBlock Text="Let's Encrypt Staging / Prod" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1">
-                            <TextBlock Text="SERVER INTEGRATION" FontSize="10" FontWeight="Bold" Foreground="#94A3B8"/>
-                            <TextBlock Text="Microsoft IIS (MWA)" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
-                            <TextBlock Text="Transactional binding with rollback" FontSize="11" Foreground="#64748B"/>
+                            <TextBlock Text="SERVER INTEGRATION" FontSize="11" FontWeight="Bold" Foreground="#1E293B"/>
+                            <TextBlock Text="Microsoft IIS (MWA)" FontSize="12.5" FontWeight="Bold" Foreground="#0284C7" Margin="0,3,0,0"/>
+                            <TextBlock Text="Transactional binding with rollback" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="LOCAL PERSISTENCE" FontSize="10" FontWeight="Bold" Foreground="#94A3B8"/>
-                            <TextBlock Text="SQLite Database with WAL" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
-                            <TextBlock Text="Idempotency locks &amp; audit ledger" FontSize="11" Foreground="#64748B"/>
+                            <TextBlock Text="LOCAL PERSISTENCE" FontSize="11" FontWeight="Bold" Foreground="#1E293B"/>
+                            <TextBlock Text="SQLite Database with WAL" FontSize="12.5" FontWeight="Bold" Foreground="#0284C7" Margin="0,3,0,0"/>
+                            <TextBlock Text="Idempotency locks &amp; audit ledger" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>

@@ -10,7 +10,12 @@
         Icon="Assets/certflow.ico"
         Height="780" Width="1200" MinHeight="650" MinWidth="1000"
         WindowStartupLocation="CenterScreen"
-        FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
+        FontFamily="Segoe UI, sans-serif"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
         Background="#F8FAFC">
 
     <Window.Resources>
@@ -37,9 +42,9 @@
         <!-- Modern Sidebar Nav Button Style with Dynamic Selection -->
         <Style x:Key="SidebarNavBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="Foreground" Value="#CBD5E1"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Padding" Value="14,10"/>
             <Setter Property="Margin" Value="0,0,0,4"/>
@@ -56,7 +61,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="#1E293B"/>
-                                <Setter Property="Foreground" Value="#F8FAFC"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -124,7 +129,7 @@
 
                 <!-- Navigation Links -->
                 <StackPanel Grid.Row="1">
-                    <TextBlock Text="MAIN NAVIGATION" Foreground="#475569" FontSize="10" FontWeight="Bold" Margin="8,0,0,10"/>
+                    <TextBlock Text="MAIN NAVIGATION" Foreground="#64748B" FontSize="11" FontWeight="Bold" Margin="8,0,0,10"/>
                     
                     <!-- Dashboard Nav Button -->
                     <Button Command="{Binding NavigateCommand}" CommandParameter="Dashboard">
@@ -202,7 +207,7 @@
                         </StackPanel>
                     </Button>
 
-                    <TextBlock Text="SETTINGS &amp; SYSTEM" Foreground="#475569" FontSize="10" FontWeight="Bold" Margin="8,20,0,10"/>
+                    <TextBlock Text="SETTINGS &amp; SYSTEM" Foreground="#64748B" FontSize="11" FontWeight="Bold" Margin="8,20,0,10"/>
 
                     <!-- ACME Accounts Nav Button -->
                     <Button Command="{Binding NavigateCommand}" CommandParameter="AcmeAccounts">
@@ -256,8 +261,8 @@
                         </Border>
 
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Administrator" Foreground="#F8FAFC" FontSize="12" FontWeight="SemiBold"/>
-                            <TextBlock Text="Windows Local Identity" Foreground="#64748B" FontSize="10"/>
+                            <TextBlock Text="Administrator" Foreground="#FFFFFF" FontSize="12.5" FontWeight="Bold"/>
+                            <TextBlock Text="Windows Local Identity" Foreground="#94A3B8" FontSize="11" FontWeight="Medium"/>
                         </StackPanel>
                     </Grid>
                 </Border>

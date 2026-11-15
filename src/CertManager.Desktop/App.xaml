@@ -25,5 +25,14 @@
         <DataTemplate DataType="{x:Type vm:LogsViewModel}">
             <views:LogsView/>
         </DataTemplate>
+
+        <!-- Global Crisp Typography & ClearType Configuration -->
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+            <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+            <Setter Property="RenderOptions.ClearTypeHint" Value="Enabled"/>
+            <Setter Property="UseLayoutRounding" Value="True"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+        </Style>
     </Application.Resources>
 </Application>
