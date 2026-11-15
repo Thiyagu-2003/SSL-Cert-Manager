@@ -11,6 +11,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AssemblyName>CertFlow</AssemblyName>
+    <Product>CertFlow</Product>
+    <Title>CertFlow — Automated SSL/TLS Lifecycle Manager</Title>
+    <ApplicationIcon>Assets\certflow.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\certflow.ico" />
+    <Resource Include="Assets\certflow_logo.svg" />
+  </ItemGroup>
 
 </Project>
