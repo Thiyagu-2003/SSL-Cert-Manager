@@ -82,13 +82,14 @@ dotnet run --project src/CertManager.Desktop
 ├── src/
 │   ├── CertManager.Core/               # Domain entities, enums, IDN normalizer, abstractions
 │   ├── CertManager.Application/        # Use cases and workflow orchestrators
-│   ├── CertManager.Infrastructure/     # EF Core SQLite database, Named Pipe IPC, Windows auth
-│   ├── CertManager.Acme/               # ACME client abstractions and challenge workflows
+│   ├── CertManager.Infrastructure/     # EF Core SQLite database, Named Pipe IPC, Notifications & Health checks
+│   ├── CertManager.Acme/               # RFC 8555 ACME client abstractions (HTTP-01 & DNS-01)
 │   ├── CertManager.Integrations.Iis/   # Microsoft.Web.Administration IIS discovery and bindings
-│   ├── CertManager.Service/            # .NET Worker Service and IPC host
+│   ├── CertManager.Integrations.Dns/   # Cloudflare API and Manual DNS-01 challenge providers
+│   ├── CertManager.Service/            # .NET Worker Service, scheduler, and IPC host
 │   └── CertManager.Desktop/            # WPF desktop UI (MVVM), assets, and Fluent styles
 ├── tests/
-│   └── CertManager.UnitTests/          # xUnit test suite (Core, Database, IPC, Normalization)
+│   └── CertManager.UnitTests/          # xUnit test suite (Core, Dns, Notifications, Discovery, Database, IPC)
 ├── dist/                               # Published single-file binaries
 ├── docs/                               # Architecture decision records and implementation plans
 └── CertManager_Project_Specification_v2.md # Complete engineering specification
@@ -115,8 +116,22 @@ dotnet run --project src/CertManager.Desktop
   - Transactional HTTPS binding installation on port 443 with SNI
   - Automatic rollback to previous certificate if commit fails
   - Interactive Desktop Certificate Wizard modal dialog
-- [ ] **Phase 5: Automated Background Renewals**
-  - Recurring background worker renewal checks via ARI & percentage thresholds
+- [x] **Phase 5: Automated Background Renewals**
+  - Autonomous background worker renewal scheduler loop with lease locks (`renew:cert:{id}`)
+  - Percentage-based renewal threshold evaluator (33% lifetime threshold, 90d/45d/6d) & ARI support
+  - Certificates Inventory View with lifetime progress bars, expiration badges, and force-renewal
+- [x] **Phase 6: DNS-01 & Wildcard Certificate Management**
+  - `IDnsProvider` abstraction with RFC 8555 `_acme-challenge` TXT calculation
+  - Cloudflare API integration with scoped API token auth, zone discovery, TXT provisioning, and automatic cleanup
+  - DNS-over-HTTPS (DoH) public propagation verifier
+  - Support for wildcard certificates (`*.domain.com`) and apex + wildcard SANs
+  - Certificate Wizard UI support for DNS-01 and Cloudflare tokens
+- [x] **Phase 7: Monitoring, Notifications & Site Auto-Discovery**
+  - Notification dispatcher supporting SMTP, Telegram, and Windows Event Log channels
+  - Duplicate alert suppression (cooldown cache) and secret masking
+  - End-to-end HTTPS endpoint health checker with certificate chain inspection
+  - IIS Site Auto-Discovery engine matching active certificates and wildcards against new websites
+  - Modern Activity Logs & Notifications UI in Desktop application
 
 ---
 
