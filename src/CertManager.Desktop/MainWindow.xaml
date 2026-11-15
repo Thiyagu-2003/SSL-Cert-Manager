@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:CertManager.Desktop.Views"
+        xmlns:vm="clr-namespace:CertManager.Desktop.ViewModels"
         mc:Ignorable="d"
         Title="CertFlow — Automated SSL/TLS Lifecycle Manager" 
         Icon="Assets/certflow.ico"
@@ -13,7 +14,7 @@
         Background="#F8FAFC">
 
     <Window.Resources>
-        <!-- Modern Sidebar Nav Button Style -->
+        <!-- Modern Sidebar Nav Button Style with Smooth Transitions -->
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#94A3B8"/>
@@ -36,6 +37,9 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="#1E293B"/>
                                 <Setter Property="Foreground" Value="#F8FAFC"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#0F172A"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -166,10 +170,11 @@
             </Grid>
         </Border>
 
-        <!-- Right Content Host -->
+        <!-- Right Content Host with View DataTemplate Mapping -->
         <ContentControl Grid.Column="1" Content="{Binding CurrentView}">
             <ContentControl.Resources>
-                <DataTemplate DataType="{x:Type views:DashboardView}">
+                <!-- Crucial: Map DashboardViewModel to DashboardView -->
+                <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
                     <views:DashboardView/>
                 </DataTemplate>
             </ContentControl.Resources>

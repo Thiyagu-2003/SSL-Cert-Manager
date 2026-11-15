@@ -5,23 +5,67 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="950">
+
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
-        
+
+        <!-- Animated Modern Metric Card Style with Hover Lift & Shadow Glow -->
         <Style x:Key="MetricCardBorder" TargetType="Border">
             <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="20"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="22"/>
             <Setter Property="Margin" Value="0,0,16,0"/>
             <Setter Property="BorderBrush" Value="#E2E8F0"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Effect">
+            <Setter Property="RenderTransform">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="12" Opacity="0.04" ShadowDepth="3" Color="#0F172A"/>
+                    <TranslateTransform Y="0"/>
                 </Setter.Value>
             </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="14" Opacity="0.04" ShadowDepth="4" Color="#0F172A"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                 To="-4" Duration="0:0:0.25">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="Effect.Opacity"
+                                                 To="0.12" Duration="0:0:0.25"/>
+                                <DoubleAnimation Storyboard.TargetProperty="Effect.BlurRadius"
+                                                 To="22" Duration="0:0:0.25"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                 To="0" Duration="0:0:0.25">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="Effect.Opacity"
+                                                 To="0.04" Duration="0:0:0.25"/>
+                                <DoubleAnimation Storyboard.TargetProperty="Effect.BlurRadius"
+                                                 To="14" Duration="0:0:0.25"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
+        <!-- Animated Action Card Style -->
         <Style x:Key="ActionCardBorder" TargetType="Border">
             <Setter Property="Background" Value="#FFFFFF"/>
             <Setter Property="CornerRadius" Value="12"/>
@@ -29,13 +73,128 @@
             <Setter Property="Margin" Value="0,0,16,16"/>
             <Setter Property="BorderBrush" Value="#E2E8F0"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <TranslateTransform Y="0"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="#0284C7"/>
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                 To="-3" Duration="0:0:0.2">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                 To="0" Duration="0:0:0.2">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Modern Primary Button Style -->
+        <Style x:Key="PrimaryActionBtn" TargetType="Button">
+            <Setter Property="Background" Value="#0284C7"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBorder" Background="{TemplateBinding Background}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#0369A1"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#075985"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Secondary Button Style -->
+        <Style x:Key="SecondaryActionBtn" TargetType="Button">
+            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="secBorder" Background="{TemplateBinding Background}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="secBorder" Property="Background" Value="#E2E8F0"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="secBorder" Property="Background" Value="#CBD5E1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
+    <!-- Page Entrance Animation -->
+    <UserControl.RenderTransform>
+        <TranslateTransform x:Name="PageTransform" Y="20"/>
+    </UserControl.RenderTransform>
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.35">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="PageTransform" Storyboard.TargetProperty="Y" From="20" To="0" Duration="0:0:0.4">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </UserControl.Triggers>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="32,28,32,32">
+        <StackPanel Margin="36,30,36,36">
             <!-- Top Dashboard Header -->
-            <Grid Margin="0,0,0,24">
+            <Grid Margin="0,0,0,26">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
@@ -44,32 +203,24 @@
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="Operations Dashboard" FontSize="26" FontWeight="Bold" Foreground="#0F172A"/>
                     <TextBlock Text="Automated SSL/TLS discovery, Let's Encrypt issuance, and IIS bindings" 
-                               FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
+                               FontSize="13" Foreground="#64748B" Margin="0,5,0,0"/>
                 </StackPanel>
 
                 <!-- Refresh Button & Timestamp -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="{Binding LastRefreshed, StringFormat='Synced: {0}'}" 
-                               Foreground="#94A3B8" FontSize="12" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <Button Command="{Binding RefreshCommand}" 
-                            Background="#0284C7" Foreground="#FFFFFF" FontWeight="SemiBold"
-                            BorderThickness="0" Padding="14,8" Cursor="Hand">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="8"/>
-                            </Style>
-                        </Button.Resources>
+                               Foreground="#94A3B8" FontSize="12" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                    <Button Command="{Binding RefreshCommand}" Style="{StaticResource PrimaryActionBtn}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="↻" FontSize="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="↻" FontSize="14" Margin="0,0,6,0" FontWeight="Bold"/>
                             <TextBlock Text="Refresh Status"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
             </Grid>
 
-            <!-- Service Status Banner -->
-            <Border CornerRadius="10" Margin="0,0,0,24" Padding="16,12"
-                    BorderThickness="1">
+            <!-- Service Status Banner with Glowing Pulse Indicator -->
+            <Border CornerRadius="12" Margin="0,0,0,26" Padding="18,14" BorderThickness="1">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Style.Triggers>
@@ -92,21 +243,55 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Status Icon Indicator -->
-                    <Border Grid.Column="0" Width="10" Height="10" CornerRadius="5" Margin="0,0,12,0" VerticalAlignment="Center">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
-                                        <Setter Property="Background" Value="#22C55E"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
-                                        <Setter Property="Background" Value="#EF4444"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                    </Border>
+                    <!-- Breathing Pulse Beacon -->
+                    <Grid Grid.Column="0" Width="22" Height="22" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <!-- Ripple Halo -->
+                        <Ellipse x:Name="RippleHalo" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 RenderTransformOrigin="0.5,0.5">
+                            <Ellipse.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1"/>
+                            </Ellipse.RenderTransform>
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
+                                            <Setter Property="Fill" Value="#86EFAC"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
+                                            <Setter Property="Fill" Value="#FCA5A5"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.3" To="0.9" Duration="0:0:1.4"/>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" From="0.9" To="1.3" Duration="0:0:1.4"/>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" From="0.9" To="1.3" Duration="0:0:1.4"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+
+                        <!-- Solid Center Dot -->
+                        <Ellipse Width="10" Height="10" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
+                                            <Setter Property="Fill" Value="#16A34A"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
+                                            <Setter Property="Fill" Value="#DC2626"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                    </Grid>
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="{Binding StatusMessage}" FontWeight="SemiBold" FontSize="13">
@@ -123,8 +308,8 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                        <TextBlock Text="Named Pipe: CertManager.Ipc • Scheduled renewals operate independently of UI" 
-                                   FontSize="11" Foreground="#64748B"/>
+                        <TextBlock Text="Named Pipe: CertManager.Ipc • Renewals run autonomously without UI active" 
+                                   FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
@@ -139,7 +324,7 @@
             </Border>
 
             <!-- Metrics Cards Grid -->
-            <Grid Margin="0,0,0,28">
+            <Grid Margin="0,0,0,30">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -150,11 +335,11 @@
                 <!-- Card 1: Total Certificates -->
                 <Border Grid.Column="0" Style="{StaticResource MetricCardBorder}">
                     <StackPanel>
-                        <Grid Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,12">
                             <TextBlock Text="TOTAL CERTS" FontSize="11" FontWeight="Bold" Foreground="#64748B"/>
-                            <TextBlock Text="🛡️" HorizontalAlignment="Right" FontSize="16"/>
+                            <TextBlock Text="🛡️" HorizontalAlignment="Right" FontSize="18"/>
                         </Grid>
-                        <TextBlock Text="{Binding TotalCertificates}" FontSize="32" FontWeight="Bold" Foreground="#0F172A"/>
+                        <TextBlock Text="{Binding TotalCertificates}" FontSize="34" FontWeight="Bold" Foreground="#0F172A"/>
                         <TextBlock Text="Active in Windows Store" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
@@ -162,11 +347,11 @@
                 <!-- Card 2: Expiring Soon -->
                 <Border Grid.Column="1" Style="{StaticResource MetricCardBorder}">
                     <StackPanel>
-                        <Grid Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,12">
                             <TextBlock Text="EXPIRING SOON" FontSize="11" FontWeight="Bold" Foreground="#D97706"/>
-                            <TextBlock Text="⚠️" HorizontalAlignment="Right" FontSize="16"/>
+                            <TextBlock Text="⚠️" HorizontalAlignment="Right" FontSize="18"/>
                         </Grid>
-                        <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="32" FontWeight="Bold" Foreground="#D97706"/>
+                        <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="34" FontWeight="Bold" Foreground="#D97706"/>
                         <TextBlock Text="Due within 30 days" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
@@ -174,11 +359,11 @@
                 <!-- Card 3: Active Orders -->
                 <Border Grid.Column="2" Style="{StaticResource MetricCardBorder}">
                     <StackPanel>
-                        <Grid Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,12">
                             <TextBlock Text="ACTIVE ACME ORDERS" FontSize="11" FontWeight="Bold" Foreground="#2563EB"/>
-                            <TextBlock Text="🔄" HorizontalAlignment="Right" FontSize="16"/>
+                            <TextBlock Text="🔄" HorizontalAlignment="Right" FontSize="18"/>
                         </Grid>
-                        <TextBlock Text="{Binding ActiveOrdersCount}" FontSize="32" FontWeight="Bold" Foreground="#2563EB"/>
+                        <TextBlock Text="{Binding ActiveOrdersCount}" FontSize="34" FontWeight="Bold" Foreground="#2563EB"/>
                         <TextBlock Text="In-flight challenges" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
@@ -186,11 +371,11 @@
                 <!-- Card 4: Automated Policy -->
                 <Border Grid.Column="3" Style="{StaticResource MetricCardBorder}" Margin="0">
                     <StackPanel>
-                        <Grid Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,12">
                             <TextBlock Text="RENEWAL POLICY" FontSize="11" FontWeight="Bold" Foreground="#059669"/>
-                            <TextBlock Text="⚡" HorizontalAlignment="Right" FontSize="16"/>
+                            <TextBlock Text="⚡" HorizontalAlignment="Right" FontSize="18"/>
                         </Grid>
-                        <TextBlock Text="ARI + 33%" FontSize="24" FontWeight="Bold" Foreground="#059669" Margin="0,4,0,0"/>
+                        <TextBlock Text="ARI + 33%" FontSize="24" FontWeight="Bold" Foreground="#059669" Margin="0,6,0,0"/>
                         <TextBlock Text="Percentage &amp; ARI window" FontSize="11" Foreground="#94A3B8" Margin="0,8,0,0"/>
                     </StackPanel>
                 </Border>
@@ -199,7 +384,7 @@
             <!-- Quick Action Cards Section -->
             <TextBlock Text="Quick Actions &amp; Lifecycle Management" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,16"/>
             
-            <Grid Margin="0,0,0,24">
+            <Grid Margin="0,0,0,26">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -212,14 +397,7 @@
                         <TextBlock Text="➕ Request Certificate" FontWeight="SemiBold" FontSize="14" Foreground="#0F172A"/>
                         <TextBlock Text="Request a new SSL/TLS certificate via Let's Encrypt using HTTP-01 or DNS-01." 
                                    TextWrapping="Wrap" FontSize="12" Foreground="#64748B" Margin="0,6,0,16"/>
-                        <Button Content="New Certificate Wizard" Background="#F1F5F9" Foreground="#0F172A" 
-                                FontWeight="SemiBold" BorderThickness="0" Padding="12,8" HorizontalAlignment="Left" Cursor="Hand">
-                            <Button.Resources>
-                                <Style TargetType="Border">
-                                    <Setter Property="CornerRadius" Value="6"/>
-                                </Style>
-                            </Button.Resources>
-                        </Button>
+                        <Button Content="New Certificate Wizard" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
 
@@ -229,14 +407,7 @@
                         <TextBlock Text="🔍 Discover IIS Sites" FontWeight="SemiBold" FontSize="14" Foreground="#0F172A"/>
                         <TextBlock Text="Scan local Microsoft IIS web server for existing sites, hostnames, and HTTPS bindings." 
                                    TextWrapping="Wrap" FontSize="12" Foreground="#64748B" Margin="0,6,0,16"/>
-                        <Button Content="Scan IIS Web Server" Background="#F1F5F9" Foreground="#0F172A" 
-                                FontWeight="SemiBold" BorderThickness="0" Padding="12,8" HorizontalAlignment="Left" Cursor="Hand">
-                            <Button.Resources>
-                                <Style TargetType="Border">
-                                    <Setter Property="CornerRadius" Value="6"/>
-                                </Style>
-                            </Button.Resources>
-                        </Button>
+                        <Button Content="Scan IIS Web Server" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
 
@@ -246,14 +417,7 @@
                         <TextBlock Text="📋 Test ACME Staging" FontWeight="SemiBold" FontSize="14" Foreground="#0F172A"/>
                         <TextBlock Text="Validate end-to-end issuance without hitting Let's Encrypt production rate limits." 
                                    TextWrapping="Wrap" FontSize="12" Foreground="#64748B" Margin="0,6,0,16"/>
-                        <Button Content="Run Staging Pre-flight" Background="#F1F5F9" Foreground="#0F172A" 
-                                FontWeight="SemiBold" BorderThickness="0" Padding="12,8" HorizontalAlignment="Left" Cursor="Hand">
-                            <Button.Resources>
-                                <Style TargetType="Border">
-                                    <Setter Property="CornerRadius" Value="6"/>
-                                </Style>
-                            </Button.Resources>
-                        </Button>
+                        <Button Content="Run Staging Pre-flight" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
             </Grid>
