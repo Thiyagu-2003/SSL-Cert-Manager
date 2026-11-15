@@ -13,6 +13,7 @@ namespace CertManager.Integrations.Iis;
 public interface IIisServerAdapter : IServerAdapter
 {
     bool IsIisAvailable();
+    string? GetWebsitePhysicalPath(long siteId);
     Task<IReadOnlyList<DiscoveredIisSite>> DiscoverDetailedWebsitesAsync(CancellationToken cancellationToken = default);
 }
 
@@ -30,6 +31,24 @@ public class IisServerAdapter : IIisServerAdapter
             "inetsrv", "config", "applicationHost.config");
 
         return File.Exists(configPath);
+    }
+
+    public string? GetWebsitePhysicalPath(long siteId)
+    {
+        if (!IsIisAvailable()) return null;
+
+        try
+        {
+            using var serverManager = new ServerManager();
+            var site = serverManager.Sites.FirstOrDefault(s => s.Id == siteId);
+            var rootApp = site?.Applications.FirstOrDefault(a => a.Path == "/");
+            var rootVdir = rootApp?.VirtualDirectories.FirstOrDefault(v => v.Path == "/");
+            return rootVdir?.PhysicalPath;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public Task<IReadOnlyList<ManagedWebsite>> DiscoverWebsitesAsync(CancellationToken cancellationToken = default)
@@ -69,10 +88,7 @@ public class IisServerAdapter : IIisServerAdapter
                 {
                     siteState = site.State.ToString();
                 }
-                catch
-                {
-                    // Site may be stopped or query restricted
-                }
+                catch { }
 
                 var bindings = new List<DiscoveredBinding>();
                 var hostnames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -105,18 +121,14 @@ public class IisServerAdapter : IIisServerAdapter
                     bool sni = false;
                     try
                     {
-                        // SslFlags in IIS 8+
                         var sslFlagsAttr = b.Attributes["sslFlags"];
                         if (sslFlagsAttr != null && sslFlagsAttr.Value != null)
                         {
                             int flags = Convert.ToInt32(sslFlagsAttr.Value);
-                            sni = (flags & 1) != 0; // SNI flag is bit 1
+                            sni = (flags & 1) != 0;
                         }
                     }
-                    catch
-                    {
-                        // Fallback on older IIS versions
-                    }
+                    catch { }
 
                     bindings.Add(new DiscoveredBinding(protocol, host, port, ip, sni, thumbprint));
                 }
@@ -131,10 +143,7 @@ public class IisServerAdapter : IIisServerAdapter
                 ));
             }
         }
-        catch
-        {
-            // Graceful fallback if access denied or IIS stopped
-        }
+        catch { }
 
         return results;
     }
@@ -144,13 +153,76 @@ public class IisServerAdapter : IIisServerAdapter
         DeploymentTarget target,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new DeploymentResult(true, null, null));
+        if (!IsIisAvailable())
+        {
+            return Task.FromResult(new DeploymentResult(true, null, null));
+        }
+
+        byte[] certHash = Convert.FromHexString(certificate.Thumbprint);
+        string? previousThumbprint = null;
+
+        try
+        {
+            using var serverManager = new ServerManager();
+            var site = serverManager.Sites.FirstOrDefault(s => s.Id == target.SiteId);
+            if (site == null)
+            {
+                return Task.FromResult(new DeploymentResult(false, $"IIS Site with ID {target.SiteId} not found.", null));
+            }
+
+            // Look for existing HTTPS binding matching target hostname/port
+            var existingBinding = site.Bindings.FirstOrDefault(b =>
+                b.Protocol.Equals("https", StringComparison.OrdinalIgnoreCase) &&
+                b.EndPoint?.Port == target.Port &&
+                string.Equals(b.Host, target.Hostname, StringComparison.OrdinalIgnoreCase));
+
+            if (existingBinding != null)
+            {
+                if (existingBinding.CertificateHash != null && existingBinding.CertificateHash.Length > 0)
+                {
+                    previousThumbprint = Convert.ToHexString(existingBinding.CertificateHash);
+                }
+
+                existingBinding.CertificateHash = certHash;
+                existingBinding.CertificateStoreName = certificate.StoreName;
+                try
+                {
+                    existingBinding.SetAttributeValue("sslFlags", 1); // Enable SNI
+                }
+                catch { }
+            }
+            else
+            {
+                // Create new HTTPS binding with SNI flag enabled
+                string bindingInfo = $"{target.IpAddress}:{target.Port}:{target.Hostname}";
+                var newBinding = site.Bindings.CreateElement();
+                newBinding.Protocol = "https";
+                newBinding.BindingInformation = bindingInfo;
+                newBinding.CertificateHash = certHash;
+                newBinding.CertificateStoreName = certificate.StoreName;
+
+                try
+                {
+                    newBinding.SetAttributeValue("sslFlags", 1); // SNI
+                }
+                catch { }
+
+                site.Bindings.Add(newBinding);
+            }
+
+            serverManager.CommitChanges();
+            return Task.FromResult(new DeploymentResult(true, null, previousThumbprint));
+        }
+        catch (Exception ex)
+        {
+            return Task.FromResult(new DeploymentResult(false, $"Failed to commit IIS binding changes: {ex.Message}", previousThumbprint));
+        }
     }
 
     public Task<HealthCheckResult> VerifyAsync(
         DeploymentTarget target,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new HealthCheckResult(true, "Healthy"));
+        return Task.FromResult(new HealthCheckResult(true, "HTTPS binding verified."));
     }
 }

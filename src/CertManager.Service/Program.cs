@@ -1,9 +1,14 @@
 using System;
 using System.IO;
+using CertManager.Acme.Clients;
+using CertManager.Core.Interfaces;
+using CertManager.Infrastructure.Certificates;
 using CertManager.Infrastructure.Data;
 using CertManager.Integrations.Iis;
+using CertManager.Integrations.Iis.Challenges;
 using CertManager.Service;
 using CertManager.Service.Services;
+using CertManager.Service.Workflows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,6 +42,10 @@ builder.Services.AddDbContext<CertManagerDbContext>(options =>
 
 builder.Services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
 builder.Services.AddSingleton<IIisServerAdapter, IisServerAdapter>();
+builder.Services.AddSingleton<IHttp01ChallengeResponder, Http01ChallengeResponder>();
+builder.Services.AddSingleton<IAcmeCertificateClient, CertesAcmeClient>();
+builder.Services.AddSingleton<ICertificateInstaller, WindowsCertificateInstaller>();
+builder.Services.AddSingleton<ICertificateIssuanceWorkflow, CertificateIssuanceWorkflow>();
 
 // Hosted background services
 builder.Services.AddHostedService<Worker>();

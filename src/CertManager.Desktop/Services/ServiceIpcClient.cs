@@ -62,4 +62,42 @@ public class ServiceIpcClient
 
         return Array.Empty<DiscoveredIisSite>();
     }
+
+    public async Task<CertificateRequestStatusResult?> RequestCertificateAsync(
+        CertificateRequestModel requestModel,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var request = new IpcRequest
+            {
+                Action = "RequestCertificate",
+                PayloadJson = JsonSerializer.Serialize(requestModel)
+            };
+
+            var response = await _client.SendAsync(request, cancellationToken);
+            if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
+            {
+                return JsonSerializer.Deserialize<CertificateRequestStatusResult>(
+                    response.PayloadJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+
+            return new CertificateRequestStatusResult
+            {
+                Success = false,
+                Step = "IPC Communication",
+                ErrorMessage = response.ErrorMessage ?? "Unknown service error."
+            };
+        }
+        catch (Exception ex)
+        {
+            return new CertificateRequestStatusResult
+            {
+                Success = false,
+                Step = "Connection",
+                ErrorMessage = $"Failed to communicate with CertFlow background service: {ex.Message}"
+            };
+        }
+    }
 }

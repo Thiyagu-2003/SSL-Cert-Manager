@@ -2,10 +2,12 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using CertManager.Core.Models;
 using CertManager.Desktop.Common;
 using CertManager.Desktop.Services;
+using CertManager.Desktop.Views;
 
 namespace CertManager.Desktop.ViewModels;
 
@@ -23,6 +25,13 @@ public class WebsitesViewModel : ViewModelBase
         _ipcClient = new ServiceIpcClient();
         Sites = new ObservableCollection<DiscoveredIisSite>();
         ScanCommand = new RelayCommand(async () => await ScanWebsitesAsync());
+        RequestCertificateCommand = new RelayCommand(param =>
+        {
+            if (param is DiscoveredIisSite site)
+            {
+                OpenCertificateWizard(site);
+            }
+        });
 
         _ = ScanWebsitesAsync();
     }
@@ -60,6 +69,22 @@ public class WebsitesViewModel : ViewModelBase
     }
 
     public ICommand ScanCommand { get; }
+    public ICommand RequestCertificateCommand { get; }
+
+    public void OpenCertificateWizard(DiscoveredIisSite site)
+    {
+        string defaultDomain = site.Hostnames.FirstOrDefault() ?? $"{site.SiteName.ToLowerInvariant().Replace(" ", "-")}.com";
+        var wizardVm = new CertificateWizardViewModel(site.SiteId, site.SiteName, defaultDomain);
+        var window = new CertificateWizardWindow(wizardVm)
+        {
+            Owner = Application.Current.MainWindow
+        };
+
+        window.ShowDialog();
+
+        // Refresh sites after dialog closes
+        _ = ScanWebsitesAsync();
+    }
 
     public async Task ScanWebsitesAsync()
     {

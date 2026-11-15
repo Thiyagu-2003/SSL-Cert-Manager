@@ -12,6 +12,7 @@ using CertManager.Core.Models;
 using CertManager.Infrastructure.Data;
 using CertManager.Infrastructure.Ipc;
 using CertManager.Integrations.Iis;
+using CertManager.Service.Workflows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,6 +24,7 @@ public class IpcHostService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IIisServerAdapter _iisAdapter;
+    private readonly ICertificateIssuanceWorkflow _issuanceWorkflow;
     private readonly ILogger<IpcHostService> _logger;
     private readonly DateTime _startTimeUtc = DateTime.UtcNow;
 
@@ -31,10 +33,12 @@ public class IpcHostService : BackgroundService
     public IpcHostService(
         IServiceProvider serviceProvider,
         IIisServerAdapter iisAdapter,
+        ICertificateIssuanceWorkflow issuanceWorkflow,
         ILogger<IpcHostService> logger)
     {
         _serviceProvider = serviceProvider;
         _iisAdapter = iisAdapter;
+        _issuanceWorkflow = issuanceWorkflow;
         _logger = logger;
     }
 
@@ -88,10 +92,8 @@ public class IpcHostService : BackgroundService
 
             case "GetWebsites":
             {
-                // Run discovery via IIS adapter
                 var discovered = await _iisAdapter.DiscoverDetailedWebsitesAsync();
 
-                // Sync discovered websites with SQLite database
                 try
                 {
                     foreach (var d in discovered)
@@ -140,6 +142,27 @@ public class IpcHostService : BackgroundService
                 }
 
                 return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(discovered));
+            }
+
+            case "RequestCertificate":
+            {
+                if (string.IsNullOrWhiteSpace(request.PayloadJson))
+                {
+                    return IpcResponse.Fail(request.RequestId, "Request payload cannot be empty.");
+                }
+
+                var requestModel = JsonSerializer.Deserialize<CertificateRequestModel>(request.PayloadJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (requestModel == null)
+                {
+                    return IpcResponse.Fail(request.RequestId, "Malformed CertificateRequestModel JSON payload.");
+                }
+
+                var result = await _issuanceWorkflow.ExecuteAsync(requestModel);
+                return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(result));
             }
 
             case "GetCertificates":
