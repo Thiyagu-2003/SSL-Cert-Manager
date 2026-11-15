@@ -10,7 +10,7 @@ public class LogoGeneratorTests
     [Fact]
     public void GenerateCertFlowAssets()
     {
-        string assetsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../src/CertManager.Desktop/Assets"));
+        string assetsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../src/CertManager.Desktop/Assets"));
         Directory.CreateDirectory(assetsDir);
 
         // SVG Logo of Concept 1: The Infinity Shield
@@ -122,17 +122,51 @@ public class LogoGeneratorTests
             }
         }
 
-        // Draw an inner lock / wave accent
-        for (int y = 18; y <= 30; y++)
+        // Draw an inner lock / shackle
+        for (int y = 14; y <= 26; y++)
         {
             for (int x = 18; x <= 30; x++)
             {
                 int index = (y * width + x) * 4;
-                if ((x >= 22 && x <= 26 && y >= 22 && y <= 28) || (y == 22 && x >= 20 && x <= 28))
+                if ((x >= 22 && x <= 26 && y >= 18 && y <= 24) || (y == 16 && x >= 20 && x <= 28))
                 {
                     xorMask[index + 0] = 255; // White
                     xorMask[index + 1] = 255;
                     xorMask[index + 2] = 255;
+                    xorMask[index + 3] = 255;
+                }
+            }
+        }
+
+        // Draw the prominent verified security checkmark in bright mint (#00F5A0)
+        for (int i = 0; i < 5; i++)
+        {
+            int cx = 19 + i;
+            int cy = 29 + i;
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                int index = ((cy + dy) * width + cx) * 4;
+                if (index >= 0 && index + 3 < xorMask.Length)
+                {
+                    xorMask[index + 0] = 160;
+                    xorMask[index + 1] = 245;
+                    xorMask[index + 2] = 0;
+                    xorMask[index + 3] = 255;
+                }
+            }
+        }
+        for (int i = 0; i < 11; i++)
+        {
+            int cx = 24 + i;
+            int cy = 34 - i;
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                int index = ((cy + dy) * width + cx) * 4;
+                if (index >= 0 && index + 3 < xorMask.Length)
+                {
+                    xorMask[index + 0] = 160;
+                    xorMask[index + 1] = 245;
+                    xorMask[index + 2] = 0;
                     xorMask[index + 3] = 255;
                 }
             }

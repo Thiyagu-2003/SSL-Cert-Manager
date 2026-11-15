@@ -2,8 +2,28 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:CertManager.Desktop"
+             xmlns:views="clr-namespace:CertManager.Desktop.Views"
+             xmlns:vm="clr-namespace:CertManager.Desktop.ViewModels"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <!-- Application-Wide Implicit View-ViewModel Mappings -->
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+            <views:DashboardView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:WebsitesViewModel}">
+            <views:WebsitesView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CertificatesViewModel}">
+            <views:CertificatesView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ProfilesViewModel}">
+            <views:ProfilesView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AcmeAccountsViewModel}">
+            <views:AcmeAccountsView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LogsViewModel}">
+            <views:LogsView/>
+        </DataTemplate>
     </Application.Resources>
 </Application>
