@@ -22,6 +22,7 @@ public class CertManagerDbContext : DbContext
     public DbSet<IisWebsite> IisWebsites => Set<IisWebsite>();
     public DbSet<IisBinding> IisBindings => Set<IisBinding>();
     public DbSet<OperationHistory> OperationHistories => Set<OperationHistory>();
+    public DbSet<NotificationRecord> Notifications => Set<NotificationRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

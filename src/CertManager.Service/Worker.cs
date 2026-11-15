@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 using CertManager.Core.Common;
 using CertManager.Core.Entities;
 using CertManager.Core.Enums;
+using CertManager.Core.Interfaces;
 using CertManager.Core.Models;
 using CertManager.Infrastructure.Data;
+using CertManager.Infrastructure.Notifications;
+using CertManager.Service.Services;
 using CertManager.Service.Workflows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,7 +46,7 @@ public class Worker : BackgroundService
             _logger.LogError(ex, "Failed to initialize database on startup.");
         }
 
-        // Periodic maintenance loop (renewal checks & expired lock reclamation)
+        // Periodic maintenance loop (renewal checks, monitoring & site discovery)
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -67,6 +70,8 @@ public class Worker : BackgroundService
         using var scope = _serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<CertManagerDbContext>();
         var workflow = scope.ServiceProvider.GetRequiredService<ICertificateIssuanceWorkflow>();
+        var notifier = scope.ServiceProvider.GetRequiredService<INotificationProvider>();
+        var discoveryEngine = scope.ServiceProvider.GetRequiredService<ISiteAutoDiscoveryEngine>();
 
         var now = DateTime.UtcNow;
 
@@ -82,7 +87,7 @@ public class Worker : BackgroundService
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        // 2. Scan active certificates for automated background renewal
+        // 2. Scan active certificates for automated background renewal & expiry monitoring
         var activeCerts = await db.Certificates
             .Include(c => c.Profile)
             .Where(c => c.Status == CertManager.Core.Enums.CertificateStatus.Active)
@@ -91,6 +96,16 @@ public class Worker : BackgroundService
         foreach (var cert in activeCerts)
         {
             if (cancellationToken.IsCancellationRequested) break;
+
+            // Expiry alert: notify if expiring in less than 14 days
+            if ((cert.NotAfter - now).TotalDays <= 14)
+            {
+                await notifier.SendAsync(new NotificationMessage(
+                    "Certificate Expiring Soon",
+                    $"Certificate for {cert.Subject} expires on {cert.NotAfter:yyyy-MM-dd HH:mm UTC} (in {(cert.NotAfter - now).TotalDays:F1} days). Automated renewal scheduled.",
+                    "Warning"
+                ), cancellationToken);
+            }
 
             bool isDue = RenewalPolicyEvaluator.ShouldRenew(cert, cert.Profile, now);
             if (!isDue) continue;
@@ -120,16 +135,15 @@ public class Worker : BackgroundService
             db.WorkflowLocks.Add(renewalLock);
             await db.SaveChangesAsync(cancellationToken);
 
+            string domain = cert.Subject.Replace("CN=", "").Trim();
+            if (string.IsNullOrEmpty(domain))
+            {
+                domain = cert.Profile?.ProfileName ?? "example.com";
+            }
+
             try
             {
                 _logger.LogInformation("Initiating autonomous background renewal for certificate {Thumbprint} (expires {NotAfter})", cert.Thumbprint, cert.NotAfter);
-
-                // Determine target domain from subject or profile
-                string domain = cert.Subject.Replace("CN=", "").Trim();
-                if (string.IsNullOrEmpty(domain))
-                {
-                    domain = cert.Profile?.ProfileName ?? "example.com";
-                }
 
                 // Find associated IIS site if any
                 var boundSite = await db.IisBindings
@@ -144,7 +158,7 @@ public class Worker : BackgroundService
                     DomainName = domain,
                     ContactEmail = $"admin@{domain.TrimStart('*', '.')}",
                     IsStaging = cert.Issuer.Contains("Staging", StringComparison.OrdinalIgnoreCase),
-                    ValidationMethod = "Http01"
+                    ValidationMethod = cert.Profile?.DefaultValidationMethod == ValidationMethod.Dns01 ? "Dns01" : "Http01"
                 };
 
                 var result = await workflow.ExecuteAsync(renewalRequest, cancellationToken);
@@ -155,10 +169,22 @@ public class Worker : BackgroundService
                     cert.Status = CertManager.Core.Enums.CertificateStatus.Archived;
                     cert.RetainUntil = now.AddDays(14); // Keep old certificate record archived for 14 days safety period
                     await db.SaveChangesAsync(cancellationToken);
+
+                    await notifier.SendAsync(new NotificationMessage(
+                        "Certificate Renewed Successfully",
+                        $"Autonomous renewal completed for {domain}. New Thumbprint: {result.Thumbprint}, Valid until {result.ExpiresAt:yyyy-MM-dd}.",
+                        "Info"
+                    ), cancellationToken);
                 }
                 else
                 {
                     _logger.LogWarning("Autonomous background renewal failed for {Domain}: {Error}", domain, result.ErrorMessage);
+
+                    await notifier.SendAsync(new NotificationMessage(
+                        "Certificate Renewal Failed",
+                        $"Automated renewal attempt failed for {domain}: {result.ErrorMessage}. Will retry on next schedule cycle.",
+                        "Error"
+                    ), cancellationToken);
                 }
             }
             catch (Exception ex)
@@ -175,6 +201,20 @@ public class Worker : BackgroundService
                     await db.SaveChangesAsync(cancellationToken);
                 }
             }
+        }
+
+        // 3. Site Auto-Discovery: Check for newly added IIS websites
+        try
+        {
+            var proposals = await discoveryEngine.EvaluateNewWebsitesAsync(autoDeployIfPolicyEnabled: true, cancellationToken);
+            if (proposals.Count > 0)
+            {
+                _logger.LogInformation("Discovered {Count} newly created or unconfigured IIS websites matching active certificates.", proposals.Count);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error occurred during IIS site auto-discovery sweep.");
         }
     }
 }

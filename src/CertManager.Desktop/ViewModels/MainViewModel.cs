@@ -13,6 +13,7 @@ public class MainViewModel : ViewModelBase
         DashboardVM = new DashboardViewModel();
         WebsitesVM = new WebsitesViewModel();
         CertificatesVM = new CertificatesViewModel();
+        LogsVM = new LogsViewModel();
 
         _currentView = DashboardVM;
 
@@ -35,6 +36,10 @@ public class MainViewModel : ViewModelBase
                         CurrentView = CertificatesVM;
                         _ = CertificatesVM.LoadCertificatesAsync();
                         break;
+                    case "Logs":
+                        CurrentView = LogsVM;
+                        _ = LogsVM.LoadLogsAsync();
+                        break;
                     default:
                         CurrentView = DashboardVM;
                         break;
@@ -46,6 +51,7 @@ public class MainViewModel : ViewModelBase
     public DashboardViewModel DashboardVM { get; }
     public WebsitesViewModel WebsitesVM { get; }
     public CertificatesViewModel CertificatesVM { get; }
+    public LogsViewModel LogsVM { get; }
 
     public object CurrentView
     {

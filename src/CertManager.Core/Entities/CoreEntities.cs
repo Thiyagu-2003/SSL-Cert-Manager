@@ -191,3 +191,15 @@ public class OperationHistory
     public DateTime StartedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
 }
+
+public class NotificationRecord
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Channel { get; set; } = string.Empty; // "Email", "Telegram", "EventLog"
+    public string Level { get; set; } = "Info"; // "Info", "Warning", "Error"
+    public string Subject { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
+    public bool Delivered { get; set; }
+    public string? ErrorMessage { get; set; }
+    public DateTime SentAt { get; set; } = DateTime.UtcNow;
+}

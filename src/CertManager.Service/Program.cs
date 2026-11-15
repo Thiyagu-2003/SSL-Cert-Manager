@@ -4,6 +4,8 @@ using CertManager.Acme.Clients;
 using CertManager.Core.Interfaces;
 using CertManager.Infrastructure.Certificates;
 using CertManager.Infrastructure.Data;
+using CertManager.Infrastructure.Monitoring;
+using CertManager.Infrastructure.Notifications;
 using CertManager.Integrations.Iis;
 using CertManager.Integrations.Iis.Challenges;
 using CertManager.Service;
@@ -46,6 +48,9 @@ builder.Services.AddSingleton<IHttp01ChallengeResponder, Http01ChallengeResponde
 builder.Services.AddSingleton<IAcmeCertificateClient, CertesAcmeClient>();
 builder.Services.AddSingleton<ICertificateInstaller, WindowsCertificateInstaller>();
 builder.Services.AddSingleton<ICertificateIssuanceWorkflow, CertificateIssuanceWorkflow>();
+builder.Services.AddSingleton<IHttpsHealthChecker, HttpsHealthChecker>();
+builder.Services.AddScoped<INotificationProvider, NotificationDispatcher>();
+builder.Services.AddScoped<ISiteAutoDiscoveryEngine, SiteAutoDiscoveryEngine>();
 
 // Hosted background services
 builder.Services.AddHostedService<Worker>();

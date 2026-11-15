@@ -173,6 +173,16 @@ public class IpcHostService : BackgroundService
                 return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(certs));
             }
 
+            case "GetNotifications":
+            {
+                var logs = await db.Notifications
+                    .AsNoTracking()
+                    .OrderByDescending(n => n.SentAt)
+                    .Take(100)
+                    .ToListAsync();
+                return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(logs));
+            }
+
             default:
                 return IpcResponse.Fail(request.RequestId, $"Unknown action '{request.Action}'.");
         }

@@ -86,6 +86,28 @@ public class ServiceIpcClient
         return Array.Empty<CertificateRecord>();
     }
 
+    public async Task<IReadOnlyList<NotificationRecord>> GetNotificationsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var request = new IpcRequest { Action = "GetNotifications" };
+            var response = await _client.SendAsync(request, cancellationToken);
+
+            if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
+            {
+                return JsonSerializer.Deserialize<List<NotificationRecord>>(
+                    response.PayloadJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<NotificationRecord>();
+            }
+        }
+        catch
+        {
+            // Service offline or error
+        }
+
+        return Array.Empty<NotificationRecord>();
+    }
+
     public async Task<CertificateRequestStatusResult?> RequestCertificateAsync(
         CertificateRequestModel requestModel,
         CancellationToken cancellationToken = default)

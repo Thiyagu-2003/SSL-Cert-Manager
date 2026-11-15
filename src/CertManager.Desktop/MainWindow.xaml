@@ -168,7 +168,19 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Style="{StaticResource SidebarNavBtn}" Command="{Binding NavigateCommand}" CommandParameter="Logs">
+                    <!-- Activity Logs Nav Button -->
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="Logs">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SidebarNavBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveSection}" Value="Logs">
+                                        <Setter Property="Background" Value="#0284C7"/>
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📋" Margin="0,0,10,0"/>
                             <TextBlock Text="Activity Logs"/>
@@ -211,6 +223,10 @@
                 <!-- Certificates Inventory Mapping -->
                 <DataTemplate DataType="{x:Type vm:CertificatesViewModel}">
                     <views:CertificatesView/>
+                </DataTemplate>
+                <!-- Activity Logs Mapping -->
+                <DataTemplate DataType="{x:Type vm:LogsViewModel}">
+                    <views:LogsView/>
                 </DataTemplate>
             </ContentControl.Resources>
         </ContentControl>
