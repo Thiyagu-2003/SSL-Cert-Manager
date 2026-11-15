@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using CertManager.Core.Entities;
 using CertManager.Core.Ipc;
 using CertManager.Core.Models;
 using CertManager.Infrastructure.Ipc;
@@ -61,6 +62,28 @@ public class ServiceIpcClient
         }
 
         return Array.Empty<DiscoveredIisSite>();
+    }
+
+    public async Task<IReadOnlyList<CertificateRecord>> GetCertificatesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var request = new IpcRequest { Action = "GetCertificates" };
+            var response = await _client.SendAsync(request, cancellationToken);
+
+            if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
+            {
+                return JsonSerializer.Deserialize<List<CertificateRecord>>(
+                    response.PayloadJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<CertificateRecord>();
+            }
+        }
+        catch
+        {
+            // Service offline or error
+        }
+
+        return Array.Empty<CertificateRecord>();
     }
 
     public async Task<CertificateRequestStatusResult?> RequestCertificateAsync(
