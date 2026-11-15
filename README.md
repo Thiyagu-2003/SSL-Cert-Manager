@@ -47,11 +47,17 @@ CertFlow uses a clean, decoupled architecture:
 
 ## 🚀 Quick Start
 
-### 1. Pre-built Executables
-Single-file executables are available directly in the `dist/` directory:
+### 1. True Single-File Executable (All-in-One)
+CertFlow is packaged as a **100% self-contained single `.exe`** with zero external dependencies, no pre-requisite .NET install required, and no companion DLLs:
 
-- **Desktop UI**: `dist/CertFlow/CertFlow.exe`
-- **Background Service**: `dist/CertFlow/Service/CertManager.Service.exe`
+- **Download**: [dist/CertFlow/CertFlow.exe](dist/CertFlow/CertFlow.exe) (verified in [SHA256SUMS.txt](dist/CertFlow/SHA256SUMS.txt))
+
+| Mode | Command / Action | Description |
+|---|---|---|
+| **Interactive GUI** | Double-click `CertFlow.exe` | Launches the hardware-accelerated WPF application with fluid transitions. If the Windows service is not running, click **⚡ Start In-Process Engine** on the dashboard to run renewals in-app. |
+| **Install Service** | `CertFlow.exe --install-service` | Automatically registers and starts CertFlow as an automatic 24/7 Windows Service via `sc.exe`. |
+| **Run Service** | `CertFlow.exe --service` | Runs the headless background engine directly (used by Windows Service Manager). |
+| **Uninstall Service** | `CertFlow.exe --uninstall-service` | Gracefully stops and deletes the Windows Service registration. |
 
 ### 2. Building from Source
 Ensure [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) is installed.
@@ -64,14 +70,11 @@ cd CertFlow
 # Build the entire solution
 dotnet build
 
-# Run unit tests
+# Run unit tests (50 tests passing)
 dotnet test
 
-# Launch the Background Service (Terminal 1)
-dotnet run --project src/CertManager.Service
-
-# Launch the Desktop UI (Terminal 2)
-dotnet run --project src/CertManager.Desktop
+# Publish standalone True Single EXE
+dotnet publish src/CertManager.Desktop/CertManager.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o ./dist/CertFlow/
 ```
 
 ---

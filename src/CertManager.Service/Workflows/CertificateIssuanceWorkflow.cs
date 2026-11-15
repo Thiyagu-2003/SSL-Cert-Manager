@@ -16,6 +16,7 @@ using CertManager.Integrations.Dns;
 using CertManager.Integrations.Iis;
 using CertManager.Integrations.Iis.Challenges;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace CertManager.Service.Workflows;

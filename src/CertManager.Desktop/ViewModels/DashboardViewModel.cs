@@ -4,6 +4,8 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using CertManager.Desktop.Common;
 using CertManager.Desktop.Services;
+using CertManager.Service;
+using Microsoft.Extensions.Hosting;
 
 namespace CertManager.Desktop.ViewModels;
 
@@ -11,6 +13,7 @@ public class DashboardViewModel : ViewModelBase
 {
     private readonly ServiceIpcClient _ipcClient;
     private readonly DispatcherTimer _pollTimer;
+    private IHost? _inProcessHost;
 
     private bool _isServiceConnected;
     private string _statusMessage = "Connecting to background service...";
@@ -26,6 +29,7 @@ public class DashboardViewModel : ViewModelBase
     {
         _ipcClient = new ServiceIpcClient();
         RefreshCommand = new RelayCommand(async () => await RefreshStatusAsync());
+        StartEngineCommand = new RelayCommand(async () => await StartInProcessEngineAsync());
 
         // Polling timer to update connection and stats
         _pollTimer = new DispatcherTimer
@@ -93,6 +97,24 @@ public class DashboardViewModel : ViewModelBase
     }
 
     public ICommand RefreshCommand { get; }
+    public ICommand StartEngineCommand { get; }
+
+    public async Task StartInProcessEngineAsync()
+    {
+        if (_inProcessHost != null) return;
+        try
+        {
+            StatusMessage = "Starting in-process background engine...";
+            _inProcessHost = ServiceHostBuilder.BuildHost();
+            await _inProcessHost.StartAsync();
+            await Task.Delay(500);
+            await RefreshStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to start engine: {ex.Message}";
+        }
+    }
 
     public async Task RefreshStatusAsync()
     {

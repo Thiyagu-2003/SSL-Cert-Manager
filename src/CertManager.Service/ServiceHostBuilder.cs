@@ -1,0 +1,65 @@
+using System;
+using System.IO;
+using CertManager.Acme.Clients;
+using CertManager.Core.Interfaces;
+using CertManager.Infrastructure.Certificates;
+using CertManager.Infrastructure.Data;
+using CertManager.Infrastructure.Monitoring;
+using CertManager.Infrastructure.Notifications;
+using CertManager.Integrations.Iis;
+using CertManager.Integrations.Iis.Challenges;
+using CertManager.Service.Services;
+using CertManager.Service.Workflows;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+namespace CertManager.Service;
+
+public static class ServiceHostBuilder
+{
+    public static IHost BuildHost(string[]? args = null)
+    {
+        var builder = Host.CreateApplicationBuilder(args ?? Array.Empty<string>());
+
+        // Configure database path in CommonApplicationData (e.g. C:\ProgramData\CertManager\certmanager.db)
+        string appDataDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "CertManager");
+
+        if (!Directory.Exists(appDataDir))
+        {
+            try
+            {
+                Directory.CreateDirectory(appDataDir);
+            }
+            catch
+            {
+                appDataDir = AppContext.BaseDirectory;
+            }
+        }
+
+        string dbPath = Path.Combine(appDataDir, "certmanager.db");
+
+        builder.Services.AddDbContext<CertManagerDbContext>(options =>
+        {
+            options.UseSqlite($"Data Source={dbPath}");
+        });
+
+        builder.Services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
+        builder.Services.AddSingleton<IIisServerAdapter, IisServerAdapter>();
+        builder.Services.AddSingleton<IHttp01ChallengeResponder, Http01ChallengeResponder>();
+        builder.Services.AddSingleton<IAcmeCertificateClient, CertesAcmeClient>();
+        builder.Services.AddSingleton<ICertificateInstaller, WindowsCertificateInstaller>();
+        builder.Services.AddSingleton<ICertificateIssuanceWorkflow, CertificateIssuanceWorkflow>();
+        builder.Services.AddSingleton<IHttpsHealthChecker, HttpsHealthChecker>();
+        builder.Services.AddScoped<INotificationProvider, NotificationDispatcher>();
+        builder.Services.AddScoped<ISiteAutoDiscoveryEngine, SiteAutoDiscoveryEngine>();
+
+        // Hosted background services
+        builder.Services.AddHostedService<Worker>();
+        builder.Services.AddHostedService<IpcHostService>();
+
+        return builder.Build();
+    }
+}

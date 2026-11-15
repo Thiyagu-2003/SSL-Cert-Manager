@@ -1,10 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>dotnet-CertManager.Service-ce066069-fb60-45a0-84c8-eed8d0a69176</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

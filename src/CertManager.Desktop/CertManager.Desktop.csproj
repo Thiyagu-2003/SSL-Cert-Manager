@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CertManager.Core\CertManager.Core.csproj" />
     <ProjectReference Include="..\CertManager.Infrastructure\CertManager.Infrastructure.csproj" />
+    <ProjectReference Include="..\CertManager.Service\CertManager.Service.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -14,7 +15,15 @@
     <AssemblyName>CertFlow</AssemblyName>
     <Product>CertFlow</Product>
     <Title>CertFlow — Automated SSL/TLS Lifecycle Manager</Title>
+    <StartupObject>CertManager.Desktop.Program</StartupObject>
     <ApplicationIcon>Assets\certflow.ico</ApplicationIcon>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
