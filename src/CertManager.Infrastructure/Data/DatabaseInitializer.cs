@@ -1,0 +1,26 @@
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+
+namespace CertManager.Infrastructure.Data;
+
+public interface IDatabaseInitializer
+{
+    Task InitializeAsync(CancellationToken cancellationToken = default);
+}
+
+public class DatabaseInitializer : IDatabaseInitializer
+{
+    private readonly CertManagerDbContext _context;
+
+    public DatabaseInitializer(CertManagerDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task InitializeAsync(CancellationToken cancellationToken = default)
+    {
+        await _context.Database.EnsureCreatedAsync(cancellationToken);
+    }
+}
