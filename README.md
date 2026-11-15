@@ -103,16 +103,20 @@ dotnet run --project src/CertManager.Desktop
   - SQLite database with idempotency and workflow locking
   - Length-prefixed Named Pipe IPC with Windows role authorization
   - Modern animated WPF dashboard and status monitor
-- [ ] **Phase 2: IIS Discovery & Site Enumeration** *(Next Up)*
+- [x] **Phase 2: IIS Discovery & Site Enumeration**
   - Non-destructive site discovery via `Microsoft.Web.Administration`
   - Identification of existing hostnames, ports, and HTTPS bindings
   - Detection of unencrypted HTTP sites needing certificates
-- [ ] **Phase 3: ACME Staging Issuance (HTTP-01)**
-  - Let's Encrypt staging order creation and challenge response
-- [ ] **Phase 4: IIS Deployment & Rollback**
-  - Transactional binding installation with automatic fallback
+- [x] **Phase 3: ACME Issuance Engine (HTTP-01)**
+  - RFC 8555 client protocol integration (`Certes`)
+  - Let's Encrypt Staging and Production directory switching
+  - Non-intrusive `.well-known/acme-challenge` HTTP-01 responder with web.config MIME mapping
+- [x] **Phase 4: IIS Deployment & Rollback**
+  - Transactional HTTPS binding installation on port 443 with SNI
+  - Automatic rollback to previous certificate if commit fails
+  - Interactive Desktop Certificate Wizard modal dialog
 - [ ] **Phase 5: Automated Background Renewals**
-  - Unattended renewals via Windows Worker Service
+  - Recurring background worker renewal checks via ARI & percentage thresholds
 
 ---
 
