@@ -3,10 +3,157 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:CertManager.Desktop"
+        xmlns:views="clr-namespace:CertManager.Desktop.Views"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="CertManager — Open-Source SSL/TLS Certificate Manager" 
+        Height="780" Width="1200" MinHeight="650" MinWidth="1000"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
+        Background="#F8FAFC">
 
+    <Window.Resources>
+        <!-- Modern Sidebar Nav Button Style -->
+        <Style x:Key="NavButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1E293B"/>
+                                <Setter Property="Foreground" Value="#F8FAFC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActiveNavButton" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Setter Property="Background" Value="#0284C7"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Sidebar Navigation -->
+        <Border Grid.Column="0" Background="#0F172A">
+            <Grid Margin="18,24,18,20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Brand Header -->
+                <StackPanel Grid.Row="0" Margin="6,0,6,28">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="#0284C7" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
+                            <TextBlock Text="🛡️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="CertManager" Foreground="#FFFFFF" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Text="SSL/TLS Lifecycle v2.0" Foreground="#64748B" FontSize="11" FontWeight="Medium"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Navigation Links -->
+                <StackPanel Grid.Row="1">
+                    <TextBlock Text="MAIN NAVIGATION" Foreground="#475569" FontSize="10" FontWeight="Bold" Margin="8,0,0,10"/>
+                    
+                    <Button Style="{StaticResource ActiveNavButton}" Command="{Binding NavigateCommand}" CommandParameter="Dashboard">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📊" Margin="0,0,10,0"/>
+                            <TextBlock Text="Dashboard"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="Certificates">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📜" Margin="0,0,10,0"/>
+                            <TextBlock Text="Certificates"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="Websites">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🌐" Margin="0,0,10,0"/>
+                            <TextBlock Text="Websites &amp; IIS"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="Profiles">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📑" Margin="0,0,10,0"/>
+                            <TextBlock Text="Certificate Profiles"/>
+                        </StackPanel>
+                    </Button>
+
+                    <TextBlock Text="SETTINGS &amp; SYSTEM" Foreground="#475569" FontSize="10" FontWeight="Bold" Margin="8,20,0,10"/>
+
+                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="AcmeAccounts">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔐" Margin="0,0,10,0"/>
+                            <TextBlock Text="ACME Accounts"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="Logs">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📋" Margin="0,0,10,0"/>
+                            <TextBlock Text="Activity Logs"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Bottom User & Role Indicator -->
+                <Border Grid.Row="2" Background="#1E293B" CornerRadius="10" Padding="12,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="#334155" CornerRadius="15" Width="30" Height="30" Margin="0,0,10,0">
+                            <TextBlock Text="👤" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Administrator" Foreground="#F8FAFC" FontSize="12" FontWeight="SemiBold"/>
+                            <TextBlock Text="Windows Local Identity" Foreground="#64748B" FontSize="10"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Right Content Host -->
+        <ContentControl Grid.Column="1" Content="{Binding CurrentView}">
+            <ContentControl.Resources>
+                <DataTemplate DataType="{x:Type views:DashboardView}">
+                    <views:DashboardView/>
+                </DataTemplate>
+            </ContentControl.Resources>
+        </ContentControl>
     </Grid>
 </Window>

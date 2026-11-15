@@ -1,0 +1,294 @@
+<UserControl x:Class="CertManager.Desktop.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="950">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        
+        <Style x:Key="MetricCardBorder" TargetType="Border">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,16,0"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="12" Opacity="0.04" ShadowDepth="3" Color="#0F172A"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActionCardBorder" TargetType="Border">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="18"/>
+            <Setter Property="Margin" Value="0,0,16,16"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="32,28,32,32">
+            <!-- Top Dashboard Header -->
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Operations Dashboard" FontSize="26" FontWeight="Bold" Foreground="#0F172A"/>
+                    <TextBlock Text="Automated SSL/TLS discovery, Let's Encrypt issuance, and IIS bindings" 
+                               FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <!-- Refresh Button & Timestamp -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding LastRefreshed, StringFormat='Synced: {0}'}" 
+                               Foreground="#94A3B8" FontSize="12" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Button Command="{Binding RefreshCommand}" 
+                            Background="#0284C7" Foreground="#FFFFFF" FontWeight="SemiBold"
+                            BorderThickness="0" Padding="14,8" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="↻" FontSize="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="Refresh Status"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Service Status Banner -->
+            <Border CornerRadius="10" Margin="0,0,0,24" Padding="16,12"
+                    BorderThickness="1">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
+                                <Setter Property="Background" Value="#F0FDF4"/>
+                                <Setter Property="BorderBrush" Value="#BBF7D0"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
+                                <Setter Property="Background" Value="#FEF2F2"/>
+                                <Setter Property="BorderBrush" Value="#FECACA"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Status Icon Indicator -->
+                    <Border Grid.Column="0" Width="10" Height="10" CornerRadius="5" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
+                                        <Setter Property="Background" Value="#22C55E"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
+                                        <Setter Property="Background" Value="#EF4444"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding StatusMessage}" FontWeight="SemiBold" FontSize="13">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
+                                            <Setter Property="Foreground" Value="#166534"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
+                                            <Setter Property="Foreground" Value="#991B1B"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Text="Named Pipe: CertManager.Ipc • Scheduled renewals operate independently of UI" 
+                                   FontSize="11" Foreground="#64748B"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="#E2E8F0" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
+                            <TextBlock Text="{Binding Version}" FontSize="11" FontWeight="SemiBold" Foreground="#334155"/>
+                        </Border>
+                        <Border Background="#E2E8F0" CornerRadius="6" Padding="8,4">
+                            <TextBlock Text="{Binding Uptime, StringFormat='Uptime: {0}'}" FontSize="11" FontWeight="Medium" Foreground="#334155"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Metrics Cards Grid -->
+            <Grid Margin="0,0,0,28">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Card 1: Total Certificates -->
+                <Border Grid.Column="0" Style="{StaticResource MetricCardBorder}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <TextBlock Text="TOTAL CERTS" FontSize="11" FontWeight="Bold" Foreground="#64748B"/>
+                            <TextBlock Text="🛡️" HorizontalAlignment="Right" FontSize="16"/>
+                        </Grid>
+                        <TextBlock Text="{Binding TotalCertificates}" FontSize="32" FontWeight="Bold" Foreground="#0F172A"/>
+                        <TextBlock Text="Active in Windows Store" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 2: Expiring Soon -->
+                <Border Grid.Column="1" Style="{StaticResource MetricCardBorder}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <TextBlock Text="EXPIRING SOON" FontSize="11" FontWeight="Bold" Foreground="#D97706"/>
+                            <TextBlock Text="⚠️" HorizontalAlignment="Right" FontSize="16"/>
+                        </Grid>
+                        <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="32" FontWeight="Bold" Foreground="#D97706"/>
+                        <TextBlock Text="Due within 30 days" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 3: Active Orders -->
+                <Border Grid.Column="2" Style="{StaticResource MetricCardBorder}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <TextBlock Text="ACTIVE ACME ORDERS" FontSize="11" FontWeight="Bold" Foreground="#2563EB"/>
+                            <TextBlock Text="🔄" HorizontalAlignment="Right" FontSize="16"/>
+                        </Grid>
+                        <TextBlock Text="{Binding ActiveOrdersCount}" FontSize="32" FontWeight="Bold" Foreground="#2563EB"/>
+                        <TextBlock Text="In-flight challenges" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 4: Automated Policy -->
+                <Border Grid.Column="3" Style="{StaticResource MetricCardBorder}" Margin="0">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <TextBlock Text="RENEWAL POLICY" FontSize="11" FontWeight="Bold" Foreground="#059669"/>
+                            <TextBlock Text="⚡" HorizontalAlignment="Right" FontSize="16"/>
+                        </Grid>
+                        <TextBlock Text="ARI + 33%" FontSize="24" FontWeight="Bold" Foreground="#059669" Margin="0,4,0,0"/>
+                        <TextBlock Text="Percentage &amp; ARI window" FontSize="11" Foreground="#94A3B8" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Quick Action Cards Section -->
+            <TextBlock Text="Quick Actions &amp; Lifecycle Management" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,16"/>
+            
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Action 1 -->
+                <Border Grid.Column="0" Style="{StaticResource ActionCardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="➕ Request Certificate" FontWeight="SemiBold" FontSize="14" Foreground="#0F172A"/>
+                        <TextBlock Text="Request a new SSL/TLS certificate via Let's Encrypt using HTTP-01 or DNS-01." 
+                                   TextWrapping="Wrap" FontSize="12" Foreground="#64748B" Margin="0,6,0,16"/>
+                        <Button Content="New Certificate Wizard" Background="#F1F5F9" Foreground="#0F172A" 
+                                FontWeight="SemiBold" BorderThickness="0" Padding="12,8" HorizontalAlignment="Left" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Action 2 -->
+                <Border Grid.Column="1" Style="{StaticResource ActionCardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="🔍 Discover IIS Sites" FontWeight="SemiBold" FontSize="14" Foreground="#0F172A"/>
+                        <TextBlock Text="Scan local Microsoft IIS web server for existing sites, hostnames, and HTTPS bindings." 
+                                   TextWrapping="Wrap" FontSize="12" Foreground="#64748B" Margin="0,6,0,16"/>
+                        <Button Content="Scan IIS Web Server" Background="#F1F5F9" Foreground="#0F172A" 
+                                FontWeight="SemiBold" BorderThickness="0" Padding="12,8" HorizontalAlignment="Left" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Action 3 -->
+                <Border Grid.Column="2" Style="{StaticResource ActionCardBorder}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="📋 Test ACME Staging" FontWeight="SemiBold" FontSize="14" Foreground="#0F172A"/>
+                        <TextBlock Text="Validate end-to-end issuance without hitting Let's Encrypt production rate limits." 
+                                   TextWrapping="Wrap" FontSize="12" Foreground="#64748B" Margin="0,6,0,16"/>
+                        <Button Content="Run Staging Pre-flight" Background="#F1F5F9" Foreground="#0F172A" 
+                                FontWeight="SemiBold" BorderThickness="0" Padding="12,8" HorizontalAlignment="Left" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- System Architecture Snapshot -->
+            <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="System Capabilities &amp; Architecture" FontSize="14" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,0,12"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="ACME PROTOCOL" FontSize="10" FontWeight="Bold" Foreground="#94A3B8"/>
+                            <TextBlock Text="RFC 8555 + RFC 8737 (ARI)" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
+                            <TextBlock Text="Let's Encrypt Staging / Prod" FontSize="11" Foreground="#64748B"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="SERVER INTEGRATION" FontSize="10" FontWeight="Bold" Foreground="#94A3B8"/>
+                            <TextBlock Text="Microsoft IIS (MWA)" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
+                            <TextBlock Text="Transactional binding with rollback" FontSize="11" Foreground="#64748B"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="LOCAL PERSISTENCE" FontSize="10" FontWeight="Bold" Foreground="#94A3B8"/>
+                            <TextBlock Text="SQLite Database with WAL" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
+                            <TextBlock Text="Idempotency locks &amp; audit ledger" FontSize="11" Foreground="#64748B"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

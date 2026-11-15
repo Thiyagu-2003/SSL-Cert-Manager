@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CertManager.Core\CertManager.Core.csproj" />
+    <ProjectReference Include="..\CertManager.Infrastructure\CertManager.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
