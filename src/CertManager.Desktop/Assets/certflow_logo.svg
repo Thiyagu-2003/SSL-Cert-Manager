@@ -36,7 +36,6 @@
         opacity="0.4"/>
 
   <!-- Dynamic Flow Waves (CertFlow Core Loop) -->
-  <!-- Wave 1: Flow Loop -->
   <path d="M 78,138 
            C 78,112 96,96 118,96 
            C 134,96 146,106 156,120 

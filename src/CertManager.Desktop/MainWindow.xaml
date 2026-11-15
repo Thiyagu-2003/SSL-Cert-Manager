@@ -83,41 +83,30 @@
                 <!-- Brand Header -->
                 <StackPanel Grid.Row="0" Margin="6,0,6,28">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- CertFlow 02. Verified TLS Shield Brand Badge -->
+                        <!-- CertFlow Cyber Shield Brand Badge -->
                         <Border CornerRadius="10" Width="40" Height="40" Margin="0,0,12,0">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#00F5A0" Offset="0"/>
-                                    <GradientStop Color="#10B981" Offset="0.5"/>
-                                    <GradientStop Color="#047857" Offset="1"/>
+                                    <GradientStop Color="#0284C7" Offset="0"/>
+                                    <GradientStop Color="#2563EB" Offset="0.5"/>
+                                    <GradientStop Color="#4F46E5" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Viewbox Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Canvas Width="256" Height="256">
-                                    <!-- Protective Shield Body -->
-                                    <Path Data="M 128,36 C 182,58 206,66 206,112 C 206,170 166,206 128,226 C 90,206 50,170 50,112 C 50,66 74,58 128,36 Z" 
-                                          Fill="#064E3B" Opacity="0.9"/>
-                                    
-                                    <!-- Inner Flow Accent -->
-                                    <Path Data="M 128,52 C 170,70 188,78 188,114 C 188,160 156,192 128,210" 
-                                          Stroke="#00F5A0" StrokeThickness="10" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Opacity="0.75"/>
-
-                                    <!-- Padlock Shackle & Core -->
-                                    <Path Data="M 112,112 C 112,102 119,94 128,94 C 137,94 144,102 144,112 L 144,124 L 112,124 Z" 
-                                          Stroke="#FFFFFF" StrokeThickness="10" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <Rectangle Canvas.Left="104" Canvas.Top="122" Width="48" Height="38" RadiusX="8" RadiusY="8" Fill="#FFFFFF"/>
-                                    <Ellipse Canvas.Left="123" Canvas.Top="136" Width="10" Height="10" Fill="#064E3B"/>
-                                    
-                                    <!-- Prominent Verified Security Checkmark -->
-                                    <Path Data="M 102,182 L 122,198 L 158,162" 
-                                          Stroke="#00F5A0" StrokeThickness="16" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                    <Path Data="M 128,18 C 190,44 220,52 220,96 C 220,166 172,216 128,238 C 84,216 36,166 36,96 C 36,52 66,44 128,18 Z" 
+                                          Fill="#FFFFFF" Opacity="0.95"/>
+                                    <Path Data="M 78,138 C 78,112 96,96 118,96 C 134,96 146,106 156,120 C 166,134 178,144 194,144 C 216,144 234,128 234,102"
+                                          Stroke="#0284C7" StrokeThickness="16" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <Ellipse Canvas.Left="114" Canvas.Top="106" Width="28" Height="28" Fill="#0284C7"/>
+                                    <Ellipse Canvas.Left="123" Canvas.Top="115" Width="10" Height="10" Fill="#FFFFFF"/>
                                 </Canvas>
                             </Viewbox>
                         </Border>
                         
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="CertFlow" Foreground="#FFFFFF" FontSize="19" FontWeight="Bold"/>
-                            <TextBlock Text="SSL/TLS Automation" Foreground="#00F5A0" FontSize="11" FontWeight="Medium"/>
+                            <TextBlock Text="SSL/TLS Automation" Foreground="#38BDF8" FontSize="11" FontWeight="Medium"/>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
