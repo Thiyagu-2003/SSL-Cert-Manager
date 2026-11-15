@@ -45,11 +45,11 @@
 **Interfaces:**
 - Produces: Visual Studio Solution and projects targeting `net8.0` (with `net8.0-windows` for Desktop).
 
-- [ ] **Step 1: Initialize Git repository and standard .gitignore**
+- [x] **Step 1: Initialize Git repository and standard .gitignore**
 Initialize git repo in workspace root and create standard Visual Studio `.gitignore`.
 Command: `git init`
 
-- [ ] **Step 2: Create .NET Solution and Projects**
+- [x] **Step 2: Create .NET Solution and Projects**
 Run CLI commands:
 ```powershell
 dotnet new sln -n CertManager
@@ -65,7 +65,7 @@ dotnet new xunit -n CertManager.UnitTests -o tests/CertManager.UnitTests
 dotnet sln add (Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object { $_.FullName })
 ```
 
-- [ ] **Step 3: Setup Project References according to Section 21.1**
+- [x] **Step 3: Setup Project References according to Section 21.1**
 Configure dependencies:
 - Application -> Core
 - Infrastructure -> Core, Application
@@ -75,11 +75,11 @@ Configure dependencies:
 - Desktop -> Core
 - UnitTests -> Core, Application, Infrastructure
 
-- [ ] **Step 4: Verify build succeeds**
+- [x] **Step 4: Verify build succeeds**
 Run: `dotnet build`
 Expected: Build succeeded with 0 errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 `git add . && git commit -m "chore: scaffold CertManager solution and project structure"`
 
 ---
@@ -108,7 +108,7 @@ Expected: Build succeeded with 0 errors.
 - Produces: `DomainNormalizer.Normalize(string domain) -> NormalizedDomainResult`
 - Produces: Core domain entities reflecting Spec Section 16 database model.
 
-- [ ] **Step 1: Write failing unit tests for DomainNormalizer**
+- [x] **Step 1: Write failing unit tests for DomainNormalizer**
 In `tests/CertManager.UnitTests/Core/DomainNormalizerTests.cs`:
 Test cases:
 - Lowercase conversion: `EXAMPLE.COM` -> `example.com`
@@ -118,18 +118,18 @@ Test cases:
 - Invalid nested wildcard: `test.*.example.com` -> throws `ArgumentException`
 - Internationalized domain (IDN / Punycode): `münchen.de` -> `xn--mnchen-3ya.de`
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 Run: `dotnet test --filter FullyQualifiedName~DomainNormalizerTests`
 Expected: FAIL (type or method not found).
 
-- [ ] **Step 3: Implement domain entities and DomainNormalizer**
+- [x] **Step 3: Implement domain entities and DomainNormalizer**
 Implement `DomainNormalizer` using `System.Globalization.IdnMapping` to produce canonical ASCII A-labels and Unicode display names. Implement core entities with required properties from Section 16.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 Run: `dotnet test --filter FullyQualifiedName~DomainNormalizerTests`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 `git add src/CertManager.Core tests/CertManager.UnitTests && git commit -m "feat(core): implement domain entities and IDN domain normalizer"`
 
 ---
@@ -146,25 +146,25 @@ Expected: PASS.
 - Produces: `CertManagerDbContext : DbContext`
 - Produces: `IDatabaseInitializer.InitializeAsync()` to apply migrations and ensure tables/indices.
 
-- [ ] **Step 1: Add Microsoft.EntityFrameworkCore.Sqlite package to Infrastructure**
+- [x] **Step 1: Add Microsoft.EntityFrameworkCore.Sqlite package to Infrastructure**
 Command: `dotnet add src/CertManager.Infrastructure package Microsoft.EntityFrameworkCore.Sqlite`
 
-- [ ] **Step 2: Write failing unit test for Database initialization and entity persistence**
+- [x] **Step 2: Write failing unit test for Database initialization and entity persistence**
 In `tests/CertManager.UnitTests/Infrastructure/DatabaseTests.cs`:
 Test creating in-memory/temp SQLite database, applying schema, inserting a `Domain`, `CertificateProfile`, and `AcmeOrder`, asserting constraints and relationships.
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 Run: `dotnet test --filter FullyQualifiedName~DatabaseTests`
 Expected: FAIL.
 
-- [ ] **Step 4: Implement CertManagerDbContext & Entity Configurations**
+- [x] **Step 4: Implement CertManagerDbContext & Entity Configurations**
 Configure primary keys, foreign keys, unique indices (`DomainName`, `IdempotencyKey`, `LockKey`), and default values per Spec Section 16.
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 Run: `dotnet test --filter FullyQualifiedName~DatabaseTests`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 `git add src/CertManager.Infrastructure tests/CertManager.UnitTests && git commit -m "feat(infra): setup EF Core SQLite persistence and schema mappings"`
 
 ---
@@ -183,24 +183,24 @@ Expected: PASS.
 - Produces: `INamedPipeServer`, `INamedPipeClient`
 - Produces: `WindowsIdentityAuthorizer.AuthorizeCaller(PipeStream pipe, UserRole requiredRole) -> bool`
 
-- [ ] **Step 1: Write failing unit tests for IPC message framing and serialization**
+- [x] **Step 1: Write failing unit tests for IPC message framing and serialization**
 In `tests/CertManager.UnitTests/Ipc/NamedPipeIpcTests.cs`:
 Test serialization/deserialization of `IpcRequest` and `IpcResponse` with length-prefixed binary/JSON framing, handling of payloads up to 1MB, rejection of oversized payloads.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 Run: `dotnet test --filter FullyQualifiedName~NamedPipeIpcTests`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement IPC protocol, NamedPipeServer, and NamedPipeClient**
+- [x] **Step 3: Implement IPC protocol, NamedPipeServer, and NamedPipeClient**
 Use `NamedPipeServerStream` and `NamedPipeClientStream` with `PipeOptions.Asynchronous`.
 Implement message framing (4-byte length prefix + UTF8 JSON payload).
 Implement `WindowsIdentityAuthorizer` checking `WindowsIdentity` of the connected client against specified Windows roles/groups with fallback for local dev mode.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 Run: `dotnet test --filter FullyQualifiedName~NamedPipeIpcTests`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 `git add src/CertManager.Core src/CertManager.Infrastructure tests/CertManager.UnitTests && git commit -m "feat(ipc): implement length-prefixed Named Pipe server, client, and authorizer"`
 
 ---
@@ -217,21 +217,21 @@ Expected: PASS.
 **Interfaces:**
 - Produces: Windows Worker Service running IPC server and renewal scheduler background task loop.
 
-- [ ] **Step 1: Write failing test for Service DI configuration**
+- [x] **Step 1: Write failing test for Service DI configuration**
 Verify host builder resolves `CertManagerDbContext`, `INamedPipeServer`, and required hosted services without circular dependency or missing registrations.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 Run: `dotnet test --filter FullyQualifiedName~ServiceHostingTests`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement Worker Service and Dependency Injection in Program.cs**
+- [x] **Step 3: Implement Worker Service and Dependency Injection in Program.cs**
 Configure `Microsoft.Extensions.Hosting.WindowsServices`, SQLite connection string, Serilog console/file logging, and register background workers.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 Run: `dotnet test --filter FullyQualifiedName~ServiceHostingTests`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 `git add src/CertManager.Service tests/CertManager.UnitTests && git commit -m "feat(service): configure background worker service and IPC hosting"`
 
 ---
@@ -250,18 +250,18 @@ Expected: PASS.
 **Interfaces:**
 - Produces: WPF Desktop application showing live connection state to the background service, dashboard summary counts (Certificates, Expiring Soon, Active Orders), and recent audit events.
 
-- [ ] **Step 1: Implement MVVM base and ViewModels**
+- [x] **Step 1: Implement MVVM base and ViewModels**
 Implement `ViewModelBase` with `INotifyPropertyChanged`, `RelayCommand`, and `DashboardViewModel`.
 
-- [ ] **Step 2: Implement ServiceIpcClient in Desktop**
+- [x] **Step 2: Implement ServiceIpcClient in Desktop**
 Connects to `CertManager.Ipc` named pipe and requests `GetServiceStatusAsync`.
 
-- [ ] **Step 3: Implement MainWindow layout and DashboardView**
+- [x] **Step 3: Implement MainWindow layout and DashboardView**
 Create modern clean dashboard layout with service connection indicator (Connected / Disconnected / Connecting), stats cards (Total Certs, Expiring Soon, Failed Renewals), and navigation tabs.
 
-- [ ] **Step 4: Verify build and test suite**
+- [x] **Step 4: Verify build and test suite**
 Run: `dotnet build && dotnet test`
 Expected: Build succeeded with 0 errors, all unit tests passing.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 `git add src/CertManager.Desktop && git commit -m "feat(desktop): implement WPF dashboard shell and IPC client connection"`
