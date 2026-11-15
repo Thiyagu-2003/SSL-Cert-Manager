@@ -1,54 +1,47 @@
 ﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
   <defs>
-    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0284C7"/>
-      <stop offset="50%" stop-color="#2563EB"/>
-      <stop offset="100%" stop-color="#4F46E5"/>
+    <linearGradient id="bgSealBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B132B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
     </linearGradient>
-    <linearGradient id="flowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+    <linearGradient id="sealRingGradA" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#22D3EE"/>
-      <stop offset="50%" stop-color="#38BDF8"/>
-      <stop offset="100%" stop-color="#FFFFFF"/>
+      <stop offset="50%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#2563EB"/>
     </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#0284C7" flood-opacity="0.35"/>
+    <linearGradient id="sealRingGradB" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <filter id="sealBlueGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#0284C7" flood-opacity="0.5"/>
     </filter>
   </defs>
 
-  <!-- Outer Shield with Glow -->
-  <path d="M 128,18 
-           C 190,44 220,52 220,96 
-           C 220,166 172,216 128,238 
-           C 84,216 36,166 36,96 
-           C 36,52 66,44 128,18 Z" 
-        fill="url(#shieldGrad)" 
-        filter="url(#glow)"/>
+  <!-- Background Squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#bgSealBlue)"/>
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="none" stroke="#1E293B" stroke-width="2"/>
 
-  <!-- Inner Shield Border Highlight -->
-  <path d="M 128,28 
-           C 182,51 208,58 208,98 
-           C 208,158 166,203 128,223 
-           C 90,203 48,158 48,98 
-           C 48,58 74,51 128,28 Z" 
-        fill="none" 
-        stroke="#38BDF8" 
-        stroke-width="3" 
-        opacity="0.4"/>
+  <!-- Outer Cryptographic Orbital Ring -->
+  <circle cx="128" cy="128" r="74" fill="none" stroke="url(#sealRingGradA)" stroke-width="10" stroke-linecap="round" stroke-dasharray="380 40" filter="url(#sealBlueGlow)"/>
 
-  <!-- Dynamic Flow Waves (CertFlow Core Loop) -->
-  <path d="M 78,138 
-           C 78,112 96,96 118,96 
-           C 134,96 146,106 156,120 
-           C 166,134 178,144 194,144 
-           C 216,144 234,128 234,102"
-        fill="none" 
-        stroke="url(#flowGrad)" 
-        stroke-width="12" 
-        stroke-linecap="round"/>
+  <!-- Inner Interlocking Verification Ring -->
+  <circle cx="128" cy="128" r="54" fill="none" stroke="url(#sealRingGradB)" stroke-width="5" stroke-dasharray="12 8" opacity="0.85"/>
 
-  <!-- Central Security Padlock Node -->
-  <circle cx="128" cy="120" r="14" fill="#FFFFFF"/>
-  <path d="M 123,120 L 123,113 C 123,110 125,108 128,108 C 131,108 133,110 133,113 L 133,120" 
-        fill="none" stroke="#0284C7" stroke-width="2.5" stroke-linecap="round"/>
-  <circle cx="128" cy="122" r="2.5" fill="#0284C7"/>
+  <!-- Center Digital Certificate Stamp Core -->
+  <circle cx="128" cy="128" r="38" fill="#2563EB"/>
+  <circle cx="128" cy="128" r="32" fill="#0F172A"/>
+
+  <!-- Central TLS Lock & Flow Vector (Crisp White & Cyan) -->
+  <path d="M 122,118 C 122,114 125,111 128,111 C 131,111 134,114 134,118 L 134,124 L 122,124 Z" 
+        fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+  <rect x="117" y="124" width="22" height="17" rx="4" fill="#FFFFFF"/>
+  <circle cx="128" cy="131" r="2.5" fill="#0284C7"/>
+  <path d="M 128,133.5 L 128,137.5" stroke="#0284C7" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Orbital Trust Verification Nodes -->
+  <circle cx="128" cy="54" r="6" fill="#22D3EE"/>
+  <circle cx="128" cy="54" r="2.5" fill="#FFFFFF"/>
+  <circle cx="128" cy="202" r="6" fill="#38BDF8"/>
+  <circle cx="128" cy="202" r="2.5" fill="#FFFFFF"/>
 </svg>
