@@ -28,6 +28,10 @@ public class CertificateWizardViewModel : ViewModelBase
     private string _issuedExpiration = string.Empty;
     private string _errorMessage = string.Empty;
 
+    public CertificateWizardViewModel() : this(1, "Default Web Site", "example.com")
+    {
+    }
+
     public CertificateWizardViewModel(long siteId, string siteName, string defaultDomain)
     {
         _ipcClient = new ServiceIpcClient();

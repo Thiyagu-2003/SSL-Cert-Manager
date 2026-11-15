@@ -431,7 +431,7 @@
                         <TextBlock Text="➕ Request Certificate" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A"/>
                         <TextBlock Text="Request a new SSL/TLS certificate via Let's Encrypt using HTTP-01 or DNS-01." 
                                    TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
-                        <Button Content="New Certificate Wizard" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
+                        <Button Content="New Certificate Wizard" Command="{Binding NewCertificateWizardCommand}" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
 
@@ -441,7 +441,7 @@
                         <TextBlock Text="🔍 Discover IIS Sites" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A"/>
                         <TextBlock Text="Scan local Microsoft IIS web server for existing sites, hostnames, and HTTPS bindings." 
                                    TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
-                        <Button Content="Scan IIS Web Server" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
+                        <Button Content="Scan IIS Web Server" Command="{Binding ScanIisServerCommand}" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
 
@@ -451,7 +451,7 @@
                         <TextBlock Text="📋 Test ACME Staging" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A"/>
                         <TextBlock Text="Validate end-to-end issuance without hitting Let's Encrypt production rate limits." 
                                    TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
-                        <Button Content="Run Staging Pre-flight" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
+                        <Button Content="Run Staging Pre-flight" Command="{Binding RunStagingPreflightCommand}" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
             </Grid>

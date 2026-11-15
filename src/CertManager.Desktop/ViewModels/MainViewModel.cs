@@ -10,7 +10,7 @@ public class MainViewModel : ViewModelBase
 
     public MainViewModel()
     {
-        DashboardVM = new DashboardViewModel();
+        DashboardVM = new DashboardViewModel(section => NavigateCommand?.Execute(section));
         WebsitesVM = new WebsitesViewModel();
         CertificatesVM = new CertificatesViewModel();
         ProfilesVM = new ProfilesViewModel();

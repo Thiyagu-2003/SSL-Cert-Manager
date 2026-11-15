@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using CertManager.Desktop.Common;
 using CertManager.Desktop.Services;
+using CertManager.Desktop.Views;
 using CertManager.Service;
 using Microsoft.Extensions.Hosting;
 
@@ -13,7 +15,9 @@ public class DashboardViewModel : ViewModelBase
 {
     private readonly ServiceIpcClient _ipcClient;
     private readonly DispatcherTimer _pollTimer;
+    private readonly Action<string>? _navigateAction;
     private IHost? _inProcessHost;
+    private bool _autoStartAttempted;
 
     private bool _isServiceConnected;
     private string _statusMessage = "Connecting to background service...";
@@ -25,11 +29,16 @@ public class DashboardViewModel : ViewModelBase
     private string _lastRefreshed = "Never";
     private bool _isBusy;
 
-    public DashboardViewModel()
+    public DashboardViewModel(Action<string>? navigateAction = null)
     {
+        _navigateAction = navigateAction;
         _ipcClient = new ServiceIpcClient();
+
         RefreshCommand = new RelayCommand(async () => await RefreshStatusAsync());
         StartEngineCommand = new RelayCommand(async () => await StartInProcessEngineAsync());
+        NewCertificateWizardCommand = new RelayCommand(async () => await OpenNewCertificateWizardAsync(false));
+        ScanIisServerCommand = new RelayCommand(async () => await ScanIisServerAsync());
+        RunStagingPreflightCommand = new RelayCommand(async () => await OpenNewCertificateWizardAsync(true));
 
         // Polling timer to update connection and stats
         _pollTimer = new DispatcherTimer
@@ -98,6 +107,9 @@ public class DashboardViewModel : ViewModelBase
 
     public ICommand RefreshCommand { get; }
     public ICommand StartEngineCommand { get; }
+    public ICommand NewCertificateWizardCommand { get; }
+    public ICommand ScanIisServerCommand { get; }
+    public ICommand RunStagingPreflightCommand { get; }
 
     public async Task StartInProcessEngineAsync()
     {
@@ -114,6 +126,37 @@ public class DashboardViewModel : ViewModelBase
         {
             StatusMessage = $"Failed to start engine: {ex.Message}";
         }
+    }
+
+    public async Task OpenNewCertificateWizardAsync(bool isStaging = false)
+    {
+        if (!IsServiceConnected && _inProcessHost == null)
+        {
+            await StartInProcessEngineAsync();
+        }
+
+        var wizardVm = new CertificateWizardViewModel(1, "Default Web Site", "example.com")
+        {
+            IsStaging = isStaging
+        };
+
+        var window = new CertificateWizardWindow(wizardVm)
+        {
+            Owner = Application.Current?.MainWindow
+        };
+
+        window.ShowDialog();
+        _ = RefreshStatusAsync();
+    }
+
+    public async Task ScanIisServerAsync()
+    {
+        if (!IsServiceConnected && _inProcessHost == null)
+        {
+            await StartInProcessEngineAsync();
+        }
+
+        _navigateAction?.Invoke("Websites");
     }
 
     public async Task RefreshStatusAsync()
@@ -140,14 +183,30 @@ public class DashboardViewModel : ViewModelBase
             }
             else
             {
+                if (!_autoStartAttempted && _inProcessHost == null)
+                {
+                    _autoStartAttempted = true;
+                    IsBusy = false;
+                    await StartInProcessEngineAsync();
+                    return;
+                }
+
                 IsServiceConnected = false;
                 StatusMessage = "Background Service Offline (Start Windows Service)";
             }
         }
-        catch (Exception ex)
+        catch
         {
+            if (!_autoStartAttempted && _inProcessHost == null)
+            {
+                _autoStartAttempted = true;
+                IsBusy = false;
+                await StartInProcessEngineAsync();
+                return;
+            }
+
             IsServiceConnected = false;
-            StatusMessage = $"Connection error: {ex.Message}";
+            StatusMessage = "Background Service Offline (Start Windows Service)";
         }
         finally
         {
