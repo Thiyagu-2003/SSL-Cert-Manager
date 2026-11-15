@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CertManager.Core.Ipc;
+using CertManager.Core.Models;
 using CertManager.Infrastructure.Ipc;
 
 namespace CertManager.Desktop.Services;
@@ -37,5 +39,27 @@ public class ServiceIpcClient
         }
 
         return null;
+    }
+
+    public async Task<IReadOnlyList<DiscoveredIisSite>> GetWebsitesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var request = new IpcRequest { Action = "GetWebsites" };
+            var response = await _client.SendAsync(request, cancellationToken);
+
+            if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
+            {
+                return JsonSerializer.Deserialize<List<DiscoveredIisSite>>(
+                    response.PayloadJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<DiscoveredIisSite>();
+            }
+        }
+        catch
+        {
+            // Service offline or error
+        }
+
+        return Array.Empty<DiscoveredIisSite>();
     }
 }

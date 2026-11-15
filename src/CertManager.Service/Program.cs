@@ -1,12 +1,12 @@
 using System;
 using System.IO;
 using CertManager.Infrastructure.Data;
+using CertManager.Integrations.Iis;
 using CertManager.Service;
 using CertManager.Service.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -36,6 +36,7 @@ builder.Services.AddDbContext<CertManagerDbContext>(options =>
 });
 
 builder.Services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
+builder.Services.AddSingleton<IIisServerAdapter, IisServerAdapter>();
 
 // Hosted background services
 builder.Services.AddHostedService<Worker>();

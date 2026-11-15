@@ -1,13 +1,17 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Principal;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using CertManager.Core.Entities;
 using CertManager.Core.Enums;
 using CertManager.Core.Ipc;
+using CertManager.Core.Models;
 using CertManager.Infrastructure.Data;
 using CertManager.Infrastructure.Ipc;
+using CertManager.Integrations.Iis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,14 +22,19 @@ namespace CertManager.Service.Services;
 public class IpcHostService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
+    private readonly IIisServerAdapter _iisAdapter;
     private readonly ILogger<IpcHostService> _logger;
     private readonly DateTime _startTimeUtc = DateTime.UtcNow;
 
     public const string PipeName = "CertManager.Ipc";
 
-    public IpcHostService(IServiceProvider serviceProvider, ILogger<IpcHostService> logger)
+    public IpcHostService(
+        IServiceProvider serviceProvider,
+        IIisServerAdapter iisAdapter,
+        ILogger<IpcHostService> logger)
     {
         _serviceProvider = serviceProvider;
+        _iisAdapter = iisAdapter;
         _logger = logger;
     }
 
@@ -41,9 +50,8 @@ public class IpcHostService : BackgroundService
 
     private async Task<IpcResponse> HandleIpcRequestAsync(IpcRequest request, WindowsIdentity? callerIdentity)
     {
-        _logger.LogDebug("Received IPC action: {Action} from {Identity}", request.Action, callerIdentity?.Name ?? "Anonymous");
+        _logger.LogDebug("Received IPC action: {Action}", request.Action);
 
-        // Role authorization check (Operator or higher for mutations, Auditor for reads)
         var callerRole = WindowsIdentityAuthorizer.ResolveRole(callerIdentity);
         if (callerRole == UserRole.Anonymous)
         {
@@ -78,21 +86,68 @@ public class IpcHostService : BackgroundService
                 return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(status));
             }
 
+            case "GetWebsites":
+            {
+                // Run discovery via IIS adapter
+                var discovered = await _iisAdapter.DiscoverDetailedWebsitesAsync();
+
+                // Sync discovered websites with SQLite database
+                try
+                {
+                    foreach (var d in discovered)
+                    {
+                        var existing = await db.IisWebsites
+                            .Include(w => w.Bindings)
+                            .FirstOrDefaultAsync(w => w.IisSiteId == d.SiteId);
+
+                        if (existing == null)
+                        {
+                            var newSite = new IisWebsite
+                            {
+                                IisSiteId = d.SiteId,
+                                WebsiteName = d.SiteName,
+                                State = d.State,
+                                LastDiscoveredAt = DateTime.UtcNow
+                            };
+
+                            foreach (var b in d.Bindings)
+                            {
+                                newSite.Bindings.Add(new IisBinding
+                                {
+                                    Protocol = b.Protocol,
+                                    Hostname = b.Hostname,
+                                    Port = b.Port,
+                                    IpAddress = b.IpAddress,
+                                    SslFlagsSni = b.SslFlagsSni
+                                });
+                            }
+
+                            db.IisWebsites.Add(newSite);
+                        }
+                        else
+                        {
+                            existing.WebsiteName = d.SiteName;
+                            existing.State = d.State;
+                            existing.LastDiscoveredAt = DateTime.UtcNow;
+                        }
+                    }
+
+                    await db.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to persist discovered IIS sites into database.");
+                }
+
+                return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(discovered));
+            }
+
             case "GetCertificates":
             {
                 var certs = await db.Certificates
                     .AsNoTracking()
                     .ToListAsync();
                 return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(certs));
-            }
-
-            case "GetWebsites":
-            {
-                var sites = await db.IisWebsites
-                    .Include(w => w.Bindings)
-                    .AsNoTracking()
-                    .ToListAsync();
-                return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(sites));
             }
 
             default:

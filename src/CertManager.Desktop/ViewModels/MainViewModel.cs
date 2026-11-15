@@ -11,6 +11,8 @@ public class MainViewModel : ViewModelBase
     public MainViewModel()
     {
         DashboardVM = new DashboardViewModel();
+        WebsitesVM = new WebsitesViewModel();
+
         _currentView = DashboardVM;
 
         NavigateCommand = new RelayCommand(param =>
@@ -23,6 +25,10 @@ public class MainViewModel : ViewModelBase
                     case "Dashboard":
                         CurrentView = DashboardVM;
                         break;
+                    case "Websites":
+                        CurrentView = WebsitesVM;
+                        _ = WebsitesVM.ScanWebsitesAsync();
+                        break;
                     default:
                         CurrentView = DashboardVM;
                         break;
@@ -32,6 +38,7 @@ public class MainViewModel : ViewModelBase
     }
 
     public DashboardViewModel DashboardVM { get; }
+    public WebsitesViewModel WebsitesVM { get; }
 
     public object CurrentView
     {

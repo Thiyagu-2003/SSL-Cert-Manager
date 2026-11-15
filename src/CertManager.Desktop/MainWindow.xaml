@@ -14,8 +14,8 @@
         Background="#F8FAFC">
 
     <Window.Resources>
-        <!-- Modern Sidebar Nav Button Style with Smooth Transitions -->
-        <Style x:Key="NavButton" TargetType="Button">
+        <!-- Modern Sidebar Nav Button Style with Dynamic Selection -->
+        <Style x:Key="SidebarNavBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#94A3B8"/>
             <Setter Property="FontSize" Value="13"/>
@@ -38,19 +38,10 @@
                                 <Setter TargetName="border" Property="Background" Value="#1E293B"/>
                                 <Setter Property="Foreground" Value="#F8FAFC"/>
                             </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#0F172A"/>
-                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-        </Style>
-
-        <Style x:Key="ActiveNavButton" TargetType="Button" BasedOn="{StaticResource NavButton}">
-            <Setter Property="Background" Value="#0284C7"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
     </Window.Resources>
 
@@ -104,28 +95,52 @@
                 <StackPanel Grid.Row="1">
                     <TextBlock Text="MAIN NAVIGATION" Foreground="#475569" FontSize="10" FontWeight="Bold" Margin="8,0,0,10"/>
                     
-                    <Button Style="{StaticResource ActiveNavButton}" Command="{Binding NavigateCommand}" CommandParameter="Dashboard">
+                    <!-- Dashboard Nav Button -->
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="Dashboard">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SidebarNavBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveSection}" Value="Dashboard">
+                                        <Setter Property="Background" Value="#0284C7"/>
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📊" Margin="0,0,10,0"/>
                             <TextBlock Text="Dashboard"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="Certificates">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📜" Margin="0,0,10,0"/>
-                            <TextBlock Text="Certificates"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="Websites">
+                    <!-- Websites & IIS Nav Button -->
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="Websites">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SidebarNavBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveSection}" Value="Websites">
+                                        <Setter Property="Background" Value="#0284C7"/>
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🌐" Margin="0,0,10,0"/>
                             <TextBlock Text="Websites &amp; IIS"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="Profiles">
+                    <Button Style="{StaticResource SidebarNavBtn}" Command="{Binding NavigateCommand}" CommandParameter="Certificates">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📜" Margin="0,0,10,0"/>
+                            <TextBlock Text="Certificates"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource SidebarNavBtn}" Command="{Binding NavigateCommand}" CommandParameter="Profiles">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📑" Margin="0,0,10,0"/>
                             <TextBlock Text="Certificate Profiles"/>
@@ -134,14 +149,14 @@
 
                     <TextBlock Text="SETTINGS &amp; SYSTEM" Foreground="#475569" FontSize="10" FontWeight="Bold" Margin="8,20,0,10"/>
 
-                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="AcmeAccounts">
+                    <Button Style="{StaticResource SidebarNavBtn}" Command="{Binding NavigateCommand}" CommandParameter="AcmeAccounts">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🔐" Margin="0,0,10,0"/>
                             <TextBlock Text="ACME Accounts"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="Logs">
+                    <Button Style="{StaticResource SidebarNavBtn}" Command="{Binding NavigateCommand}" CommandParameter="Logs">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📋" Margin="0,0,10,0"/>
                             <TextBlock Text="Activity Logs"/>
@@ -173,9 +188,13 @@
         <!-- Right Content Host with View DataTemplate Mapping -->
         <ContentControl Grid.Column="1" Content="{Binding CurrentView}">
             <ContentControl.Resources>
-                <!-- Crucial: Map DashboardViewModel to DashboardView -->
+                <!-- Dashboard Mapping -->
                 <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
                     <views:DashboardView/>
+                </DataTemplate>
+                <!-- Websites & IIS Mapping -->
+                <DataTemplate DataType="{x:Type vm:WebsitesViewModel}">
+                    <views:WebsitesView/>
                 </DataTemplate>
             </ContentControl.Resources>
         </ContentControl>
