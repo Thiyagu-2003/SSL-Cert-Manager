@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="shieldBg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="facetLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#0369A1"/>
+    </linearGradient>
+    <linearGradient id="facetRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0EA5E9"/>
+    </linearGradient>
+    <linearGradient id="flowSlats" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#BAE6FD"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#shieldBg2)"/>
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="none" stroke="#1E293B" stroke-width="2"/>
+
+  <!-- Left Shield Half -->
+  <path d="M 128,42 L 56,76 L 56,128 C 56,176 92,208 128,222 Z" 
+        fill="url(#facetLeft)"/>
+
+  <!-- Right Shield Half -->
+  <path d="M 128,42 L 200,76 L 200,128 C 200,176 164,208 128,222 Z" 
+        fill="url(#facetRight)"/>
+
+  <!-- Kinetic Flow Chevron Layers Inside -->
+  <path d="M 88,118 L 128,88 L 168,118" 
+        fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 96,146 L 128,122 L 160,146" 
+        fill="none" stroke="url(#flowSlats)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+  <path d="M 106,172 L 128,154 L 150,172" 
+        fill="none" stroke="#BAE6FD" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+
+  <!-- Center Shackle Accent -->
+  <circle cx="128" cy="80" r="5" fill="#FFFFFF"/>
+</svg>

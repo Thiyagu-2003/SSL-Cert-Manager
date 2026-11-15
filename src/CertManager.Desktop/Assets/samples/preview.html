@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CertFlow — SSL/TLS Security Logo & App Icon Exploration</title>
+  <style>
+    :root {
+      --bg: #060D0A;
+      --card-bg: #0A1612;
+      --card-border: #133026;
+      --text: #F0FDF4;
+      --text-muted: #86EFAC;
+      --accent: #10B981;
+      --accent-glow: rgba(0, 245, 160, 0.28);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, sans-serif;
+      padding: 48px 32px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { margin-bottom: 40px; text-align: center; }
+    .badge {
+      display: inline-block;
+      padding: 5px 14px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(0, 245, 160, 0.35);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #00F5A0;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; color: #FFFFFF; }
+    p.subtitle { color: #94A3B8; font-size: 16px; max-width: 680px; margin: 0 auto; }
+
+    .hero-board {
+      margin: 32px 0 44px 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    }
+    .hero-board img { width: 100%; height: auto; display: block; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #00F5A0;
+      box-shadow: 0 12px 32px var(--accent-glow);
+    }
+    .card-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #00F5A0;
+      margin-bottom: 16px;
+    }
+    .icon-preview {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px 0;
+      background: radial-gradient(circle at center, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+    }
+    .icon-preview svg { width: 140px; height: 140px; }
+
+    .meta { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--card-border); }
+    .card-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #FFFFFF; }
+    .card-desc { font-size: 13px; color: #94A3B8; margin-bottom: 16px; }
+
+    .scale-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #020806;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #0f2920;
+    }
+    .scale-row span.label { font-size: 11px; color: #64748B; font-weight: 600; margin-right: 4px; }
+    .scale-item { border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .scale-item svg { width: 100%; height: 100%; }
+    .scale-32 { width: 32px; height: 32px; }
+    .scale-24 { width: 24px; height: 24px; }
+    .scale-16 { width: 16px; height: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">SSL/TLS Verified Security Theme</div>
+      <h1>CertFlow Logo &amp; App Icon System</h1>
+      <p class="subtitle">Updated with the universally recognized <strong>Secure HTTPS Emerald Green</strong> (#00F5A0 / #10B981) and <strong>ACME Mint Cyan</strong> (#06B6D4) color palette, directly representing active valid certificates and zero-downtime renewal.</p>
+    </header>
+
+    <div class="hero-board">
+      <img src="certflow_ssl_brand_identity_board.jpg" alt="CertFlow SSL Brand Board"/>
+    </div>
+
+    <div class="grid">
+      <!-- Option 1 -->
+      <div class="card">
+        <div class="card-tag">CONCEPT 01 (RECOMMENDED)</div>
+        <div class="icon-preview">
+          <img src="sample_ssl_1_emerald_lock.svg" alt="Concept 1" width="140" height="140"/>
+        </div>
+        <div class="meta">
+          <div class="card-title">The Secure Padlock Flow</div>
+          <div class="card-desc">The iconic browser "Secure Green Padlock" with an illuminated Möbius shackle symbolizing automated renewal without expiration gaps.</div>
+          <div class="scale-row">
+            <span class="label">Taskbar Scale:</span>
+            <div class="scale-item scale-32"><img src="sample_ssl_1_emerald_lock.svg" width="32" height="32"/></div>
+            <div class="scale-item scale-24"><img src="sample_ssl_1_emerald_lock.svg" width="24" height="24"/></div>
+            <div class="scale-item scale-16"><img src="sample_ssl_1_emerald_lock.svg" width="16" height="16"/></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 2 -->
+      <div class="card">
+        <div class="card-tag">CONCEPT 02</div>
+        <div class="icon-preview">
+          <img src="sample_ssl_2_verified_shield.svg" alt="Concept 2" width="140" height="140"/>
+        </div>
+        <div class="meta">
+          <div class="card-title">Verified TLS Shield</div>
+          <div class="card-desc">Faceted defense shield with an integrated verified HTTPS checkmark and white cryptographic keyway. Conveys authority and protection.</div>
+          <div class="scale-row">
+            <span class="label">Taskbar Scale:</span>
+            <div class="scale-item scale-32"><img src="sample_ssl_2_verified_shield.svg" width="32" height="32"/></div>
+            <div class="scale-item scale-24"><img src="sample_ssl_2_verified_shield.svg" width="24" height="24"/></div>
+            <div class="scale-item scale-16"><img src="sample_ssl_2_verified_shield.svg" width="16" height="16"/></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 3 -->
+      <div class="card">
+        <div class="card-tag">CONCEPT 03</div>
+        <div class="icon-preview">
+          <img src="sample_ssl_3_cert_seal.svg" alt="Concept 3" width="140" height="140"/>
+        </div>
+        <div class="meta">
+          <div class="card-title">Cryptographic Certificate Seal</div>
+          <div class="card-desc">Digital X.509 notary certificate seal with dual orbital trust rings in emerald green and cyber mint, anchoring an active TLS keyway.</div>
+          <div class="scale-row">
+            <span class="label">Taskbar Scale:</span>
+            <div class="scale-item scale-32"><img src="sample_ssl_3_cert_seal.svg" width="32" height="32"/></div>
+            <div class="scale-item scale-24"><img src="sample_ssl_3_cert_seal.svg" width="24" height="24"/></div>
+            <div class="scale-item scale-16"><img src="sample_ssl_3_cert_seal.svg" width="16" height="16"/></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 4 -->
+      <div class="card">
+        <div class="card-tag">CONCEPT 04</div>
+        <div class="icon-preview">
+          <img src="sample_ssl_4_secure_monogram.svg" alt="Concept 4" width="140" height="140"/>
+        </div>
+        <div class="meta">
+          <div class="card-title">Cyber Monogram CF</div>
+          <div class="card-desc">Architectural minimalist lettermark merging 'C' and 'F' into a unified digital lock glyph. Maximum sharpness and legibility down to 16x16.</div>
+          <div class="scale-row">
+            <span class="label">Taskbar Scale:</span>
+            <div class="scale-item scale-32"><img src="sample_ssl_4_secure_monogram.svg" width="32" height="32"/></div>
+            <div class="scale-item scale-24"><img src="sample_ssl_4_secure_monogram.svg" width="24" height="24"/></div>
+            <div class="scale-item scale-16"><img src="sample_ssl_4_secure_monogram.svg" width="16" height="16"/></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

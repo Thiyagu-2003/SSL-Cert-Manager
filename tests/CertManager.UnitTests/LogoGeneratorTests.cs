@@ -100,10 +100,10 @@ public class LogoGeneratorTests
                 bool inside = (dist <= 1.0);
                 if (inside)
                 {
-                    // Gradient: Blue to Cyan
-                    byte b = (byte)(235 - (x * 2));
-                    byte g = (byte)(132 + (y * 2));
-                    byte r = (byte)(2 + (x * 2));
+                    // Gradient: Secure Emerald Green to Mint Cyan (#00F5A0 -> #10B981)
+                    byte b = (byte)(160 - (x * 2));
+                    byte g = (byte)(230 - (y / 2));
+                    byte r = (byte)(16 + (x / 2));
                     byte a = 255;
 
                     xorMask[index + 0] = b; // Blue

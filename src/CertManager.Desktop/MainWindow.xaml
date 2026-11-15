@@ -63,13 +63,13 @@
                 <!-- Brand Header -->
                 <StackPanel Grid.Row="0" Margin="6,0,6,28">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- CertFlow Infinity Shield Brand Badge -->
+                        <!-- CertFlow Verified Green Shield Brand Badge -->
                         <Border CornerRadius="10" Width="40" Height="40" Margin="0,0,12,0">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#0284C7" Offset="0"/>
-                                    <GradientStop Color="#2563EB" Offset="0.5"/>
-                                    <GradientStop Color="#4F46E5" Offset="1"/>
+                                    <GradientStop Color="#00F5A0" Offset="0"/>
+                                    <GradientStop Color="#10B981" Offset="0.5"/>
+                                    <GradientStop Color="#047857" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Viewbox Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -77,8 +77,8 @@
                                     <Path Data="M 128,18 C 190,44 220,52 220,96 C 220,166 172,216 128,238 C 84,216 36,166 36,96 C 36,52 66,44 128,18 Z" 
                                           Fill="#FFFFFF" Opacity="0.95"/>
                                     <Path Data="M 78,138 C 78,112 96,96 118,96 C 134,96 146,106 156,120 C 166,134 178,144 194,144 C 216,144 234,128 234,102"
-                                          Stroke="#0284C7" StrokeThickness="16" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <Ellipse Canvas.Left="114" Canvas.Top="106" Width="28" Height="28" Fill="#0284C7"/>
+                                          Stroke="#047857" StrokeThickness="16" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <Ellipse Canvas.Left="114" Canvas.Top="106" Width="28" Height="28" Fill="#047857"/>
                                     <Ellipse Canvas.Left="123" Canvas.Top="115" Width="10" Height="10" Fill="#FFFFFF"/>
                                 </Canvas>
                             </Viewbox>
@@ -86,7 +86,7 @@
                         
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="CertFlow" Foreground="#FFFFFF" FontSize="19" FontWeight="Bold"/>
-                            <TextBlock Text="SSL/TLS Automation" Foreground="#38BDF8" FontSize="11" FontWeight="Medium"/>
+                            <TextBlock Text="SSL/TLS Automation" Foreground="#00F5A0" FontSize="11" FontWeight="Medium"/>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>

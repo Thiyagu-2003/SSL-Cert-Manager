@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="shieldBg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090D16"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="arcGradA" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="arcGradB" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#06B6D4" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#shieldBg3)"/>
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="none" stroke="#1F2937" stroke-width="2"/>
+
+  <!-- Orbital Outer Arc 1 -->
+  <path d="M 68,128 A 60,60 0 1,1 188,128" 
+        fill="none" stroke="url(#arcGradA)" stroke-width="12" stroke-linecap="round" filter="url(#neonGlow)"/>
+
+  <!-- Orbital Outer Arc 2 -->
+  <path d="M 188,128 A 60,60 0 1,1 68,128" 
+        fill="none" stroke="url(#arcGradB)" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Central TLS Shield & Lock Silhouette -->
+  <path d="M 128,78 C 150,88 160,94 160,116 C 160,146 142,166 128,176 C 114,166 96,146 96,116 C 96,94 106,88 128,78 Z" 
+        fill="#FFFFFF"/>
+
+  <!-- Padlock Cutout -->
+  <path d="M 120,114 C 120,109 123,105 128,105 C 133,105 136,109 136,114 L 136,120 L 120,120 Z" 
+        fill="none" stroke="#0F172A" stroke-width="3"/>
+  <rect x="116" y="120" width="24" height="20" rx="4" fill="#0F172A"/>
+  <circle cx="128" cy="128" r="2.5" fill="#FFFFFF"/>
+  <path d="M 128,130 L 128,135" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Security Nodes -->
+  <circle cx="68" cy="128" r="7" fill="#06B6D4"/>
+  <circle cx="68" cy="128" r="3" fill="#FFFFFF"/>
+  <circle cx="188" cy="128" r="7" fill="#8B5CF6"/>
+  <circle cx="188" cy="128" r="3" fill="#FFFFFF"/>
+</svg>
