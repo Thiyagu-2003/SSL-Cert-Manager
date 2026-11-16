@@ -223,8 +223,12 @@ public class NotificationDispatcher : INotificationProvider
 
         // 2. Mask any sensitive strings (tokens, private keys) before logging and storing
         string safeBody = MaskSecrets(message.Body);
+        string level = string.IsNullOrWhiteSpace(message.Level) ? "Info" : message.Level;
 
-        _logger.LogInformation("[ALERT {Level}] {Subject} - {Body}", message.Level, message.Subject, safeBody);
+        _logger.LogInformation("[ALERT {Level}] {Subject} - {Body}", level, message.Subject, safeBody);
+
+        // Always log to physical rolling file
+        CertManager.Infrastructure.Logging.FileLoggerHelper.AppendLog(level, message.Subject, safeBody);
 
         // 3. Dispatch to external channels (SMTP, Telegram, etc.)
         foreach (var channel in _channels)
@@ -245,7 +249,7 @@ public class NotificationDispatcher : INotificationProvider
             var record = new NotificationRecord
             {
                 Channel = "System/Dashboard",
-                Level = message.Level,
+                Level = level,
                 Subject = message.Subject,
                 Body = safeBody,
                 Delivered = true,

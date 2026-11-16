@@ -337,6 +337,7 @@ public class CertificateWizardViewModel : ViewModelBase
             var request = new CertificateRequestModel
             {
                 SiteId = SiteId,
+                SiteName = SiteName,
                 DomainName = DomainName.Trim(),
                 ContactEmail = ContactEmail.Trim(),
                 IsStaging = IsStaging,

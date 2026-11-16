@@ -27,5 +27,19 @@ public class DatabaseInitializer : IDatabaseInitializer
             await _context.Database.ExecuteSqlRawAsync("PRAGMA journal_mode = 'wal';", cancellationToken);
             await _context.Database.ExecuteSqlRawAsync("PRAGMA busy_timeout = 5000;", cancellationToken);
         }
+
+        if (!await _context.Notifications.AnyAsync(cancellationToken))
+        {
+            _context.Notifications.Add(new Core.Entities.NotificationRecord
+            {
+                Channel = "System",
+                Level = "Info",
+                Subject = "CertFlow SSL/TLS Manager Started",
+                Body = "CertFlow service engine initialized. Automated certificate lifecycle management, IIS binding sync, and health monitoring are active.",
+                Delivered = true,
+                SentAt = System.DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync(cancellationToken);
+        }
     }
 }

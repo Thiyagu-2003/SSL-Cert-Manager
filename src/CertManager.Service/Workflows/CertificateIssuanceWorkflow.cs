@@ -107,6 +107,21 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
             bool isDnsValidation = !isSelfSigned && (string.Equals(request.ValidationMethod, "Dns01", StringComparison.OrdinalIgnoreCase) ||
                                    asciiDomainNames.Any(d => d.StartsWith("*.", StringComparison.Ordinal)));
 
+            string modeStr = isSelfSigned ? "Self-Signed" : (request.IsStaging ? "Let's Encrypt Staging" : "Let's Encrypt Production");
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var notifier = scope.ServiceProvider.GetService<INotificationProvider>();
+                if (notifier != null)
+                {
+                    await notifier.SendAsync(new NotificationMessage(
+                        $"Certificate Request Started ({primaryDomain})",
+                        $"Initiated {modeStr} certificate request for domain '{primaryDomain}' (IIS Site: {request.SiteName ?? $"ID {request.SiteId}"}, Method: {request.ValidationMethod}).",
+                        "Info"), cancellationToken);
+                }
+            }
+            catch { /* non-fatal */ }
+
             string pfxPassword = Guid.NewGuid().ToString("N");
             byte[] pfxBytes;
             string thumbprint;
@@ -287,6 +302,21 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
 
             _logger.LogInformation("Successfully issued, installed, and configured certificate {Thumbprint}", thumbprint);
 
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var notifier = scope.ServiceProvider.GetService<INotificationProvider>();
+                if (notifier != null)
+                {
+                    string target = request.SiteId > 0 ? $"IIS Site '{request.SiteName ?? request.SiteId.ToString()}'" : "Windows Certificate Store";
+                    await notifier.SendAsync(new NotificationMessage(
+                        $"Certificate Issued Successfully ({primaryDomain})",
+                        $"Issued {modeStr} certificate for '{primaryDomain}' (Thumbprint: {thumbprint}, Expires: {notAfter:yyyy-MM-dd}). Installed to {target} on port 443 with SNI.",
+                        "Info"), cancellationToken);
+                }
+            }
+            catch { /* non-fatal */ }
+
             return new CertificateRequestStatusResult
             {
                 Success = true,
@@ -299,6 +329,21 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
         catch (Exception ex)
         {
             _logger.LogError(ex, "Certificate issuance failed: {Message}", ex.Message);
+
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var notifier = scope.ServiceProvider.GetService<INotificationProvider>();
+                if (notifier != null)
+                {
+                    await notifier.SendAsync(new NotificationMessage(
+                        $"Certificate Issuance Failed ({request.DomainName})",
+                        $"Issuance workflow failed for domain '{request.DomainName}': {ex.Message}",
+                        "Error"), CancellationToken.None);
+                }
+            }
+            catch { /* non-fatal */ }
+
             return new CertificateRequestStatusResult
             {
                 Success = false,

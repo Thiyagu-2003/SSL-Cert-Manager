@@ -5,6 +5,7 @@ namespace CertManager.Core.Models;
 public class CertificateRequestModel
 {
     public long SiteId { get; set; }
+    public string? SiteName { get; set; }
     public string DomainName { get; set; } = string.Empty;
     public string ContactEmail { get; set; } = string.Empty;
     public bool IsStaging { get; set; } = true;

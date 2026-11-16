@@ -132,6 +132,26 @@ public class ServiceIpcClient
         return Array.Empty<NotificationRecord>();
     }
 
+    public async Task<bool> ClearNotificationsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default)
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(8));
+            }
+
+            var request = new IpcRequest { Action = "ClearNotifications" };
+            var response = await _client.SendAsync(request, cts.Token);
+            return response.Success;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public async Task<IReadOnlyList<CertificateProfile>> GetProfilesAsync(CancellationToken cancellationToken = default)
     {
         try

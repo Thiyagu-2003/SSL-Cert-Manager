@@ -197,9 +197,17 @@ public class IpcHostService : BackgroundService
                     var logs = await db.Notifications
                         .AsNoTracking()
                         .OrderByDescending(n => n.SentAt)
-                        .Take(100)
+                        .Take(200)
                         .ToListAsync();
                     return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(logs, JsonOptions));
+                }
+
+                case "ClearNotifications":
+                {
+                    db.Notifications.RemoveRange(db.Notifications);
+                    await db.SaveChangesAsync();
+                    CertManager.Infrastructure.Logging.FileLoggerHelper.ClearLogFile();
+                    return IpcResponse.Ok(request.RequestId, "true");
                 }
 
                 case "GetProfiles":
