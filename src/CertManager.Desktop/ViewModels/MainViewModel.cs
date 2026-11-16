@@ -17,8 +17,15 @@ public class MainViewModel : ViewModelBase, IDisposable
         CertificatesVM = new CertificatesViewModel();
         ProfilesVM = new ProfilesViewModel();
         AcmeAccountsVM = new AcmeAccountsViewModel();
-        LogsVM = new LogsViewModel();
         TutorialsVM = new TutorialsViewModel(section => NavigateCommand?.Execute(section));
+        LogsVM = new LogsViewModel((section, guideKey) =>
+        {
+            if (string.Equals(section, "Tutorials", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(guideKey))
+            {
+                TutorialsVM.SelectedGuideKey = guideKey;
+            }
+            NavigateCommand?.Execute(section);
+        });
 
         _currentView = DashboardVM;
 
@@ -91,5 +98,6 @@ public class MainViewModel : ViewModelBase, IDisposable
         if (_isDisposed) return;
         _isDisposed = true;
         DashboardVM.Dispose();
+        LogsVM.Dispose();
     }
 }

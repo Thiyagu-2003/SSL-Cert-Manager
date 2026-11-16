@@ -4,8 +4,58 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" 
-             d:DesignHeight="650" d:DesignWidth="950"
+             d:DesignHeight="750" d:DesignWidth="1050"
              FontFamily="Segoe UI Variable, Segoe UI, sans-serif">
+
+    <UserControl.Resources>
+        <!-- KPI Card Border Style -->
+        <Style x:Key="KpiCardButton" TargetType="Button">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="kpiBorder" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="kpiBorder" Property="Background" Value="#F8FAFC"/>
+                                <Setter TargetName="kpiBorder" Property="BorderBrush" Value="#0284C7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Live Stream Toggle Button Style -->
+        <Style x:Key="LiveStreamToggleBtn" TargetType="Button">
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="toggleBorder" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
 
     <!-- Page Entrance Animation -->
     <UserControl.RenderTransform>
@@ -30,14 +80,16 @@
         </EventTrigger>
     </UserControl.Triggers>
 
-    <Grid Margin="32,28,32,28">
+    <Grid Margin="32,24,32,28">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/> <!-- 0: Header & Toast -->
+            <RowDefinition Height="Auto"/> <!-- 1: KPI Counters Strip -->
+            <RowDefinition Height="Auto"/> <!-- 2: Filters & Actions Toolbar -->
+            <RowDefinition Height="*"/>    <!-- 3: Content List -->
         </Grid.RowDefinitions>
 
-        <!-- Top Header & Action Controls -->
-        <Grid Grid.Row="0" Margin="0,0,0,22">
+        <!-- Row 0: Top Header & Toast Notification -->
+        <Grid Grid.Row="0" Margin="0,0,0,18">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -46,85 +98,251 @@
             <StackPanel Grid.Column="0">
                 <TextBlock Text="Activity Logs &amp; Audit Trail" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
                 <TextBlock Text="Real-time audit log of certificate issuance, Let's Encrypt challenges, renewals, and IIS bindings" 
-                           FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
+                           FontSize="13" Foreground="#64748B" Margin="0,3,0,0"/>
             </StackPanel>
 
-            <!-- Action Toolbar -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <!-- Search Box with Watermark -->
-                <Grid Width="210" Height="34" Margin="0,0,10,0">
-                    <TextBox x:Name="SearchInput" 
-                             Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
-                             Padding="30,6,10,6" 
-                             FontSize="12.5" 
-                             VerticalContentAlignment="Center"
-                             Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1">
-                        <TextBox.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="8"/>
-                            </Style>
-                        </TextBox.Resources>
-                    </TextBox>
-                    <!-- Search Icon -->
-                    <Path Data="{StaticResource IconSearch}" Fill="#94A3B8" Width="13" Height="13" Stretch="Uniform" 
-                          HorizontalAlignment="Left" VerticalAlignment="Center" 
-                          Margin="12,0,0,0" IsHitTestVisible="False"/>
-                    <!-- Placeholder Watermark -->
-                    <TextBlock Text="Search logs..." FontSize="12" Foreground="#94A3B8" 
-                               HorizontalAlignment="Left" VerticalAlignment="Center" 
-                               Margin="32,0,0,0" IsHitTestVisible="False">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Visibility" Value="Collapsed"/>
+            <!-- Toast Feedback Banner -->
+            <Border Grid.Column="1" Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" 
+                    CornerRadius="8" Padding="14,6" VerticalAlignment="Center"
+                    Visibility="{Binding ToastMessage, Converter={StaticResource BoolToVisConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <Path Data="{StaticResource IconCheck}" Fill="#16A34A" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ToastMessage}" Foreground="#15803D" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Row 1: KPI Counters Strip (Interactive Filter Cards) -->
+        <Grid Grid.Row="1" Margin="0,0,0,18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- KPI 1: Total Events -->
+            <Button Grid.Column="0" Command="{Binding FilterAllCommand}" Style="{StaticResource KpiCardButton}" Margin="0,0,12,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="TOTAL EVENTS" FontSize="10.5" FontWeight="Bold" Foreground="#64748B"/>
+                        <TextBlock Text="{Binding TotalEventsCount}" FontSize="24" FontWeight="Bold" Foreground="#0F172A" Margin="0,3,0,0"/>
+                        <TextBlock Text="Click to show all" FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <Path Grid.Column="1" Data="{StaticResource IconLogs}" Fill="#94A3B8" Width="20" Height="20" Stretch="Uniform" VerticalAlignment="Top"/>
+                </Grid>
+            </Button>
+
+            <!-- KPI 2: Errors -->
+            <Button Grid.Column="1" Command="{Binding FilterErrorsCommand}" Style="{StaticResource KpiCardButton}" Margin="0,0,12,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="ERRORS" FontSize="10.5" FontWeight="Bold" Foreground="#DC2626"/>
+                        <TextBlock Text="{Binding ErrorCount}" FontSize="24" FontWeight="Bold" Foreground="#EF4444" Margin="0,3,0,0"/>
+                        <TextBlock Text="Click to filter errors" FontSize="11" Foreground="#DC2626" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <Path Grid.Column="1" Data="{StaticResource IconError}" Fill="#EF4444" Width="20" Height="20" Stretch="Uniform" VerticalAlignment="Top"/>
+                </Grid>
+            </Button>
+
+            <!-- KPI 3: Warnings -->
+            <Button Grid.Column="2" Command="{Binding FilterWarningsCommand}" Style="{StaticResource KpiCardButton}" Margin="0,0,12,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="WARNINGS" FontSize="10.5" FontWeight="Bold" Foreground="#D97706"/>
+                        <TextBlock Text="{Binding WarningCount}" FontSize="24" FontWeight="Bold" Foreground="#F59E0B" Margin="0,3,0,0"/>
+                        <TextBlock Text="Click to filter warnings" FontSize="11" Foreground="#D97706" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <Path Grid.Column="1" Data="{StaticResource IconWarning}" Fill="#F59E0B" Width="20" Height="20" Stretch="Uniform" VerticalAlignment="Top"/>
+                </Grid>
+            </Button>
+
+            <!-- KPI 4: Info / Audit -->
+            <Button Grid.Column="3" Command="{Binding FilterInfoCommand}" Style="{StaticResource KpiCardButton}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="INFO / AUDIT" FontSize="10.5" FontWeight="Bold" Foreground="#0284C7"/>
+                        <TextBlock Text="{Binding InfoCount}" FontSize="24" FontWeight="Bold" Foreground="#0284C7" Margin="0,3,0,0"/>
+                        <TextBlock Text="Click to filter info" FontSize="11" Foreground="#0284C7" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <Path Grid.Column="1" Data="{StaticResource IconInfo}" Fill="#0284C7" Width="20" Height="20" Stretch="Uniform" VerticalAlignment="Top"/>
+                </Grid>
+            </Button>
+        </Grid>
+
+        <!-- Row 2: Filters & Actions Toolbar -->
+        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Search and Dropdown Filters -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Search Input Box -->
+                    <Grid Width="220" Height="34" Margin="0,0,10,0">
+                        <TextBox x:Name="SearchInput" 
+                                 Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
+                                 Padding="30,6,10,6" 
+                                 FontSize="12" 
+                                 VerticalContentAlignment="Center"
+                                 Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1">
+                            <TextBox.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+                        <Path Data="{StaticResource IconSearch}" Fill="#94A3B8" Width="12" Height="12" Stretch="Uniform" 
+                              HorizontalAlignment="Left" VerticalAlignment="Center" 
+                              Margin="11,0,0,0" IsHitTestVisible="False"/>
+                        <TextBlock Text="Search subject, body..." FontSize="12" Foreground="#94A3B8" 
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                   Margin="32,0,0,0" IsHitTestVisible="False">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text, ElementName=SearchInput}" Value="">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+
+                    <!-- Filter 1: Level -->
+                    <ComboBox ItemsSource="{Binding FilterOptions}"
+                              SelectedItem="{Binding Filter, Mode=TwoWay}"
+                              Style="{StaticResource ModernComboBox}"
+                              Width="120" Height="34" Margin="0,0,8,0"/>
+
+                    <!-- Filter 2: Time Window -->
+                    <ComboBox ItemsSource="{Binding TimeFilterOptions}"
+                              SelectedItem="{Binding TimeFilter, Mode=TwoWay}"
+                              Style="{StaticResource ModernComboBox}"
+                              Width="125" Height="34" Margin="0,0,8,0"/>
+
+                    <!-- Filter 3: Channel -->
+                    <ComboBox ItemsSource="{Binding ChannelOptions}"
+                              SelectedItem="{Binding ChannelFilter, Mode=TwoWay}"
+                              Style="{StaticResource ModernComboBox}"
+                              Width="130" Height="34" Margin="0,0,8,0"/>
+                </StackPanel>
+
+                <!-- Right: Action Buttons (Live Stream, Refresh, Export, Folder, Clear) -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Live Stream Auto-Refresh Toggle -->
+                    <Button Command="{Binding ToggleLiveAutoRefreshCommand}" 
+                            Margin="0,0,8,0">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource LiveStreamToggleBtn}">
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Text, ElementName=SearchInput}" Value="">
-                                        <Setter Property="Visibility" Value="Visible"/>
+                                    <DataTrigger Binding="{Binding IsLiveAutoRefresh}" Value="True">
+                                        <Setter Property="Background" Value="#F0FDF4"/>
+                                        <Setter Property="BorderBrush" Value="#86EFAC"/>
+                                        <Setter Property="Foreground" Value="#16A34A"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsLiveAutoRefresh}" Value="False">
+                                        <Setter Property="Background" Value="#FFFFFF"/>
+                                        <Setter Property="BorderBrush" Value="#CBD5E1"/>
+                                        <Setter Property="Foreground" Value="#64748B"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </Grid>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="7" Height="7" Margin="0,0,6,0" VerticalAlignment="Center">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsLiveAutoRefresh}" Value="True">
+                                                <Setter Property="Fill" Value="#16A34A"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsLiveAutoRefresh}" Value="False">
+                                                <Setter Property="Fill" Value="#94A3B8"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="Live Stream" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
 
-                <!-- Modern Filter Level ComboBox -->
-                <ComboBox ItemsSource="{Binding FilterOptions}"
-                          SelectedItem="{Binding Filter, Mode=TwoWay}"
-                          Style="{StaticResource ModernComboBox}"
-                          Width="130" Height="34" Margin="0,0,10,0"/>
+                    <!-- Refresh Button -->
+                    <Button Command="{Binding RefreshCommand}" 
+                            Style="{StaticResource ModernToolbarRefreshBtn}"
+                            Padding="11,7" Margin="0,0,6,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Refresh" FontSize="11.5" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
 
-                <!-- Modern Refresh Button -->
-                <Button Command="{Binding RefreshCommand}" 
-                        Style="{StaticResource ModernToolbarRefreshBtn}"
-                        Margin="0,0,8,0">
-                    <StackPanel Orientation="Horizontal">
-                        <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
-                        <TextBlock Text="Refresh"/>
-                    </StackPanel>
-                </Button>
+                    <!-- Export Logs Button -->
+                    <Button Command="{Binding ExportLogsCommand}" 
+                            Style="{StaticResource ModernToolbarRefreshBtn}"
+                            Padding="11,7" Margin="0,0,6,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconDownload}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Export" FontSize="11.5" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
 
-                <!-- Modern Logs Folder Button -->
-                <Button Command="{Binding OpenLogsFolderCommand}" 
-                        Style="{StaticResource ModernToolbarRefreshBtn}"
-                        Margin="0,0,8,0">
-                    <StackPanel Orientation="Horizontal">
-                        <Path Data="{StaticResource IconFolder}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0"/>
-                        <TextBlock Text="Logs Folder"/>
-                    </StackPanel>
-                </Button>
+                    <!-- Copy All Logs Button -->
+                    <Button Command="{Binding CopyAllLogsCommand}" 
+                            Style="{StaticResource ModernToolbarRefreshBtn}"
+                            Padding="11,7" Margin="0,0,6,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconCopy}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="11" Height="11" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Copy All" FontSize="11.5" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
 
-                <!-- Modern Clear Logs Button -->
-                <Button Command="{Binding ClearLogsCommand}" 
-                        Style="{StaticResource ModernToolbarDangerBtn}">
-                    <StackPanel Orientation="Horizontal">
-                        <Path Data="{StaticResource IconTrash}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
-                        <TextBlock Text="Clear"/>
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-        </Grid>
+                    <!-- Logs Folder Button -->
+                    <Button Command="{Binding OpenLogsFolderCommand}" 
+                            Style="{StaticResource ModernToolbarRefreshBtn}"
+                            Padding="11,7" Margin="0,0,6,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconFolder}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Folder" FontSize="11.5" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
 
-        <!-- Logs Content Table/List -->
-        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20">
+                    <!-- Clear Logs Button -->
+                    <Button Command="{Binding ClearLogsCommand}" 
+                            Style="{StaticResource ModernToolbarDangerBtn}"
+                            Padding="11,7">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconTrash}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="11" Height="11" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Clear" FontSize="11.5" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Row 3: Logs Content Table / Interactive Cards -->
+        <Border Grid.Row="3" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20">
             <Grid>
                 <!-- Empty State -->
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -138,9 +356,9 @@
                             </Style.Triggers>
                         </Style>
                     </StackPanel.Style>
-                    <Path Data="{StaticResource IconLogs}" Fill="#CBD5E1" Width="40" Height="40" Stretch="Uniform" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                    <TextBlock Text="No Activity Events Recorded" FontSize="16" FontWeight="SemiBold" Foreground="#334155" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Certificate issuance workflows, Let's Encrypt validations, and background checks will appear here in real time." 
+                    <Path Data="{StaticResource IconLogs}" Fill="#CBD5E1" Width="44" Height="44" Stretch="Uniform" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                    <TextBlock Text="No Activity Events Matching Filter" FontSize="16" FontWeight="SemiBold" Foreground="#334155" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Try resetting the filters or trigger a certificate request to view real-time ACME activity." 
                                FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
@@ -150,52 +368,169 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" 
-                                        CornerRadius="8" Padding="16,14" Margin="0,0,0,10">
+                                        CornerRadius="10" Padding="16,14" Margin="0,0,0,12">
                                     <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
 
-                                        <!-- Severity Icon -->
-                                        <Border Grid.Column="0" Background="{Binding LevelBadgeBackground}" 
-                                                CornerRadius="20" Width="38" Height="38" Margin="0,0,14,0" VerticalAlignment="Center">
-                                            <Path Width="18" Height="18" Stretch="Uniform" Fill="{Binding LevelBadgeColor}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Path.Style>
-                                                    <Style TargetType="Path">
-                                                        <Setter Property="Data" Value="{StaticResource IconInfo}"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding NormalizedLevel}" Value="Error">
-                                                                <Setter Property="Data" Value="{StaticResource IconError}"/>
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding NormalizedLevel}" Value="Warning">
-                                                                <Setter Property="Data" Value="{StaticResource IconWarning}"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Path.Style>
-                                            </Path>
-                                        </Border>
+                                        <!-- Row 0: Summary Header & Actions -->
+                                        <Grid Grid.Row="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <!-- Message Content -->
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,14,0">
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                                <TextBlock Text="{Binding Subject}" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,10,0"/>
-                                                <Border Background="{Binding LevelBadgeBackground}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Level}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding LevelBadgeColor}"/>
+                                            <!-- Severity Icon Badge -->
+                                            <Border Grid.Column="0" Background="{Binding LevelBadgeBackground}" 
+                                                    CornerRadius="20" Width="36" Height="36" Margin="0,0,14,0" VerticalAlignment="Top">
+                                                <Path Width="16" Height="16" Stretch="Uniform" Fill="{Binding LevelBadgeColor}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Path.Style>
+                                                        <Style TargetType="Path">
+                                                            <Setter Property="Data" Value="{StaticResource IconInfo}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding NormalizedLevel}" Value="Error">
+                                                                    <Setter Property="Data" Value="{StaticResource IconError}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding NormalizedLevel}" Value="Warning">
+                                                                    <Setter Property="Data" Value="{StaticResource IconWarning}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Path.Style>
+                                                </Path>
+                                            </Border>
+
+                                            <!-- Message Title & Preview -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,14,0">
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                    <TextBlock Text="{Binding Subject}" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,8,0"/>
+                                                    
+                                                    <!-- Level Badge -->
+                                                    <Border Background="{Binding LevelBadgeBackground}" CornerRadius="4" Padding="6,2" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding NormalizedLevel}" FontSize="10" FontWeight="Bold" Foreground="{Binding LevelBadgeColor}"/>
+                                                    </Border>
+
+                                                    <!-- Channel Badge -->
+                                                    <Border Background="#F1F5F9" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Channel}" FontSize="10" FontWeight="SemiBold" Foreground="#64748B"/>
+                                                    </Border>
+                                                </StackPanel>
+
+                                                <!-- Body Summary Text -->
+                                                <TextBlock Text="{Binding Body}" FontSize="12" Foreground="#475569" TextWrapping="Wrap" MaxHeight="40" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+
+                                            <!-- Right Side Actions & Timestamp -->
+                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,6">
+                                                    <!-- Timestamp -->
+                                                    <TextBlock Text="{Binding SentAtLocal}" FontSize="11.5" FontWeight="Medium" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                                                    <!-- Smart Action: Troubleshooting Guide -->
+                                                    <Button Command="{Binding DataContext.TroubleshootLogCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1"
+                                                            Padding="8,4" Margin="0,0,6,0" Cursor="Hand"
+                                                            Visibility="{Binding HasTroubleshootingAction, Converter={StaticResource BoolToVisConverter}}">
+                                                        <Button.Resources>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="CornerRadius" Value="6"/>
+                                                            </Style>
+                                                        </Button.Resources>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Path Data="{StaticResource IconSearch}" Fill="#B91C1C" Width="10" Height="10" Stretch="Uniform" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="Troubleshooting Guide" FontSize="10.5" FontWeight="Bold" Foreground="#B91C1C" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Button>
+
+                                                    <!-- One-Click Copy Log Item -->
+                                                    <Button Command="{Binding DataContext.CopyLogItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1"
+                                                            Padding="7,4" Margin="0,0,6,0" Cursor="Hand" ToolTip="Copy this log entry to clipboard">
+                                                        <Button.Resources>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="CornerRadius" Value="6"/>
+                                                            </Style>
+                                                        </Button.Resources>
+                                                        <Path Data="{StaticResource IconCopy}" Fill="#475569" Width="11" Height="11" Stretch="Uniform"/>
+                                                    </Button>
+
+                                                    <!-- Expand / Collapse Details Chevron -->
+                                                    <Button Command="{Binding ToggleExpandCommand}"
+                                                            Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1"
+                                                            Padding="7,4" Cursor="Hand" ToolTip="Toggle technical details">
+                                                        <Button.Resources>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="CornerRadius" Value="6"/>
+                                                            </Style>
+                                                        </Button.Resources>
+                                                        <Path Width="11" Height="11" Stretch="Uniform" Fill="#475569">
+                                                            <Path.Style>
+                                                                <Style TargetType="Path">
+                                                                    <Setter Property="Data" Value="{StaticResource IconChevronDown}"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                                                                            <Setter Property="Data" Value="{StaticResource IconChevronUp}"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Path.Style>
+                                                        </Path>
+                                                    </Button>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Row 1: Expandable Technical Inspector Drawer -->
+                                        <Border Grid.Row="1" Background="#0F172A" CornerRadius="8" Padding="14" Margin="0,12,0,0"
+                                                Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisConverter}}">
+                                            <StackPanel>
+                                                <!-- Technical Metadata Bar -->
+                                                <Grid Margin="0,0,0,10">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="EVENT ID" FontSize="10" FontWeight="Bold" Foreground="#64748B"/>
+                                                        <TextBlock Text="{Binding Id}" FontSize="11" FontFamily="Consolas, monospace" Foreground="#94A3B8" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="TIMESTAMPS" FontSize="10" FontWeight="Bold" Foreground="#64748B"/>
+                                                        <TextBlock Text="{Binding SentAtUtc}" FontSize="11" FontFamily="Consolas, monospace" Foreground="#38BDF8" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+
+                                                    <Button Grid.Column="2" Command="{Binding DataContext.CopyLogItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="#1E293B" Foreground="#FFFFFF" Padding="10,5" BorderThickness="0" Cursor="Hand" VerticalAlignment="Center">
+                                                        <Button.Resources>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="CornerRadius" Value="6"/>
+                                                            </Style>
+                                                        </Button.Resources>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Path Data="{StaticResource IconCopy}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="Copy Details" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                </Grid>
+
+                                                <!-- Full Body / Exception Code Block -->
+                                                <TextBlock Text="FULL MESSAGE &amp; PAYLOAD" FontSize="10" FontWeight="Bold" Foreground="#64748B" Margin="0,0,0,4"/>
+                                                <Border Background="#020617" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="6" Padding="10">
+                                                    <TextBox Text="{Binding Body, Mode=OneWay}" 
+                                                             FontFamily="Consolas, monospace" FontSize="11.5" Foreground="#E2E8F0"
+                                                             TextWrapping="Wrap" IsReadOnly="True" BorderThickness="0" Background="Transparent" Padding="0"/>
                                                 </Border>
                                             </StackPanel>
-                                            <TextBox Text="{Binding Body, Mode=OneWay}" 
-                                                     FontSize="12" Foreground="#475569" TextWrapping="Wrap" 
-                                                     IsReadOnly="True" BorderThickness="0" Background="Transparent" Padding="0"/>
-                                        </StackPanel>
-
-                                        <!-- Timestamp & Channel -->
-                                        <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding SentAtLocal}" FontSize="11.5" FontWeight="Medium" Foreground="#64748B" HorizontalAlignment="Right"/>
-                                            <TextBlock Text="{Binding Channel, StringFormat='via {0}'}" FontSize="10.5" Foreground="#94A3B8" HorizontalAlignment="Right" Margin="0,2,0,0"/>
-                                        </StackPanel>
+                                        </Border>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
