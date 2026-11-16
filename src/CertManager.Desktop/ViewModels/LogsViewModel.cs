@@ -40,17 +40,20 @@ public class LogItemViewModel
             _ => "#EFF6FF"
         };
 
-        Icon = Level.ToLowerInvariant() switch
+        NormalizedLevel = Level.ToLowerInvariant() switch
         {
-            "error" => "🚨",
-            "warning" => "⚠️",
-            _ => "ℹ️"
+            "error" => "Error",
+            "warning" => "Warning",
+            _ => "Info"
         };
+
+        Icon = string.Empty;
     }
 
     public Guid Id { get; }
     public string Channel { get; }
     public string Level { get; }
+    public string NormalizedLevel { get; }
     public string Subject { get; }
     public string Body { get; }
     public bool Delivered { get; }

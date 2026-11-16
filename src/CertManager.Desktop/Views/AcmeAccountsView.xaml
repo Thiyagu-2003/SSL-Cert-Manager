@@ -53,7 +53,7 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Command="{Binding RefreshCommand}" Style="{StaticResource ModernToolbarRefreshBtn}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⟳" FontSize="14" Margin="0,0,8,0" FontWeight="Bold"/>
+                        <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0"/>
                         <TextBlock Text="Refresh Accounts"/>
                     </StackPanel>
                 </Button>
@@ -86,8 +86,8 @@
                             Style="{StaticResource ModernToolbarPrimaryBtn}"
                             Padding="20,9">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="💾 " FontWeight="Bold"/>
-                            <TextBlock Text="Save Global Email"/>
+                            <Path Data="{StaticResource IconSave}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Save Global Email" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -142,7 +142,7 @@
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="🔐" FontSize="18" Margin="0,0,10,0"/>
+                                            <Path Data="{StaticResource IconLock}" Fill="#0284C7" Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center"/>
                                             <TextBlock Text="{Binding DirectoryName}" FontSize="15" FontWeight="Bold" Foreground="#0F172A"/>
                                         </StackPanel>
 

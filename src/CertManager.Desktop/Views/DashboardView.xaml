@@ -224,7 +224,7 @@
                                Foreground="#475569" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,14,0"/>
                     <Button Command="{Binding RefreshCommand}" Style="{StaticResource ModernToolbarPrimaryBtn}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="⟳" FontSize="14" Margin="0,0,8,0" FontWeight="Bold"/>
+                            <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0"/>
                             <TextBlock Text="Refresh Status"/>
                         </StackPanel>
                     </Button>
@@ -343,7 +343,7 @@
                                 </Style>
                             </Button.Resources>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⚡" Margin="0,0,4,0"/>
+                                <Path Data="{StaticResource IconBolt}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
                                 <TextBlock Text="Start In-Process Engine"/>
                             </StackPanel>
                         </Button>
@@ -371,7 +371,7 @@
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
                             <TextBlock Text="TOTAL CERTS" FontSize="11.5" FontWeight="Bold" Foreground="#334155"/>
-                            <TextBlock Text="🛡️" HorizontalAlignment="Right" FontSize="18"/>
+                            <Path Data="{StaticResource IconShieldCheck}" Fill="#0284C7" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Right"/>
                         </Grid>
                         <TextBlock Text="{Binding TotalCertificates}" FontSize="34" FontWeight="Bold" Foreground="#0F172A"/>
                         <TextBlock Text="Active in Windows Store" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,6,0,0"/>
@@ -383,7 +383,7 @@
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
                             <TextBlock Text="EXPIRING SOON" FontSize="11.5" FontWeight="Bold" Foreground="#B45309"/>
-                            <TextBlock Text="⚠️" HorizontalAlignment="Right" FontSize="18"/>
+                            <Path Data="{StaticResource IconWarning}" Fill="#D97706" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Right"/>
                         </Grid>
                         <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="34" FontWeight="Bold" Foreground="#D97706"/>
                         <TextBlock Text="Due within 30 days" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,6,0,0"/>
@@ -395,7 +395,7 @@
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
                             <TextBlock Text="ACTIVE ACME ORDERS" FontSize="11.5" FontWeight="Bold" Foreground="#1D4ED8"/>
-                            <TextBlock Text="🔄" HorizontalAlignment="Right" FontSize="18"/>
+                            <Path Data="{StaticResource IconRefresh}" Fill="#2563EB" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Right"/>
                         </Grid>
                         <TextBlock Text="{Binding ActiveOrdersCount}" FontSize="34" FontWeight="Bold" Foreground="#2563EB"/>
                         <TextBlock Text="In-flight challenges" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,6,0,0"/>
@@ -407,7 +407,7 @@
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
                             <TextBlock Text="RENEWAL POLICY" FontSize="11.5" FontWeight="Bold" Foreground="#047857"/>
-                            <TextBlock Text="⚡" HorizontalAlignment="Right" FontSize="18"/>
+                            <Path Data="{StaticResource IconBolt}" Fill="#047857" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Right"/>
                         </Grid>
                         <TextBlock Text="ARI + 33%" FontSize="24" FontWeight="Bold" Foreground="#047857" Margin="0,6,0,0"/>
                         <TextBlock Text="Percentage &amp; ARI window" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,8,0,0"/>
@@ -428,7 +428,10 @@
                 <!-- Action 1 -->
                 <Border Grid.Column="0" Style="{StaticResource ActionCardBorder}">
                     <StackPanel>
-                        <TextBlock Text="➕ Request Certificate" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconPlus}" Fill="#0284C7" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Request Certificate" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A" VerticalAlignment="Center"/>
+                        </StackPanel>
                         <TextBlock Text="Request a new SSL/TLS certificate via Let's Encrypt using HTTP-01 or DNS-01." 
                                    TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
                         <Button Content="New Certificate Wizard" Command="{Binding NewCertificateWizardCommand}" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
@@ -438,7 +441,10 @@
                 <!-- Action 2 -->
                 <Border Grid.Column="1" Style="{StaticResource ActionCardBorder}">
                     <StackPanel>
-                        <TextBlock Text="🔍 Discover IIS Sites" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconSearch}" Fill="#0284C7" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Discover IIS Sites" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A" VerticalAlignment="Center"/>
+                        </StackPanel>
                         <TextBlock Text="Scan local Microsoft IIS web server for existing sites, hostnames, and HTTPS bindings." 
                                    TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
                         <Button Content="Scan IIS Web Server" Command="{Binding ScanIisServerCommand}" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
@@ -448,7 +454,10 @@
                 <!-- Action 3 -->
                 <Border Grid.Column="2" Style="{StaticResource ActionCardBorder}" Margin="0,0,0,16">
                     <StackPanel>
-                        <TextBlock Text="📋 Test ACME Staging" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconLogs}" Fill="#0284C7" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Test ACME Staging" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A" VerticalAlignment="Center"/>
+                        </StackPanel>
                         <TextBlock Text="Validate end-to-end issuance without hitting Let's Encrypt production rate limits." 
                                    TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
                         <Button Content="Run Staging Pre-flight" Command="{Binding RunStagingPreflightCommand}" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>

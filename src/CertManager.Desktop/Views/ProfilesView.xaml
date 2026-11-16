@@ -52,7 +52,7 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Command="{Binding RefreshCommand}" Style="{StaticResource ModernToolbarRefreshBtn}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⟳" FontSize="14" Margin="0,0,8,0" FontWeight="Bold"/>
+                        <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0"/>
                         <TextBlock Text="Refresh Profiles"/>
                     </StackPanel>
                 </Button>
@@ -74,7 +74,7 @@
                             </Style.Triggers>
                         </Style>
                     </StackPanel.Style>
-                    <TextBlock Text="📑" FontSize="36" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                    <Path Data="{StaticResource IconProfiles}" Fill="#CBD5E1" Width="40" Height="40" Stretch="Uniform" HorizontalAlignment="Center" Margin="0,0,0,12"/>
                     <TextBlock Text="No Profiles Created Yet" FontSize="16" FontWeight="SemiBold" Foreground="#334155" HorizontalAlignment="Center"/>
                     <TextBlock Text="Profiles are generated automatically during certificate issuance or configured manually." 
                                FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,4,0,0"/>

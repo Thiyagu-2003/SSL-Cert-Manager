@@ -100,7 +100,7 @@
                         Style="{StaticResource ModernToolbarPrimaryBtn}"
                         VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⟳" FontSize="14" Margin="0,0,8,0" FontWeight="Bold"/>
+                        <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0"/>
                         <TextBlock Text="Refresh Inventory"/>
                     </StackPanel>
                 </Button>
@@ -236,8 +236,7 @@
 
                                 <!-- Right Force Renew Action -->
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <Button Content="🔄 Force Immediate Renewal" 
-                                            Command="{Binding DataContext.ForceRenewCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    <Button Command="{Binding DataContext.ForceRenewCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                             CommandParameter="{Binding}"
                                             Background="#F1F5F9" Foreground="#0F172A" FontWeight="SemiBold"
                                             BorderThickness="0" Padding="14,9" Cursor="Hand">
@@ -246,6 +245,10 @@
                                                 <Setter Property="CornerRadius" Value="8"/>
                                             </Style>
                                         </Button.Resources>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Data="{StaticResource IconRefresh}" Fill="#0F172A" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Force Immediate Renewal" VerticalAlignment="Center"/>
+                                        </StackPanel>
                                     </Button>
                                 </StackPanel>
                             </Grid>

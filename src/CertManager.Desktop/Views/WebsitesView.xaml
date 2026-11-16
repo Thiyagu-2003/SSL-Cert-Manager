@@ -100,7 +100,7 @@
                         Style="{StaticResource ModernToolbarPrimaryBtn}"
                         VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="🔍" FontSize="13" Margin="0,0,8,0"/>
+                        <Path Data="{StaticResource IconSearch}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0"/>
                         <TextBlock Text="Scan Local IIS"/>
                     </StackPanel>
                 </Button>
@@ -127,7 +127,10 @@
                 <Border Grid.Column="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" 
                         CornerRadius="12" Padding="18" Margin="0,0,14,0">
                     <StackPanel>
-                        <TextBlock Text="🔒 HTTPS PROTECTED" FontSize="11" FontWeight="Bold" Foreground="#16A34A"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconLock}" Fill="#16A34A" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="HTTPS PROTECTED" FontSize="11" FontWeight="Bold" Foreground="#16A34A" VerticalAlignment="Center"/>
+                        </StackPanel>
                         <TextBlock Text="{Binding SecuredSitesCount}" FontSize="28" FontWeight="Bold" Foreground="#16A34A" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
@@ -136,7 +139,10 @@
                 <Border Grid.Column="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" 
                         CornerRadius="12" Padding="18">
                     <StackPanel>
-                        <TextBlock Text="⚠️ UNENCRYPTED (NEEDS SSL)" FontSize="11" FontWeight="Bold" Foreground="#D97706"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconWarning}" Fill="#D97706" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="UNENCRYPTED (NEEDS SSL)" FontSize="11" FontWeight="Bold" Foreground="#D97706" VerticalAlignment="Center"/>
+                        </StackPanel>
                         <TextBlock Text="{Binding UnencryptedSitesCount}" FontSize="28" FontWeight="Bold" Foreground="#D97706" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
@@ -228,8 +234,7 @@
                                 <!-- Right Action / Status Pill -->
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <!-- If Needs Certificate -->
-                                    <Button Content="⚡ Secure with CertFlow" 
-                                            Command="{Binding DataContext.RequestCertificateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    <Button Command="{Binding DataContext.RequestCertificateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                             CommandParameter="{Binding}"
                                             Background="#0284C7" Foreground="#FFFFFF" FontWeight="SemiBold"
                                             BorderThickness="0" Padding="14,9" Cursor="Hand">
@@ -248,6 +253,10 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Button.Style>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Data="{StaticResource IconBolt}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Secure with CertFlow" VerticalAlignment="Center"/>
+                                        </StackPanel>
                                     </Button>
 
                                     <!-- If Already Has HTTPS -->
@@ -264,8 +273,8 @@
                                             </Style>
                                         </Border.Style>
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="✓" Foreground="#16A34A" FontWeight="Bold" Margin="0,0,6,0"/>
-                                            <TextBlock Text="HTTPS Active" Foreground="#166534" FontWeight="SemiBold" FontSize="12"/>
+                                            <Path Data="{StaticResource IconCheck}" Fill="#16A34A" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="HTTPS Active" Foreground="#166534" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>

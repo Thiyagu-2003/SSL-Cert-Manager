@@ -57,7 +57,7 @@
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Background="#0284C7" CornerRadius="12" Width="46" Height="46" Margin="0,0,14,0">
-                <TextBlock Text="🛡️" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Path Data="{StaticResource IconShieldCheck}" Fill="#FFFFFF" Width="22" Height="22" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
 
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -70,8 +70,11 @@
         <!-- Body Form -->
         <StackPanel Grid.Row="1">
             <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,18">
-                <TextBlock Text="ℹ️ Let's Encrypt requires a valid contact email for ACME account registration. It is used exclusively to send critical certificate expiry warnings and security notices. It will be applied globally across all your IIS sites."
-                           FontSize="11.5" Foreground="#1E40AF" TextWrapping="Wrap"/>
+                <StackPanel Orientation="Horizontal">
+                    <Path Data="{StaticResource IconInfo}" Fill="#1E40AF" Width="14" Height="14" Stretch="Uniform" Margin="0,2,8,0" VerticalAlignment="Top"/>
+                    <TextBlock Text="Let's Encrypt requires a valid contact email for ACME account registration. It is used exclusively to send critical certificate expiry warnings and security notices. It will be applied globally across all your IIS sites."
+                               FontSize="11.5" Foreground="#1E40AF" TextWrapping="Wrap" Width="430"/>
+                </StackPanel>
             </Border>
 
             <!-- Contact Email Field -->
@@ -120,8 +123,8 @@
                     </Style>
                 </Button.Resources>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="✓ " FontWeight="Bold"/>
-                    <TextBlock Text="Save &amp; Continue"/>
+                    <Path Data="{StaticResource IconCheck}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="Save &amp; Continue" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
         </Grid>
