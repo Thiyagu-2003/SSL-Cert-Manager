@@ -25,6 +25,9 @@
         <DataTemplate DataType="{x:Type vm:LogsViewModel}">
             <views:LogsView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TutorialsViewModel}">
+            <views:TutorialsView/>
+        </DataTemplate>
 
         <!-- Global Crisp Typography & ClearType Configuration -->
         <Style TargetType="{x:Type TextBlock}">

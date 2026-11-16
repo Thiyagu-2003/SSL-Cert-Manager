@@ -18,6 +18,7 @@ public class MainViewModel : ViewModelBase, IDisposable
         ProfilesVM = new ProfilesViewModel();
         AcmeAccountsVM = new AcmeAccountsViewModel();
         LogsVM = new LogsViewModel();
+        TutorialsVM = new TutorialsViewModel(section => NavigateCommand?.Execute(section));
 
         _currentView = DashboardVM;
 
@@ -52,6 +53,9 @@ public class MainViewModel : ViewModelBase, IDisposable
                         CurrentView = LogsVM;
                         _ = LogsVM.LoadLogsAsync();
                         break;
+                    case "Tutorials":
+                        CurrentView = TutorialsVM;
+                        break;
                     default:
                         CurrentView = DashboardVM;
                         break;
@@ -66,6 +70,7 @@ public class MainViewModel : ViewModelBase, IDisposable
     public ProfilesViewModel ProfilesVM { get; }
     public AcmeAccountsViewModel AcmeAccountsVM { get; }
     public LogsViewModel LogsVM { get; }
+    public TutorialsViewModel TutorialsVM { get; }
 
     public object CurrentView
     {
