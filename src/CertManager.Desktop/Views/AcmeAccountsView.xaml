@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" 
-             d:DesignHeight="650" d:DesignWidth="900"
+             d:DesignHeight="700" d:DesignWidth="950"
              FontFamily="Segoe UI Variable, Segoe UI, sans-serif">
 
     <!-- Page Entrance Animation -->
@@ -33,25 +33,26 @@
     <Grid Margin="32,28,32,28">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Top Header & Action Controls -->
-        <Grid Grid.Row="0" Margin="0,0,0,24">
+        <Grid Grid.Row="0" Margin="0,0,0,20">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0">
-                <TextBlock Text="ACME Accounts &amp; Authorities" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
-                <TextBlock Text="Certificate Authority registration identities, directory endpoints, and cryptographic keys" 
+                <TextBlock Text="ACME Accounts &amp; Global Identity" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                <TextBlock Text="Manage your global Let's Encrypt administrator contact email and ACME authority directories" 
                            FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Command="{Binding RefreshCommand}" Background="#FFFFFF" BorderBrush="#E2E8F0" 
-                        BorderThickness="1" Foreground="#334155" Padding="14,8" Cursor="Hand" Margin="0,0,8,0">
+                        BorderThickness="1" Foreground="#334155" Padding="14,8" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="8"/>
@@ -65,8 +66,73 @@
             </StackPanel>
         </Grid>
 
-        <!-- Accounts Content -->
-        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20">
+        <!-- Global Contact Configuration Card -->
+        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="Global Administrator Contact Email" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
+                <TextBlock Text="This email address is applied globally to all website certificates for Let's Encrypt ACME registration, automated renewal notices, and expiration alerts." 
+                           FontSize="12.5" Foreground="#64748B" Margin="0,4,0,14" TextWrapping="Wrap"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0" Text="{Binding GlobalEmailInput, UpdateSourceTrigger=PropertyChanged}" 
+                             FontSize="13" Padding="12,10" Margin="0,0,12,0" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+
+                    <Button Grid.Column="1" Command="{Binding SaveGlobalEmailCommand}" 
+                            Background="#0284C7" Foreground="#FFFFFF" FontWeight="Bold" Padding="20,10" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💾 " FontWeight="Bold"/>
+                            <TextBlock Text="Save Global Email"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- Feedback & Validation Messages -->
+                <TextBlock Text="{Binding StatusFeedback}" Foreground="#16A34A" FontSize="12" FontWeight="SemiBold" Margin="2,8,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="#EF4444" FontSize="12" FontWeight="SemiBold" Margin="2,8,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- ACME Directories / Accounts List -->
+        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding Accounts}">
                     <ItemsControl.ItemTemplate>
@@ -111,7 +177,7 @@
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Grid.Column="0" Text="Contact:" FontSize="12" FontWeight="SemiBold" Foreground="#64748B"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding ContactEmail}" FontSize="12" Foreground="#334155"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding ContactEmail}" FontSize="12" Foreground="#334155" FontWeight="Medium"/>
                                         </Grid>
 
                                         <Grid Margin="0,2,0,0">

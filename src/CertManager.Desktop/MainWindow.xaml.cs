@@ -11,6 +11,19 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = new MainViewModel();
 
+        Loaded += (_, _) =>
+        {
+            var settings = Services.UserSettingsService.Instance.Settings;
+            if (string.IsNullOrWhiteSpace(settings.GlobalContactEmail) && !settings.IsInitialSetupCompleted)
+            {
+                var setup = new Views.InitialSetupWindow
+                {
+                    Owner = this
+                };
+                setup.ShowDialog();
+            }
+        };
+
         Closed += (_, _) =>
         {
             if (DataContext is IDisposable d)

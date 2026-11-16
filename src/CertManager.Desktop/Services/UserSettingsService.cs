@@ -9,6 +9,7 @@ public class UserSettings
     public string GlobalContactEmail { get; set; } = string.Empty;
     public string PreferredEnvironment { get; set; } = "Staging";
     public bool RememberEmailGlobally { get; set; } = true;
+    public bool IsInitialSetupCompleted { get; set; } = false;
 }
 
 public class UserSettingsService

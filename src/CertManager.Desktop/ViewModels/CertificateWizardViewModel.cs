@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using CertManager.Core.Models;
 using CertManager.Desktop.Common;
 using CertManager.Desktop.Services;
+using CertManager.Desktop.Views;
 using CertManager.Service;
 
 namespace CertManager.Desktop.ViewModels;
@@ -68,8 +70,32 @@ public class CertificateWizardViewModel : ViewModelBase
 
         StartIssuanceCommand = new RelayCommand(
             async () => await StartIssuanceAsync(),
-            () => !IsExecuting && !string.IsNullOrWhiteSpace(DomainName) && !string.IsNullOrWhiteSpace(ContactEmail));
+            () => !IsExecuting && !string.IsNullOrWhiteSpace(DomainName));
+
+        ChangeGlobalEmailCommand = new RelayCommand(() =>
+        {
+            var setup = new InitialSetupWindow
+            {
+                Owner = Application.Current?.MainWindow
+            };
+            if (setup.ShowDialog() == true)
+            {
+                var settings = UserSettingsService.Instance.Settings;
+                ContactEmail = settings.GlobalContactEmail;
+                if (string.Equals(settings.PreferredEnvironment, "Production", StringComparison.OrdinalIgnoreCase))
+                {
+                    IsProduction = true;
+                }
+                else if (string.Equals(settings.PreferredEnvironment, "Staging", StringComparison.OrdinalIgnoreCase))
+                {
+                    IsStaging = true;
+                }
+                CommandManager.InvalidateRequerySuggested();
+            }
+        });
     }
+
+    public ICommand ChangeGlobalEmailCommand { get; }
 
     public long SiteId
     {
@@ -302,15 +328,22 @@ public class CertificateWizardViewModel : ViewModelBase
     {
         if (IsExecuting) return;
 
-        // Persist email & environment preferences globally for subsequent requests
-        if (!string.IsNullOrWhiteSpace(ContactEmail))
+        if (!IsSelfSigned && string.IsNullOrWhiteSpace(ContactEmail))
         {
-            var userSettings = UserSettingsService.Instance.Settings;
-            userSettings.GlobalContactEmail = ContactEmail.Trim();
-            if (IsProduction) userSettings.PreferredEnvironment = "Production";
-            else if (IsSelfSigned) userSettings.PreferredEnvironment = "SelfSigned";
-            else userSettings.PreferredEnvironment = "Staging";
-            UserSettingsService.Instance.SaveSettings(userSettings);
+            var setup = new InitialSetupWindow
+            {
+                Owner = Application.Current?.MainWindow
+            };
+            if (setup.ShowDialog() == true)
+            {
+                ContactEmail = UserSettingsService.Instance.Settings.GlobalContactEmail;
+            }
+
+            if (string.IsNullOrWhiteSpace(ContactEmail))
+            {
+                ErrorMessage = "A global administrator email is required for Let's Encrypt certificates.";
+                return;
+            }
         }
 
         IsExecuting = true;
