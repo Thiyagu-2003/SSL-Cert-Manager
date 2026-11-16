@@ -222,9 +222,9 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="{Binding LastRefreshed, StringFormat='Synced: {0}'}" 
                                Foreground="#475569" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,14,0"/>
-                    <Button Command="{Binding RefreshCommand}" Style="{StaticResource PrimaryActionBtn}">
+                    <Button Command="{Binding RefreshCommand}" Style="{StaticResource ModernToolbarPrimaryBtn}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="↻" FontSize="14" Margin="0,0,6,0" FontWeight="Bold"/>
+                            <TextBlock Text="⟳" FontSize="14" Margin="0,0,8,0" FontWeight="Bold"/>
                             <TextBlock Text="Refresh Status"/>
                         </StackPanel>
                     </Button>

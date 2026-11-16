@@ -51,72 +51,73 @@
 
             <!-- Action Toolbar -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <!-- Search Box -->
-                <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
-                         Width="180" Height="34" Margin="0,0,10,0"
-                         VerticalContentAlignment="Center"
-                         Padding="10,4"
-                         Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1">
-                    <TextBox.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </TextBox.Resources>
-                </TextBox>
+                <!-- Search Box with Watermark -->
+                <Grid Width="210" Height="34" Margin="0,0,10,0">
+                    <TextBox x:Name="SearchInput" 
+                             Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
+                             Padding="30,6,10,6" 
+                             FontSize="12.5" 
+                             VerticalContentAlignment="Center"
+                             Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+                    <!-- Search Icon -->
+                    <TextBlock Text="🔍" FontSize="11" Foreground="#94A3B8" 
+                               HorizontalAlignment="Left" VerticalAlignment="Center" 
+                               Margin="10,0,0,0" IsHitTestVisible="False"/>
+                    <!-- Placeholder Watermark -->
+                    <TextBlock Text="Search logs..." FontSize="12" Foreground="#94A3B8" 
+                               HorizontalAlignment="Left" VerticalAlignment="Center" 
+                               Margin="30,0,0,0" IsHitTestVisible="False">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=SearchInput}" Value="">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
 
-                <!-- Filter Level ComboBox -->
+                <!-- Modern Filter Level ComboBox -->
                 <ComboBox ItemsSource="{Binding FilterOptions}"
                           SelectedItem="{Binding Filter, Mode=TwoWay}"
-                          Width="130" Height="34" Margin="0,0,10,0"
-                          VerticalContentAlignment="Center"
-                          Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1"
-                          Padding="8,4">
-                    <ComboBox.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </ComboBox.Resources>
-                </ComboBox>
+                          Style="{StaticResource ModernComboBox}"
+                          Width="130" Height="34" Margin="0,0,10,0"/>
 
-                <!-- Refresh Button -->
-                <Button Command="{Binding RefreshCommand}" Background="#FFFFFF" BorderBrush="#CBD5E1" 
-                        BorderThickness="1" Foreground="#334155" Padding="12,8" Cursor="Hand" Margin="0,0,8,0">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </Button.Resources>
+                <!-- Modern Refresh Button -->
+                <Button Command="{Binding RefreshCommand}" 
+                        Style="{StaticResource ModernToolbarRefreshBtn}"
+                        Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="🔄" Margin="0,0,6,0"/>
-                        <TextBlock Text="Refresh" FontWeight="Medium"/>
+                        <TextBlock Text="⟳" FontSize="14" Margin="0,0,6,0" FontWeight="Bold"/>
+                        <TextBlock Text="Refresh"/>
                     </StackPanel>
                 </Button>
 
-                <!-- Open Folder Button -->
-                <Button Command="{Binding OpenLogsFolderCommand}" Background="#FFFFFF" BorderBrush="#CBD5E1" 
-                        BorderThickness="1" Foreground="#334155" Padding="12,8" Cursor="Hand" Margin="0,0,8,0">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </Button.Resources>
+                <!-- Modern Logs Folder Button -->
+                <Button Command="{Binding OpenLogsFolderCommand}" 
+                        Style="{StaticResource ModernToolbarRefreshBtn}"
+                        Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="📂" Margin="0,0,6,0"/>
-                        <TextBlock Text="Logs Folder" FontWeight="Medium"/>
+                        <TextBlock Text="📁" FontSize="12" Margin="0,0,6,0"/>
+                        <TextBlock Text="Logs Folder"/>
                     </StackPanel>
                 </Button>
 
-                <!-- Clear Logs Button -->
-                <Button Command="{Binding ClearLogsCommand}" Background="#FFFFFF" BorderBrush="#CBD5E1" 
-                        BorderThickness="1" Foreground="#EF4444" Padding="12,8" Cursor="Hand">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </Button.Resources>
+                <!-- Modern Clear Logs Button -->
+                <Button Command="{Binding ClearLogsCommand}" 
+                        Style="{StaticResource ModernToolbarDangerBtn}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="🗑️" Margin="0,0,6,0"/>
-                        <TextBlock Text="Clear" FontWeight="Medium"/>
+                        <TextBlock Text="🗑" FontSize="12" Margin="0,0,6,0"/>
+                        <TextBlock Text="Clear"/>
                     </StackPanel>
                 </Button>
             </StackPanel>

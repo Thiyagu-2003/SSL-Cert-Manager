@@ -51,16 +51,10 @@
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <Button Command="{Binding RefreshCommand}" Background="#FFFFFF" BorderBrush="#E2E8F0" 
-                        BorderThickness="1" Foreground="#334155" Padding="14,8" Cursor="Hand">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </Button.Resources>
+                <Button Command="{Binding RefreshCommand}" Style="{StaticResource ModernToolbarRefreshBtn}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="🔄" Margin="0,0,6,0"/>
-                        <TextBlock Text="Refresh Accounts" FontWeight="Medium"/>
+                        <TextBlock Text="⟳" FontSize="14" Margin="0,0,8,0" FontWeight="Bold"/>
+                        <TextBlock Text="Refresh Accounts"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -89,12 +83,8 @@
                     </TextBox>
 
                     <Button Grid.Column="1" Command="{Binding SaveGlobalEmailCommand}" 
-                            Background="#0284C7" Foreground="#FFFFFF" FontWeight="Bold" Padding="20,10" Cursor="Hand">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="8"/>
-                            </Style>
-                        </Button.Resources>
+                            Style="{StaticResource ModernToolbarPrimaryBtn}"
+                            Padding="20,9">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="💾 " FontWeight="Bold"/>
                             <TextBlock Text="Save Global Email"/>
