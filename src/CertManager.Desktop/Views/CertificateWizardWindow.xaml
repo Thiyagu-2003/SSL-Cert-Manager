@@ -102,7 +102,9 @@
                 <!-- Field 2: Contact Email -->
                 <TextBlock Text="LET'S ENCRYPT CONTACT EMAIL" Style="{StaticResource FormFormFieldLabel}"/>
                 <TextBox Text="{Binding ContactEmail, UpdateSourceTrigger=PropertyChanged}" 
-                         Style="{StaticResource ModernTextBox}" Margin="0,0,0,16"/>
+                         Style="{StaticResource ModernTextBox}" Margin="0,0,0,4"/>
+                <TextBlock Text="Used exclusively by Let's Encrypt for renewal &amp; expiry alerts. Saved globally across all sites."
+                           FontSize="11" Foreground="#64748B" Margin="0,0,0,16"/>
 
                 <!-- Field 3: ACME Environment Selection -->
                 <TextBlock Text="CERTIFICATE AUTHORITY &amp; ISSUANCE TYPE" Style="{StaticResource FormFieldLabel}"/>

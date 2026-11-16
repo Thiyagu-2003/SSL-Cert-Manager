@@ -41,7 +41,25 @@ public class CertificateWizardViewModel : ViewModelBase
         _siteName = siteName;
         _domainName = defaultDomain;
         string cleanDomain = defaultDomain.TrimStart('*', '.');
-        _contactEmail = string.IsNullOrWhiteSpace(cleanDomain) ? "admin@example.com" : $"admin@{cleanDomain}";
+
+        var userSettings = UserSettingsService.Instance.Settings;
+        if (!string.IsNullOrWhiteSpace(userSettings.GlobalContactEmail))
+        {
+            _contactEmail = userSettings.GlobalContactEmail;
+        }
+        else
+        {
+            _contactEmail = string.IsNullOrWhiteSpace(cleanDomain) ? "admin@example.com" : $"admin@{cleanDomain}";
+        }
+
+        if (userSettings.PreferredEnvironment == "Production")
+        {
+            IsProduction = true;
+        }
+        else if (userSettings.PreferredEnvironment == "SelfSigned")
+        {
+            IsSelfSigned = true;
+        }
 
         if (_domainName.StartsWith("*.", StringComparison.Ordinal))
         {
@@ -283,6 +301,18 @@ public class CertificateWizardViewModel : ViewModelBase
     public async Task StartIssuanceAsync()
     {
         if (IsExecuting) return;
+
+        // Persist email & environment preferences globally for subsequent requests
+        if (!string.IsNullOrWhiteSpace(ContactEmail))
+        {
+            var userSettings = UserSettingsService.Instance.Settings;
+            userSettings.GlobalContactEmail = ContactEmail.Trim();
+            if (IsProduction) userSettings.PreferredEnvironment = "Production";
+            else if (IsSelfSigned) userSettings.PreferredEnvironment = "SelfSigned";
+            else userSettings.PreferredEnvironment = "Staging";
+            UserSettingsService.Instance.SaveSettings(userSettings);
+        }
+
         IsExecuting = true;
         IsSuccess = false;
         ErrorMessage = string.Empty;

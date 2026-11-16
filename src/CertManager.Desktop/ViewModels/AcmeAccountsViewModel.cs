@@ -42,12 +42,17 @@ public class AcmeAccountsViewModel : ViewModelBase
     {
         Accounts.Clear();
 
+        var globalSettings = UserSettingsService.Instance.Settings;
+        string contact = string.IsNullOrWhiteSpace(globalSettings.GlobalContactEmail)
+            ? "Not configured (will register on first request)"
+            : globalSettings.GlobalContactEmail;
+
         // Let's Encrypt Production Account
         Accounts.Add(new AcmeAccountItemViewModel
         {
             DirectoryName = "Let's Encrypt Production (RFC 8555)",
             DirectoryUrl = "https://acme-v02.api.letsencrypt.org/directory",
-            ContactEmail = "Registered on demand during certificate requests",
+            ContactEmail = contact,
             Status = "Active & Ready",
             EnvironmentBadgeColor = "#16A34A",
             EnvironmentBadgeBackground = "#F0FDF4",
@@ -59,7 +64,7 @@ public class AcmeAccountsViewModel : ViewModelBase
         {
             DirectoryName = "Let's Encrypt Staging V2 (Testing & Sandboxes)",
             DirectoryUrl = "https://acme-staging-v02.api.letsencrypt.org/directory",
-            ContactEmail = "testing@certflow.local",
+            ContactEmail = contact,
             Status = "Active & Ready (No Rate Limits)",
             EnvironmentBadgeColor = "#0284C7",
             EnvironmentBadgeBackground = "#E0F2FE",
