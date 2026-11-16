@@ -231,6 +231,18 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
                             webRoot = Path.Combine(Path.GetTempPath(), $"certflow_fallback_{request.SiteId}");
                             Directory.CreateDirectory(webRoot);
                         }
+                        else if (!Directory.Exists(webRoot))
+                        {
+                            try
+                            {
+                                Directory.CreateDirectory(webRoot);
+                            }
+                            catch
+                            {
+                                webRoot = Path.Combine(Path.GetTempPath(), $"certflow_fallback_{request.SiteId}");
+                                Directory.CreateDirectory(webRoot);
+                            }
+                        }
 
                         foreach (var ch in challenges)
                         {

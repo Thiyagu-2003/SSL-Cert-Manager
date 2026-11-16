@@ -151,7 +151,7 @@ public class CertesAcmeClient : IAcmeCertificateClient
 
         if (initialResource.Status == ChallengeStatus.Invalid)
         {
-            var detail = initialResource.Error != null ? initialResource.Error.ToString() : "Challenge is already in invalid state.";
+            var detail = FormatAcmeError(initialResource.Error, "Challenge is already in invalid state.");
             throw new InvalidOperationException($"ACME challenge for '{challengeItem.Domain}' failed: {detail}");
         }
 
@@ -163,7 +163,7 @@ public class CertesAcmeClient : IAcmeCertificateClient
 
         if (challengeResult.Status == ChallengeStatus.Invalid)
         {
-            var detail = challengeResult.Error != null ? challengeResult.Error.ToString() : "Challenge immediately rejected by ACME server.";
+            var detail = FormatAcmeError(challengeResult.Error, "Challenge immediately rejected by ACME server.");
             throw new InvalidOperationException($"ACME challenge for '{challengeItem.Domain}' failed: {detail}");
         }
 
@@ -181,7 +181,7 @@ public class CertesAcmeClient : IAcmeCertificateClient
 
             if (resource.Status == ChallengeStatus.Invalid)
             {
-                var detail = resource.Error != null ? resource.Error.ToString() : "Challenge validation failed.";
+                var detail = FormatAcmeError(resource.Error, "Challenge validation failed.");
                 throw new InvalidOperationException($"ACME challenge for '{challengeItem.Domain}' failed: {detail}");
             }
         }
@@ -266,5 +266,29 @@ public class CertesAcmeClient : IAcmeCertificateClient
         {
             _syncLock.Release();
         }
+    }
+
+    private static string FormatAcmeError(AcmeError? error, string defaultMessage)
+    {
+        if (error == null) return defaultMessage;
+
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(error.Detail))
+        {
+            parts.Add(error.Detail);
+        }
+        if (error.Type != null)
+        {
+            parts.Add($"Type: {error.Type}");
+        }
+        if (error.Subproblems != null && error.Subproblems.Count > 0)
+        {
+            var subs = error.Subproblems
+                .Where(s => !string.IsNullOrWhiteSpace(s.Detail))
+                .Select(s => s.Detail);
+            parts.Add($"Subproblems: {string.Join("; ", subs)}");
+        }
+
+        return parts.Count > 0 ? string.Join(" | ", parts) : (error.ToString() ?? defaultMessage);
     }
 }
