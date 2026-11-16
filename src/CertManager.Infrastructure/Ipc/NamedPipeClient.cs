@@ -30,7 +30,7 @@ public class NamedPipeClient : INamedPipeClient
             PipeDirection.InOut,
             PipeOptions.Asynchronous);
 
-        await clientStream.ConnectAsync(5000, cancellationToken);
+        await clientStream.ConnectAsync(15000, cancellationToken);
 
         await IpcMessageFraming.WriteMessageAsync(clientStream, request, cancellationToken);
         var response = await IpcMessageFraming.ReadMessageAsync<IpcResponse>(clientStream, cancellationToken);

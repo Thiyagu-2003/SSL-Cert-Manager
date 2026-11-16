@@ -4,6 +4,7 @@ using System.Windows.Input;
 using CertManager.Core.Models;
 using CertManager.Desktop.Common;
 using CertManager.Desktop.Services;
+using CertManager.Service;
 
 namespace CertManager.Desktop.ViewModels;
 
@@ -16,6 +17,7 @@ public class CertificateWizardViewModel : ViewModelBase
     private string _domainName = string.Empty;
     private string _contactEmail = string.Empty;
     private bool _isStaging = true;
+    private bool _isSelfSigned;
     private bool _isDns01;
     private string _dnsProvider = "Cloudflare";
     private string _dnsApiToken = string.Empty;
@@ -84,7 +86,45 @@ public class CertificateWizardViewModel : ViewModelBase
     public bool IsStaging
     {
         get => _isStaging;
-        set => SetProperty(ref _isStaging, value);
+        set
+        {
+            if (SetProperty(ref _isStaging, value) && value)
+            {
+                _isSelfSigned = false;
+                OnPropertyChanged(nameof(IsProduction));
+                OnPropertyChanged(nameof(IsSelfSigned));
+            }
+        }
+    }
+
+    public bool IsProduction
+    {
+        get => !_isStaging && !_isSelfSigned;
+        set
+        {
+            if (value)
+            {
+                _isStaging = false;
+                _isSelfSigned = false;
+                OnPropertyChanged(nameof(IsStaging));
+                OnPropertyChanged(nameof(IsProduction));
+                OnPropertyChanged(nameof(IsSelfSigned));
+            }
+        }
+    }
+
+    public bool IsSelfSigned
+    {
+        get => _isSelfSigned;
+        set
+        {
+            if (SetProperty(ref _isSelfSigned, value) && value)
+            {
+                _isStaging = false;
+                OnPropertyChanged(nameof(IsStaging));
+                OnPropertyChanged(nameof(IsProduction));
+            }
+        }
     }
 
     public bool IsDns01
@@ -167,27 +207,40 @@ public class CertificateWizardViewModel : ViewModelBase
         IsExecuting = true;
         IsSuccess = false;
         ErrorMessage = string.Empty;
-        CurrentStep = "Connecting to Let's Encrypt...";
+        CurrentStep = IsSelfSigned ? "Generating Local Certificate..." : "Connecting to Let's Encrypt...";
         StatusMessage = "Dispatching certificate issuance to CertFlow background service...";
 
         try
         {
+            // Ensure service / engine is available
+            await ServiceHostBuilder.EnsureInProcessEngineRunningAsync();
+
+            string validationMethod = IsSelfSigned ? "SelfSigned" : (IsDns01 ? "Dns01" : "Http01");
+
             var request = new CertificateRequestModel
             {
                 SiteId = SiteId,
                 DomainName = DomainName.Trim(),
                 ContactEmail = ContactEmail.Trim(),
                 IsStaging = IsStaging,
-                ValidationMethod = IsDns01 ? "Dns01" : "Http01",
+                ValidationMethod = validationMethod,
                 DnsProvider = DnsProvider,
                 DnsApiToken = DnsApiToken?.Trim(),
                 DnsZoneId = DnsZoneId?.Trim()
             };
 
-            CurrentStep = IsDns01 ? "DNS-01 ACME Challenge in Progress" : "Automated HTTP-01 Issuance in Progress";
-            StatusMessage = IsDns01 
-                ? "Creating TXT records via DNS provider, checking propagation, and finalizing certificate..."
-                : "Provisioning HTTP-01 challenge, finalizing certificate, and binding to IIS...";
+            if (IsSelfSigned)
+            {
+                CurrentStep = "Generating & Installing Self-Signed Certificate";
+                StatusMessage = "Generating RSA 2048 certificate, installing into Windows Store, and binding to IIS...";
+            }
+            else
+            {
+                CurrentStep = IsDns01 ? "DNS-01 ACME Challenge in Progress" : "Automated HTTP-01 Issuance in Progress";
+                StatusMessage = IsDns01 
+                    ? "Creating TXT records via DNS provider, checking propagation, and finalizing certificate..."
+                    : "Provisioning HTTP-01 challenge, finalizing certificate, and binding to IIS...";
+            }
 
             var result = await _ipcClient.RequestCertificateAsync(request);
 
@@ -196,8 +249,8 @@ public class CertificateWizardViewModel : ViewModelBase
                 IsSuccess = true;
                 CurrentStep = "Successfully Completed";
                 IssuedThumbprint = result.Thumbprint ?? "N/A";
-                IssuedExpiration = result.ExpiresAt?.ToString("yyyy-MM-dd HH:mm UTC") ?? "90 Days from issuance";
-                StatusMessage = "Certificate installed into Windows Store and configured with SNI.";
+                IssuedExpiration = result.ExpiresAt?.ToString("yyyy-MM-dd HH:mm UTC") ?? (IsSelfSigned ? "1 Year from issuance" : "90 Days from issuance");
+                StatusMessage = $"Certificate successfully installed into Windows Store and bound to IIS (Site ID: {SiteId}).";
             }
             else
             {

@@ -26,7 +26,7 @@ public interface IAcmeCertificateClient
         string validationMethod = "Http01", 
         CancellationToken cancellationToken = default);
     Task<bool> SubmitChallengeAsync(AcmeChallengeItem challengeItem, CancellationToken cancellationToken = default);
-    Task<byte[]> FinalizeOrderAndExportPfxAsync(string friendlyName, string password, CancellationToken cancellationToken = default);
+    Task<byte[]> FinalizeOrderAndExportPfxAsync(string friendlyName, string password, IReadOnlyList<string>? sanDomains = null, CancellationToken cancellationToken = default);
 }
 
 public class CertesAcmeClient : IAcmeCertificateClient
@@ -107,12 +107,43 @@ public class CertesAcmeClient : IAcmeCertificateClient
         CancellationToken cancellationToken = default)
     {
         var challengeResult = await challengeItem.ChallengeContext.Validate();
-        return challengeResult.Status != ChallengeStatus.Invalid;
+        if (challengeResult.Status == ChallengeStatus.Invalid)
+        {
+            var detail = challengeResult.Error != null ? challengeResult.Error.ToString() : "Challenge immediately rejected by ACME server.";
+            throw new InvalidOperationException($"ACME challenge for '{challengeItem.Domain}' failed: {detail}");
+        }
+
+        // Poll challenge until it transitions to Valid or Invalid
+        int maxAttempts = 30; // 30 * 2s = 60s timeout
+        while (maxAttempts-- > 0 && !cancellationToken.IsCancellationRequested)
+        {
+            await Task.Delay(2000, cancellationToken);
+            var resource = await challengeItem.ChallengeContext.Resource();
+
+            if (resource.Status == ChallengeStatus.Valid)
+            {
+                return true;
+            }
+
+            if (resource.Status == ChallengeStatus.Invalid)
+            {
+                var detail = resource.Error != null ? resource.Error.ToString() : "Challenge validation failed.";
+                throw new InvalidOperationException($"ACME challenge for '{challengeItem.Domain}' failed: {detail}");
+            }
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(cancellationToken);
+        }
+
+        throw new TimeoutException($"ACME challenge validation for '{challengeItem.Domain}' timed out.");
     }
 
     public async Task<byte[]> FinalizeOrderAndExportPfxAsync(
         string friendlyName,
         string password,
+        IReadOnlyList<string>? sanDomains = null,
         CancellationToken cancellationToken = default)
     {
         if (_currentOrder == null)
@@ -120,13 +151,30 @@ public class CertesAcmeClient : IAcmeCertificateClient
             throw new InvalidOperationException("No active ACME order exists.");
         }
 
+        // Wait for order to be in Ready or Valid state before attempting finalization
+        int orderAttempts = 20; // 20 * 1.5s = 30s timeout
+        var orderRes = await _currentOrder.Resource();
+        while ((orderRes.Status == OrderStatus.Pending || orderRes.Status == OrderStatus.Processing) &&
+               orderAttempts-- > 0 && !cancellationToken.IsCancellationRequested)
+        {
+            await Task.Delay(1500, cancellationToken);
+            orderRes = await _currentOrder.Resource();
+        }
+
+        if (orderRes.Status == OrderStatus.Invalid)
+        {
+            var detail = orderRes.Error != null ? orderRes.Error.ToString() : "ACME order is invalid.";
+            throw new InvalidOperationException($"ACME order failed: {detail}");
+        }
+
         // Generate RSA 2048 key and finalize certificate order
         var key = KeyFactory.NewKey(KeyAlgorithm.RS256);
-        var cert = await _currentOrder.Generate(new CsrInfo
+        var csr = new CsrInfo
         {
             CommonName = friendlyName
-        }, key);
+        };
 
+        var cert = await _currentOrder.Generate(csr, key);
         var pfxBuilder = cert.ToPfx(key);
         return pfxBuilder.Build(friendlyName, password);
     }

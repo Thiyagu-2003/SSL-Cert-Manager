@@ -21,11 +21,10 @@ public class Http01ChallengeResponder : IHttp01ChallengeResponder
             <staticContent>
                 <clear />
                 <mimeMap fileExtension="." mimeType="text/plain" />
-                <mimeMap fileExtension="*" mimeType="text/plain" />
             </staticContent>
             <handlers>
                 <clear />
-                <add name="StaticFile" path="*" verb="*" modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule" resourceType="Either" requireAccess="Read" />
+                <add name="StaticFile" path="*" verb="*" modules="StaticFileModule" resourceType="Either" requireAccess="Read" />
             </handlers>
         </system.webServer>
     </configuration>

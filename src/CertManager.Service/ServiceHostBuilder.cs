@@ -18,6 +18,32 @@ namespace CertManager.Service;
 
 public static class ServiceHostBuilder
 {
+    private static IHost? _inProcessHost;
+    private static readonly object _lock = new();
+
+    public static async Task<IHost?> EnsureInProcessEngineRunningAsync()
+    {
+        if (_inProcessHost != null) return _inProcessHost;
+
+        try
+        {
+            var host = BuildHost();
+            await host.StartAsync();
+            lock (_lock)
+            {
+                _inProcessHost = host;
+            }
+            return _inProcessHost;
+        }
+        catch
+        {
+            // If already started or named pipe occupied by external service, ignore
+            return _inProcessHost;
+        }
+    }
+
+    public static IHost? CurrentInProcessHost => _inProcessHost;
+
     public static IHost BuildHost(string[]? args = null)
     {
         var builder = Host.CreateApplicationBuilder(args ?? Array.Empty<string>());

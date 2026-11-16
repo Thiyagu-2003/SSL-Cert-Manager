@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,99 +77,130 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
             var asciiDomainNames = normalizedDomains.Select(d => d.AsciiName).Distinct().ToList();
             string primaryDomain = asciiDomainNames[0];
 
-            bool isDnsValidation = string.Equals(request.ValidationMethod, "Dns01", StringComparison.OrdinalIgnoreCase) ||
-                                   asciiDomainNames.Any(d => d.StartsWith("*.", StringComparison.Ordinal));
+            bool isSelfSigned = string.Equals(request.ValidationMethod, "SelfSigned", StringComparison.OrdinalIgnoreCase);
+            bool isDnsValidation = !isSelfSigned && (string.Equals(request.ValidationMethod, "Dns01", StringComparison.OrdinalIgnoreCase) ||
+                                   asciiDomainNames.Any(d => d.StartsWith("*.", StringComparison.Ordinal)));
 
-            // 2. Register ACME Account
-            string accountUrl = await _acmeClient.InitializeAccountAsync(request.ContactEmail, request.IsStaging, cancellationToken);
-            _logger.LogInformation("ACME account ready: {AccountUrl}", accountUrl);
+            string pfxPassword = Guid.NewGuid().ToString("N");
+            byte[] pfxBytes;
+            string thumbprint;
+            DateTime notAfter;
+            var challenges = new List<AcmeChallengeItem>();
 
-            // 3. Create Order and retrieve challenges
-            string valMethod = isDnsValidation ? "Dns01" : "Http01";
-            var challenges = await _acmeClient.CreateOrderAndGetChallengesAsync(asciiDomainNames, valMethod, cancellationToken);
-            if (challenges.Count == 0)
+            if (isSelfSigned)
             {
-                return new CertificateRequestStatusResult
+                _logger.LogInformation("Generating self-signed certificate for {Domain}...", primaryDomain);
+                using var rsa = RSA.Create(2048);
+                var certReq = new System.Security.Cryptography.X509Certificates.CertificateRequest($"CN={primaryDomain}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                var sanBuilder = new SubjectAlternativeNameBuilder();
+                foreach (var d in asciiDomainNames)
                 {
-                    Success = false,
-                    Step = "Order Creation",
-                    ErrorMessage = $"No {valMethod} challenges returned by ACME authority."
-                };
-            }
-
-            // 4. Provision Challenges
-            if (isDnsValidation)
-            {
-                _logger.LogInformation("Provisioning DNS-01 challenge records...");
-                IDnsProvider dnsProvider = string.Equals(request.DnsProvider, "Cloudflare", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(request.DnsApiToken)
-                    ? new CloudflareDnsProvider(request.DnsApiToken)
-                    : new ManualDnsProvider();
-
-                foreach (var ch in challenges)
-                {
-                    string recordName = DnsChallengeHelper.GetRecordName(ch.Domain);
-                    string recordValue = ch.DnsTxtValue;
-
-                    // Determine Zone ID
-                    string zoneId = request.DnsZoneId ?? string.Empty;
-                    if (string.IsNullOrWhiteSpace(zoneId))
-                    {
-                        var zones = await dnsProvider.GetZonesAsync(cancellationToken);
-                        string rootDomain = DomainNormalizer.Normalize(ch.Domain).RootDomain;
-                        var matchedZone = zones.FirstOrDefault(z => string.Equals(z.Name, rootDomain, StringComparison.OrdinalIgnoreCase)) ?? zones.FirstOrDefault();
-                        zoneId = matchedZone?.Id ?? "default-zone";
-                    }
-
-                    _logger.LogInformation("Creating TXT record: {Name} = {Value} in zone {ZoneId}", recordName, recordValue, zoneId);
-                    var record = await dnsProvider.CreateTxtRecordAsync(zoneId, recordName, recordValue, cancellationToken);
-                    dnsRecordsToCleanup.Add((dnsProvider, zoneId, record.Id));
-
-                    // Wait for DNS propagation check (up to 30 seconds)
-                    _logger.LogInformation("Verifying DNS propagation for {RecordName}...", recordName);
-                    for (int i = 0; i < 6; i++)
-                    {
-                        if (cancellationToken.IsCancellationRequested) break;
-                        bool visible = await dnsProvider.IsTxtRecordVisibleAsync(recordName, recordValue, cancellationToken);
-                        if (visible)
-                        {
-                            _logger.LogInformation("DNS TXT record is publicly visible!");
-                            break;
-                        }
-                        await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-                    }
+                    sanBuilder.AddDnsName(d);
                 }
+                certReq.CertificateExtensions.Add(sanBuilder.Build());
+                certReq.CertificateExtensions.Add(new X509KeyUsageExtension(
+                    X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, false));
+                certReq.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(
+                    new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false)); // Server Authentication
+
+                using var selfCert = certReq.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(1));
+                pfxBytes = selfCert.Export(X509ContentType.Pfx, pfxPassword);
+                thumbprint = selfCert.Thumbprint;
+                notAfter = selfCert.NotAfter;
             }
             else
             {
-                // HTTP-01 Provisioning
-                string? webRoot = _iisAdapter.GetWebsitePhysicalPath(request.SiteId);
-                if (string.IsNullOrWhiteSpace(webRoot))
+                // 2. Register ACME Account
+                string accountUrl = await _acmeClient.InitializeAccountAsync(request.ContactEmail, request.IsStaging, cancellationToken);
+                _logger.LogInformation("ACME account ready: {AccountUrl}", accountUrl);
+
+                // 3. Create Order and retrieve challenges
+                string valMethod = isDnsValidation ? "Dns01" : "Http01";
+                var acmeChallenges = await _acmeClient.CreateOrderAndGetChallengesAsync(asciiDomainNames, valMethod, cancellationToken);
+                if (acmeChallenges.Count == 0)
                 {
-                    webRoot = Path.Combine(Path.GetTempPath(), $"certflow_fallback_{request.SiteId}");
-                    Directory.CreateDirectory(webRoot);
+                    return new CertificateRequestStatusResult
+                    {
+                        Success = false,
+                        Step = "Order Creation",
+                        ErrorMessage = $"No {valMethod} challenges returned by ACME authority."
+                    };
+                }
+                challenges.AddRange(acmeChallenges);
+
+                // 4. Provision Challenges
+                if (isDnsValidation)
+                {
+                    _logger.LogInformation("Provisioning DNS-01 challenge records...");
+                    IDnsProvider dnsProvider = string.Equals(request.DnsProvider, "Cloudflare", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(request.DnsApiToken)
+                        ? new CloudflareDnsProvider(request.DnsApiToken)
+                        : new ManualDnsProvider();
+
+                    foreach (var ch in challenges)
+                    {
+                        string recordName = DnsChallengeHelper.GetRecordName(ch.Domain);
+                        string recordValue = ch.DnsTxtValue;
+
+                        // Determine Zone ID
+                        string zoneId = request.DnsZoneId ?? string.Empty;
+                        if (string.IsNullOrWhiteSpace(zoneId))
+                        {
+                            var zones = await dnsProvider.GetZonesAsync(cancellationToken);
+                            string rootDomain = DomainNormalizer.Normalize(ch.Domain).RootDomain;
+                            var matchedZone = zones.FirstOrDefault(z => string.Equals(z.Name, rootDomain, StringComparison.OrdinalIgnoreCase)) ?? zones.FirstOrDefault();
+                            zoneId = matchedZone?.Id ?? "default-zone";
+                        }
+
+                        _logger.LogInformation("Creating TXT record: {Name} = {Value} in zone {ZoneId}", recordName, recordValue, zoneId);
+                        var record = await dnsProvider.CreateTxtRecordAsync(zoneId, recordName, recordValue, cancellationToken);
+                        dnsRecordsToCleanup.Add((dnsProvider, zoneId, record.Id));
+
+                        // Wait for DNS propagation check (up to 30 seconds)
+                        _logger.LogInformation("Verifying DNS propagation for {RecordName}...", recordName);
+                        for (int i = 0; i < 6; i++)
+                        {
+                            if (cancellationToken.IsCancellationRequested) break;
+                            bool visible = await dnsProvider.IsTxtRecordVisibleAsync(recordName, recordValue, cancellationToken);
+                            if (visible)
+                            {
+                                _logger.LogInformation("DNS TXT record is publicly visible!");
+                                break;
+                            }
+                            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                        }
+                    }
+                }
+                else
+                {
+                    // HTTP-01 Provisioning
+                    string? webRoot = _iisAdapter.GetWebsitePhysicalPath(request.SiteId);
+                    if (string.IsNullOrWhiteSpace(webRoot))
+                    {
+                        webRoot = Path.Combine(Path.GetTempPath(), $"certflow_fallback_{request.SiteId}");
+                        Directory.CreateDirectory(webRoot);
+                    }
+
+                    foreach (var ch in challenges)
+                    {
+                        await _challengeResponder.ProvisionChallengeAsync(webRoot, ch.Token, ch.KeyAuthorization, cancellationToken);
+                        _logger.LogInformation("Provisioned HTTP-01 challenge token for {Domain}", ch.Domain);
+                    }
                 }
 
+                // 5. Submit Challenge to Let's Encrypt
                 foreach (var ch in challenges)
                 {
-                    await _challengeResponder.ProvisionChallengeAsync(webRoot, ch.Token, ch.KeyAuthorization, cancellationToken);
-                    _logger.LogInformation("Provisioned HTTP-01 challenge token for {Domain}", ch.Domain);
+                    await _acmeClient.SubmitChallengeAsync(ch, cancellationToken);
                 }
+
+                // 6. Finalize Order and Generate PFX
+                pfxBytes = await _acmeClient.FinalizeOrderAndExportPfxAsync(primaryDomain, pfxPassword, asciiDomainNames, cancellationToken);
+
+                // Extract thumbprint and validity
+                using var x509 = new X509Certificate2(pfxBytes, pfxPassword);
+                thumbprint = x509.Thumbprint;
+                notAfter = x509.NotAfter;
             }
-
-            // 5. Submit Challenge to Let's Encrypt
-            foreach (var ch in challenges)
-            {
-                await _acmeClient.SubmitChallengeAsync(ch, cancellationToken);
-            }
-
-            // 6. Finalize Order and Generate PFX
-            string pfxPassword = Guid.NewGuid().ToString("N");
-            byte[] pfxBytes = await _acmeClient.FinalizeOrderAndExportPfxAsync(primaryDomain, pfxPassword, cancellationToken);
-
-            // Extract thumbprint and validity
-            using var x509 = new X509Certificate2(pfxBytes, pfxPassword);
-            string thumbprint = x509.Thumbprint;
-            DateTime notAfter = x509.NotAfter;
 
             // 7. Install into Windows Certificate Store
             var bundle = new CertificateBundle(pfxBytes, pfxPassword, thumbprint);
@@ -179,11 +211,23 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
             {
                 var certRef = new CertificateReference(installed.Thumbprint, installed.StoreName, installed.StoreLocation);
                 var deployTarget = new DeploymentTarget(request.SiteId, primaryDomain, 443, "*");
-                await _iisAdapter.DeployCertificateAsync(certRef, deployTarget, cancellationToken);
+                var deployResult = await _iisAdapter.DeployCertificateAsync(certRef, deployTarget, cancellationToken);
+                if (!deployResult.Success)
+                {
+                    _logger.LogError("IIS binding deployment failed: {Error}", deployResult.ErrorMessage);
+                    return new CertificateRequestStatusResult
+                    {
+                        Success = false,
+                        Step = "IIS Binding Deployment",
+                        ErrorMessage = deployResult.ErrorMessage,
+                        Thumbprint = thumbprint,
+                        ExpiresAt = notAfter
+                    };
+                }
             }
 
             // 9. Cleanup HTTP-01 files if applicable
-            if (!isDnsValidation)
+            if (!isSelfSigned && !isDnsValidation)
             {
                 string? webRoot = _iisAdapter.GetWebsitePhysicalPath(request.SiteId);
                 if (!string.IsNullOrWhiteSpace(webRoot))
@@ -196,7 +240,8 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
             }
 
             // 10. Persist into SQLite
-            await PersistCertificateRecordAsync(primaryDomain, thumbprint, notAfter, request.SiteId, isDnsValidation ? ValidationMethod.Dns01 : ValidationMethod.Http01, cancellationToken);
+            var valMethodSaved = isSelfSigned ? ValidationMethod.SelfSigned : (isDnsValidation ? ValidationMethod.Dns01 : ValidationMethod.Http01);
+            await PersistCertificateRecordAsync(primaryDomain, thumbprint, notAfter, request.SiteId, valMethodSaved, cancellationToken);
 
             _logger.LogInformation("Successfully issued, installed, and configured certificate {Thumbprint}", thumbprint);
 

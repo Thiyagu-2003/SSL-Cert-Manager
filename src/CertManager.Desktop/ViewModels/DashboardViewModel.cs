@@ -117,8 +117,7 @@ public class DashboardViewModel : ViewModelBase
         try
         {
             StatusMessage = "Starting in-process background engine...";
-            _inProcessHost = ServiceHostBuilder.BuildHost();
-            await _inProcessHost.StartAsync();
+            _inProcessHost = await ServiceHostBuilder.EnsureInProcessEngineRunningAsync();
             await Task.Delay(500);
             await RefreshStatusAsync();
         }

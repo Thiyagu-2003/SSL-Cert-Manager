@@ -10,8 +10,12 @@
   [![.NET 8.0 LTS](https://img.shields.io/badge/.NET-8.0%20LTS-512BD4.svg?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
   [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11%20%7C%20Server-0078D6.svg?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
   [![Single File Exe](https://img.shields.io/badge/Packaging-True%20Single%20EXE-0284C7.svg)]()
-  [![Unit Tests](https://img.shields.io/badge/Tests-50%20Passing-16A34A.svg)](tests/)
+  [![Unit Tests](https://img.shields.io/badge/Tests-54%20Passing-16A34A.svg)](tests/)
   [![ACME RFC 8555 & 8737](https://img.shields.io/badge/ACME-RFC%208555%20%7C%20RFC%208737%20ARI-0EA5E9.svg)]()
+
+  <br/>
+
+  [![Download CertFlow.exe](https://img.shields.io/badge/Download-CertFlow.exe%20Single--File%20Binary-0284C7?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/Thiyagu-2003/SSL-Cert-Manager/raw/main/dist/CertFlow/CertFlow.exe)
 
   <p align="center">
     <b>A self-contained, open-source Windows certificate orchestration engine.</b><br/>
@@ -106,15 +110,27 @@ CertFlow is structured according to **Clean Architecture** and **Domain-Driven D
 
 ## 🚀 Quick Start & Usage
 
+### 📥 Direct Download (Single-File Binary)
+
+> [!TIP]
+> **Click below to download the latest compiled single-file executable:**
+> 
+> ### ⬇️ **[Download CertFlow.exe](https://github.com/Thiyagu-2003/SSL-Cert-Manager/raw/main/dist/CertFlow/CertFlow.exe)** *(Self-Contained x64 Windows Executable, ~74 MB)*
+> 
+> * **Direct Repository Link**: [`dist/CertFlow/CertFlow.exe`](dist/CertFlow/CertFlow.exe)
+> * **SHA-256 Checksums**: [`dist/CertFlow/SHA256SUMS.txt`](dist/CertFlow/SHA256SUMS.txt)
+
+---
+
 ### Option A: Standalone Single Executable (Ready to Run)
 
 CertFlow is compiled as a self-contained executable with the .NET runtime and native SQLite engine embedded.
 
-1. **Download**: Grab `CertFlow.exe` from [dist/CertFlow/CertFlow.exe](dist/CertFlow/CertFlow.exe).
-2. Verify integrity against [dist/CertFlow/SHA256SUMS.txt](dist/CertFlow/SHA256SUMS.txt).
+1. **Download**: Grab `CertFlow.exe` directly via **[Download CertFlow.exe](https://github.com/Thiyagu-2003/SSL-Cert-Manager/raw/main/dist/CertFlow/CertFlow.exe)** (or from [`dist/CertFlow/CertFlow.exe`](dist/CertFlow/CertFlow.exe)).
+2. Verify integrity against [`dist/CertFlow/SHA256SUMS.txt`](dist/CertFlow/SHA256SUMS.txt).
 3. **Run**:
    - **Double-click `CertFlow.exe`** to launch the desktop interface.
-   - If running without the Windows Service installed, click **⚡ Start In-Process Engine** on the dashboard to enable renewals directly inside the application.
+   - If running without the Windows Service installed, the engine will automatically start in-process (or click **⚡ Start In-Process Engine** on the dashboard).
 
 ### Option B: 24/7 Autonomous Windows Service
 

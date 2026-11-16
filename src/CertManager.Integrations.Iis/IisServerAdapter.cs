@@ -43,7 +43,8 @@ public class IisServerAdapter : IIisServerAdapter
             var site = serverManager.Sites.FirstOrDefault(s => s.Id == siteId);
             var rootApp = site?.Applications.FirstOrDefault(a => a.Path == "/");
             var rootVdir = rootApp?.VirtualDirectories.FirstOrDefault(v => v.Path == "/");
-            return rootVdir?.PhysicalPath;
+            string? rawPath = rootVdir?.PhysicalPath;
+            return !string.IsNullOrWhiteSpace(rawPath) ? Environment.ExpandEnvironmentVariables(rawPath) : null;
         }
         catch
         {
@@ -158,7 +159,8 @@ public class IisServerAdapter : IIisServerAdapter
             return Task.FromResult(new DeploymentResult(true, null, null));
         }
 
-        byte[] certHash = Convert.FromHexString(certificate.Thumbprint);
+        string cleanThumbprint = certificate.Thumbprint.Replace(" ", "").Replace(":", "").Trim();
+        byte[] certHash = Convert.FromHexString(cleanThumbprint);
         string? previousThumbprint = null;
 
         try
@@ -176,6 +178,15 @@ public class IisServerAdapter : IIisServerAdapter
                 b.EndPoint?.Port == target.Port &&
                 string.Equals(b.Host, target.Hostname, StringComparison.OrdinalIgnoreCase));
 
+            // If no exact hostname match, check for an existing HTTPS binding on target.Port with empty host
+            if (existingBinding == null && !string.IsNullOrWhiteSpace(target.Hostname))
+            {
+                existingBinding = site.Bindings.FirstOrDefault(b =>
+                    b.Protocol.Equals("https", StringComparison.OrdinalIgnoreCase) &&
+                    b.EndPoint?.Port == target.Port &&
+                    string.IsNullOrWhiteSpace(b.Host));
+            }
+
             if (existingBinding != null)
             {
                 if (existingBinding.CertificateHash != null && existingBinding.CertificateHash.Length > 0)
@@ -185,29 +196,23 @@ public class IisServerAdapter : IIisServerAdapter
 
                 existingBinding.CertificateHash = certHash;
                 existingBinding.CertificateStoreName = certificate.StoreName;
-                try
+
+                if (!string.IsNullOrWhiteSpace(target.Hostname))
                 {
-                    existingBinding.SetAttributeValue("sslFlags", 1); // Enable SNI
+                    existingBinding.BindingInformation = $"{target.IpAddress}:{target.Port}:{target.Hostname}";
+                    try
+                    {
+                        existingBinding.SetAttributeValue("sslFlags", (int)SslFlags.Sni);
+                    }
+                    catch { }
                 }
-                catch { }
             }
             else
             {
                 // Create new HTTPS binding with SNI flag enabled
                 string bindingInfo = $"{target.IpAddress}:{target.Port}:{target.Hostname}";
-                var newBinding = site.Bindings.CreateElement();
-                newBinding.Protocol = "https";
-                newBinding.BindingInformation = bindingInfo;
-                newBinding.CertificateHash = certHash;
-                newBinding.CertificateStoreName = certificate.StoreName;
-
-                try
-                {
-                    newBinding.SetAttributeValue("sslFlags", 1); // SNI
-                }
-                catch { }
-
-                site.Bindings.Add(newBinding);
+                var sslFlags = string.IsNullOrWhiteSpace(target.Hostname) ? SslFlags.None : SslFlags.Sni;
+                site.Bindings.Add(bindingInfo, certHash, certificate.StoreName, sslFlags);
             }
 
             serverManager.CommitChanges();

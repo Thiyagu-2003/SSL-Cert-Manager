@@ -34,10 +34,15 @@ public class WindowsCertificateInstaller : ICertificateInstaller
             storeName = parsedStoreName;
         }
 
-        using var x509Cert = new X509Certificate2(
+        var keyStorageFlags = X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable;
+        keyStorageFlags |= (storeLocation == StoreLocation.LocalMachine)
+            ? X509KeyStorageFlags.MachineKeySet
+            : X509KeyStorageFlags.UserKeySet;
+
+        var x509Cert = new X509Certificate2(
             certificate.RawData,
             certificate.Password,
-            X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+            keyStorageFlags);
 
         string thumbprint = x509Cert.Thumbprint;
 

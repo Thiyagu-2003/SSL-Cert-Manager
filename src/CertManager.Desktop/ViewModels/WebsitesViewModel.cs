@@ -8,6 +8,7 @@ using CertManager.Core.Models;
 using CertManager.Desktop.Common;
 using CertManager.Desktop.Services;
 using CertManager.Desktop.Views;
+using CertManager.Service;
 
 namespace CertManager.Desktop.ViewModels;
 
@@ -94,6 +95,7 @@ public class WebsitesViewModel : ViewModelBase
 
         try
         {
+            await ServiceHostBuilder.EnsureInProcessEngineRunningAsync();
             var discovered = await _ipcClient.GetWebsitesAsync();
             Sites.Clear();
 
