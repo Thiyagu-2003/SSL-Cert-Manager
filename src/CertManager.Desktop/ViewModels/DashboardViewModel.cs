@@ -11,13 +11,14 @@ using Microsoft.Extensions.Hosting;
 
 namespace CertManager.Desktop.ViewModels;
 
-public class DashboardViewModel : ViewModelBase
+public class DashboardViewModel : ViewModelBase, IDisposable
 {
     private readonly ServiceIpcClient _ipcClient;
     private readonly DispatcherTimer _pollTimer;
     private readonly Action<string>? _navigateAction;
     private IHost? _inProcessHost;
     private bool _autoStartAttempted;
+    private bool _isDisposed;
 
     private bool _isServiceConnected;
     private string _statusMessage = "Connecting to background service...";
@@ -45,7 +46,13 @@ public class DashboardViewModel : ViewModelBase
         {
             Interval = TimeSpan.FromSeconds(5)
         };
-        _pollTimer.Tick += async (_, _) => await RefreshStatusAsync();
+        _pollTimer.Tick += async (_, _) =>
+        {
+            if (!_isBusy && !_isDisposed)
+            {
+                await RefreshStatusAsync();
+            }
+        };
         _pollTimer.Start();
 
         _ = RefreshStatusAsync();
@@ -160,7 +167,7 @@ public class DashboardViewModel : ViewModelBase
 
     public async Task RefreshStatusAsync()
     {
-        if (IsBusy) return;
+        if (IsBusy || _isDisposed) return;
         IsBusy = true;
 
         try
@@ -185,7 +192,6 @@ public class DashboardViewModel : ViewModelBase
                 if (!_autoStartAttempted && _inProcessHost == null)
                 {
                     _autoStartAttempted = true;
-                    IsBusy = false;
                     await StartInProcessEngineAsync();
                     return;
                 }
@@ -199,7 +205,6 @@ public class DashboardViewModel : ViewModelBase
             if (!_autoStartAttempted && _inProcessHost == null)
             {
                 _autoStartAttempted = true;
-                IsBusy = false;
                 await StartInProcessEngineAsync();
                 return;
             }
@@ -212,5 +217,12 @@ public class DashboardViewModel : ViewModelBase
             LastRefreshed = DateTime.Now.ToString("HH:mm:ss");
             IsBusy = false;
         }
+    }
+
+    public void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        _pollTimer.Stop();
     }
 }

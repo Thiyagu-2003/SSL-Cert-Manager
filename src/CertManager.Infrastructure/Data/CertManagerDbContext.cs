@@ -68,6 +68,7 @@ public class CertManagerDbContext : DbContext
         {
             b.HasKey(e => e.CertificateId);
             b.HasIndex(e => e.Thumbprint);
+            b.HasIndex(e => new { e.Status, e.NotAfter });
             b.Property(e => e.Thumbprint).IsRequired().HasMaxLength(128);
             b.Property(e => e.Subject).IsRequired().HasMaxLength(500);
 
@@ -132,6 +133,7 @@ public class CertManagerDbContext : DbContext
         {
             b.HasKey(e => e.LockKey);
             b.Property(e => e.LockKey).HasMaxLength(150);
+            b.HasIndex(e => e.LeaseExpiresAt);
         });
 
         // IisWebsites
@@ -160,6 +162,17 @@ public class CertManagerDbContext : DbContext
         modelBuilder.Entity<OperationHistory>(b =>
         {
             b.HasKey(e => e.OperationId);
+            b.HasIndex(e => e.StartedAt);
+        });
+
+        // Notifications
+        modelBuilder.Entity<NotificationRecord>(b =>
+        {
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Channel).IsRequired().HasMaxLength(50);
+            b.Property(e => e.Level).IsRequired().HasMaxLength(20);
+            b.Property(e => e.Subject).IsRequired().HasMaxLength(255);
+            b.HasIndex(e => e.SentAt);
         });
     }
 }

@@ -10,7 +10,7 @@
   [![.NET 8.0 LTS](https://img.shields.io/badge/.NET-8.0%20LTS-512BD4.svg?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
   [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11%20%7C%20Server-0078D6.svg?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
   [![Single File Exe](https://img.shields.io/badge/Packaging-True%20Single%20EXE-0284C7.svg)]()
-  [![Unit Tests](https://img.shields.io/badge/Tests-54%20Passing-16A34A.svg)](tests/)
+  [![Unit Tests](https://img.shields.io/badge/Tests-77%20Passing-16A34A.svg)](tests/)
   [![ACME RFC 8555 & 8737](https://img.shields.io/badge/ACME-RFC%208555%20%7C%20RFC%208737%20ARI-0EA5E9.svg)]()
 
   <br/>

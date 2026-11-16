@@ -65,4 +65,38 @@ public class NotificationDispatcherTests : IDisposable
         stored.Should().ContainSingle(n => n.Subject == testSubject);
         stored[0].Body.Should().Be("First occurrence");
     }
+
+    [Fact]
+    public async Task SendAsync_ThrowsArgumentNullException_WhenMessageIsNull()
+    {
+        var dispatcher = new NotificationDispatcher(_context, NullLogger<NotificationDispatcher>.Instance);
+        Func<Task> act = async () => await dispatcher.SendAsync(null!);
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task SendAsync_DispatchesToConfiguredChannels()
+    {
+        var mockChannel = new TestNotificationChannel();
+        var dispatcher = new NotificationDispatcher(_context, NullLogger<NotificationDispatcher>.Instance, new[] { mockChannel });
+
+        string testSubject = $"Channel Test {Guid.NewGuid():N}";
+        var msg = new NotificationMessage(testSubject, "Alert Body", "Info");
+
+        await dispatcher.SendAsync(msg);
+
+        mockChannel.DispatchedMessages.Should().ContainSingle(m => m.Subject == testSubject);
+    }
+
+    private class TestNotificationChannel : INotificationChannel
+    {
+        public string ChannelName => "TestChannel";
+        public System.Collections.Generic.List<NotificationMessage> DispatchedMessages { get; } = new();
+
+        public Task<bool> SendAsync(NotificationMessage message, System.Threading.CancellationToken cancellationToken = default)
+        {
+            DispatchedMessages.Add(message);
+            return Task.FromResult(true);
+        }
+    }
 }

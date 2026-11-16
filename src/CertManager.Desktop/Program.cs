@@ -38,21 +38,30 @@ public static class Program
 
             if (cmd is "--install-service" or "/install-service")
             {
-                AttachConsole(ATTACH_PARENT_PROCESS);
+                if (!AttachConsole(ATTACH_PARENT_PROCESS))
+                {
+                    AllocConsole();
+                }
                 InstallService();
                 return;
             }
 
             if (cmd is "--uninstall-service" or "/uninstall-service")
             {
-                AttachConsole(ATTACH_PARENT_PROCESS);
+                if (!AttachConsole(ATTACH_PARENT_PROCESS))
+                {
+                    AllocConsole();
+                }
                 UninstallService();
                 return;
             }
 
             if (cmd is "--help" or "-h" or "/?" or "-help")
             {
-                AttachConsole(ATTACH_PARENT_PROCESS);
+                if (!AttachConsole(ATTACH_PARENT_PROCESS))
+                {
+                    AllocConsole();
+                }
                 PrintHelp();
                 return;
             }
@@ -111,11 +120,17 @@ public static class Program
             using var process = Process.Start(psi);
             if (process != null)
             {
-                process.WaitForExit(10000);
                 string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit(10000);
+
                 if (!string.IsNullOrWhiteSpace(output))
                 {
                     Console.WriteLine(output.Trim());
+                }
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    Console.WriteLine($"[sc error]: {error.Trim()}");
                 }
             }
         }

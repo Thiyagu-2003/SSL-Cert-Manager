@@ -5,19 +5,6 @@ using System.Threading.Tasks;
 
 namespace CertManager.Core.Interfaces;
 
-public record AcmeAccountOptions(string Email, bool AcceptTermsOfService, string DirectoryUrl);
-public record AcmeAccountInfo(string AccountId, string Email, string DirectoryUrl, bool IsValid);
-public record CertificateRequest(
-    Guid ProfileId,
-    IReadOnlyList<string> Identifiers,
-    string KeyAlgorithm,
-    string KeySizeOrCurve);
-public record CertificateOrderResult(
-    Guid OrderId,
-    string OrderReference,
-    string Status,
-    IReadOnlyList<string> Authorizations);
-public record CertificateStatus(string Status, DateTime? ExpiresAt, string? SerialNumber);
 public record CertificateBundle(byte[] RawData, string Password, string Thumbprint);
 public record InstallOptions(string StoreName, string StoreLocation);
 public record InstalledCertificate(string Thumbprint, string StoreName, string StoreLocation);
@@ -38,13 +25,6 @@ public interface IDnsProvider
     Task<DnsRecord> CreateTxtRecordAsync(string zoneId, string name, string value, CancellationToken cancellationToken = default);
     Task DeleteTxtRecordAsync(string zoneId, string recordId, CancellationToken cancellationToken = default);
     Task<bool> IsTxtRecordVisibleAsync(string name, string expectedValue, CancellationToken cancellationToken = default);
-}
-
-public interface ICertificateAuthorityClient
-{
-    Task<AcmeAccountInfo> RegisterAccountAsync(AcmeAccountOptions options, CancellationToken cancellationToken = default);
-    Task<CertificateOrderResult> RequestCertificateAsync(CertificateRequest request, CancellationToken cancellationToken = default);
-    Task<CertificateStatus> GetOrderStatusAsync(string orderReference, CancellationToken cancellationToken = default);
 }
 
 public interface ICertificateInstaller

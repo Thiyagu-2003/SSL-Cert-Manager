@@ -38,6 +38,12 @@ public class DatabaseBackupManager : IDatabaseBackupManager
 
         _logger.LogInformation("Creating point-in-time SQLite backup at {BackupPath}...", backupPath);
 
+        // Delete existing file if present, as SQLite VACUUM INTO fails if destination exists
+        if (File.Exists(backupPath))
+        {
+            File.Delete(backupPath);
+        }
+
         // Execute SQLite VACUUM INTO for consistent online transactional snapshot
         var connection = _context.Database.GetDbConnection();
         bool wasOpen = connection.State == System.Data.ConnectionState.Open;
@@ -71,16 +77,37 @@ public class DatabaseBackupManager : IDatabaseBackupManager
             throw new FileNotFoundException($"Backup file not found at '{backupFilePath}'.", backupFilePath);
         }
 
-        string currentDbPath = _context.Database.GetConnectionString() ?? string.Empty;
-        if (currentDbPath.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
+        var connectionString = _context.Database.GetConnectionString();
+        if (string.IsNullOrWhiteSpace(connectionString))
         {
-            currentDbPath = currentDbPath["Data Source=".Length..].Trim();
+            throw new InvalidOperationException("Database connection string is not configured.");
+        }
+
+        var builder = new SqliteConnectionStringBuilder(connectionString);
+        string currentDbPath = builder.DataSource;
+        if (string.IsNullOrWhiteSpace(currentDbPath))
+        {
+            throw new InvalidOperationException("Database file path could not be determined from connection string.");
         }
 
         _logger.LogInformation("Restoring database from {Backup} to {Current}...", backupFilePath, currentDbPath);
 
-        // Close connection and copy file
+        // Close connection and clear SQLite connection pools to release file handles
         _context.Database.CloseConnection();
+        SqliteConnection.ClearAllPools();
+
+        // Remove stale WAL and SHM files to prevent SQLite from replaying old WAL frames onto restored database
+        string walFile = $"{currentDbPath}-wal";
+        string shmFile = $"{currentDbPath}-shm";
+        if (File.Exists(walFile))
+        {
+            try { File.Delete(walFile); } catch { /* ignore */ }
+        }
+        if (File.Exists(shmFile))
+        {
+            try { File.Delete(shmFile); } catch { /* ignore */ }
+        }
+
         File.Copy(backupFilePath, currentDbPath, overwrite: true);
         _logger.LogInformation("Database restore completed successfully.");
 

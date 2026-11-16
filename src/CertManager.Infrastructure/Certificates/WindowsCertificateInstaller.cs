@@ -13,6 +13,9 @@ public class WindowsCertificateInstaller : ICertificateInstaller
         InstallOptions options,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(certificate);
+        ArgumentNullException.ThrowIfNull(options);
+
         if (certificate.RawData == null || certificate.RawData.Length == 0)
         {
             throw new ArgumentException("Certificate raw data cannot be null or empty.", nameof(certificate));
@@ -39,7 +42,7 @@ public class WindowsCertificateInstaller : ICertificateInstaller
             ? X509KeyStorageFlags.MachineKeySet
             : X509KeyStorageFlags.UserKeySet;
 
-        var x509Cert = new X509Certificate2(
+        using var x509Cert = new X509Certificate2(
             certificate.RawData,
             certificate.Password,
             keyStorageFlags);
@@ -51,9 +54,19 @@ public class WindowsCertificateInstaller : ICertificateInstaller
 
         // Avoid duplicate insertion
         var existing = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
-        if (existing.Count == 0)
+        try
         {
-            store.Add(x509Cert);
+            if (existing.Count == 0)
+            {
+                store.Add(x509Cert);
+            }
+        }
+        finally
+        {
+            foreach (var c in existing)
+            {
+                c.Dispose();
+            }
         }
 
         return Task.FromResult(new InstalledCertificate(thumbprint, storeName.ToString(), storeLocation.ToString()));
@@ -63,9 +76,16 @@ public class WindowsCertificateInstaller : ICertificateInstaller
         CertificateReference certificate,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(certificate);
+
         if (!OperatingSystem.IsWindows())
         {
             return Task.FromResult(true);
+        }
+
+        if (string.IsNullOrWhiteSpace(certificate.Thumbprint))
+        {
+            return Task.FromResult(false);
         }
 
         var storeLocation = certificate.StoreLocation.Equals("CurrentUser", StringComparison.OrdinalIgnoreCase)
@@ -82,6 +102,16 @@ public class WindowsCertificateInstaller : ICertificateInstaller
         store.Open(OpenFlags.ReadOnly);
 
         var matches = store.Certificates.Find(X509FindType.FindByThumbprint, certificate.Thumbprint, false);
-        return Task.FromResult(matches.Count > 0);
+        try
+        {
+            return Task.FromResult(matches.Count > 0);
+        }
+        finally
+        {
+            foreach (var m in matches)
+            {
+                m.Dispose();
+            }
+        }
     }
 }

@@ -35,4 +35,22 @@ public class DnsChallengeHelperTests
         dnsTxt.Should().NotContain("="); // RFC 7515 no padding
         dnsTxt.Length.Should().Be(43); // 32-byte SHA256 base64url encoded without padding is 43 chars
     }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("*.")]
+    [InlineData("*. ")]
+    public void GetRecordName_EmptyOrInvalidDomain_ThrowsArgumentException(string input)
+    {
+        Action act = () => DnsChallengeHelper.GetRecordName(input);
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Base64UrlEncode_NullInput_ThrowsArgumentNullException()
+    {
+        Action act = () => DnsChallengeHelper.Base64UrlEncode(null!);
+        act.Should().Throw<ArgumentNullException>();
+    }
 }

@@ -22,6 +22,7 @@ public class Worker : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<Worker> _logger;
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, DateTime> _lastExpiryAlertSent = new();
 
     public Worker(IServiceProvider serviceProvider, ILogger<Worker> logger)
     {
@@ -53,13 +54,24 @@ public class Worker : BackgroundService
             {
                 await RunMaintenanceSweepAsync(stoppingToken);
             }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                break;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred during maintenance sweep.");
             }
 
             // Run check every 60 seconds
-            await Task.Delay(TimeSpan.FromSeconds(60), stoppingToken);
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(60), stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
         }
 
         _logger.LogInformation("CertFlow Background Worker stopped.");
@@ -97,14 +109,24 @@ public class Worker : BackgroundService
         {
             if (cancellationToken.IsCancellationRequested) break;
 
-            // Expiry alert: notify if expiring in less than 14 days
+            string domain = cert.Subject.Replace("CN=", "").Trim();
+            if (string.IsNullOrEmpty(domain))
+            {
+                domain = cert.Profile?.ProfileName ?? "example.com";
+            }
+
+            // Expiry alert: notify if expiring in less than 14 days, throttled to once every 24 hours per certificate
             if ((cert.NotAfter - now).TotalDays <= 14)
             {
-                await notifier.SendAsync(new NotificationMessage(
-                    "Certificate Expiring Soon",
-                    $"Certificate for {cert.Subject} expires on {cert.NotAfter:yyyy-MM-dd HH:mm UTC} (in {(cert.NotAfter - now).TotalDays:F1} days). Automated renewal scheduled.",
-                    "Warning"
-                ), cancellationToken);
+                if (!_lastExpiryAlertSent.TryGetValue(cert.CertificateId, out var lastSent) || (now - lastSent).TotalHours >= 24)
+                {
+                    _lastExpiryAlertSent[cert.CertificateId] = now;
+                    await notifier.SendAsync(new NotificationMessage(
+                        $"Certificate Expiring Soon ({domain})",
+                        $"Certificate for {cert.Subject} expires on {cert.NotAfter:yyyy-MM-dd HH:mm UTC} (in {(cert.NotAfter - now).TotalDays:F1} days). Automated renewal scheduled.",
+                        "Warning"
+                    ), cancellationToken);
+                }
             }
 
             bool isDue = RenewalPolicyEvaluator.ShouldRenew(cert, cert.Profile, now);
@@ -119,38 +141,35 @@ public class Worker : BackgroundService
                 continue;
             }
 
-            // Acquire 20-minute lease lock
-            var renewalLock = new WorkflowLock
-            {
-                LockKey = lockKey,
-                OwnerOperationId = Guid.NewGuid(),
-                AcquiredAt = now,
-                LeaseExpiresAt = now.AddMinutes(20)
-            };
-
+            // Acquire 20-minute lease lock (update existing tracked entity in-place to avoid EF Core key conflicts)
             if (existingLock != null)
             {
-                db.WorkflowLocks.Remove(existingLock);
+                existingLock.OwnerOperationId = Guid.NewGuid();
+                existingLock.AcquiredAt = now;
+                existingLock.LeaseExpiresAt = now.AddMinutes(20);
             }
-            db.WorkflowLocks.Add(renewalLock);
-            await db.SaveChangesAsync(cancellationToken);
-
-            string domain = cert.Subject.Replace("CN=", "").Trim();
-            if (string.IsNullOrEmpty(domain))
+            else
             {
-                domain = cert.Profile?.ProfileName ?? "example.com";
+                db.WorkflowLocks.Add(new WorkflowLock
+                {
+                    LockKey = lockKey,
+                    OwnerOperationId = Guid.NewGuid(),
+                    AcquiredAt = now,
+                    LeaseExpiresAt = now.AddMinutes(20)
+                });
             }
+            await db.SaveChangesAsync(cancellationToken);
 
             try
             {
                 _logger.LogInformation("Initiating autonomous background renewal for certificate {Thumbprint} (expires {NotAfter})", cert.Thumbprint, cert.NotAfter);
 
-                // Find associated IIS site if any
+                // Find associated IIS site if any (default to 0 so non-IIS certificates aren't mistakenly forced to Site 1)
                 var boundSite = await db.IisBindings
                     .Include(b => b.Website)
                     .FirstOrDefaultAsync(b => b.CertificateId == cert.CertificateId, cancellationToken);
 
-                long siteId = boundSite?.Website?.IisSiteId ?? 1;
+                long siteId = boundSite?.Website?.IisSiteId ?? 0;
 
                 var renewalRequest = new CertificateRequestModel
                 {
@@ -168,6 +187,17 @@ public class Worker : BackgroundService
                     _logger.LogInformation("Autonomous background renewal succeeded! New thumbprint: {NewThumbprint}", result.Thumbprint);
                     cert.Status = CertManager.Core.Enums.CertificateStatus.Archived;
                     cert.RetainUntil = now.AddDays(14); // Keep old certificate record archived for 14 days safety period
+
+                    // If an IIS binding was bound to the old cert, re-point it to the new cert record
+                    if (boundSite != null && !string.IsNullOrWhiteSpace(result.Thumbprint))
+                    {
+                        var newCert = await db.Certificates.FirstOrDefaultAsync(c => c.Thumbprint == result.Thumbprint, cancellationToken);
+                        if (newCert != null)
+                        {
+                            boundSite.CertificateId = newCert.CertificateId;
+                        }
+                    }
+
                     await db.SaveChangesAsync(cancellationToken);
 
                     await notifier.SendAsync(new NotificationMessage(
@@ -193,12 +223,19 @@ public class Worker : BackgroundService
             }
             finally
             {
-                // Release lock
-                var currentLock = await db.WorkflowLocks.FindAsync(new object[] { lockKey }, cancellationToken);
-                if (currentLock != null)
+                // Release lock using CancellationToken.None so shutdown/cancellation doesn't leave locks stuck
+                try
                 {
-                    db.WorkflowLocks.Remove(currentLock);
-                    await db.SaveChangesAsync(cancellationToken);
+                    var currentLock = await db.WorkflowLocks.FindAsync(new object[] { lockKey }, CancellationToken.None);
+                    if (currentLock != null)
+                    {
+                        db.WorkflowLocks.Remove(currentLock);
+                        await db.SaveChangesAsync(CancellationToken.None);
+                    }
+                }
+                catch (Exception lockEx)
+                {
+                    _logger.LogWarning(lockEx, "Failed to release workflow lock {LockKey}", lockKey);
                 }
             }
         }

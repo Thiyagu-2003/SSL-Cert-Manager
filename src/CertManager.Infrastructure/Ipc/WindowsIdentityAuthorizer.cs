@@ -37,7 +37,13 @@ public static class WindowsIdentityAuthorizer
                 return UserRole.Auditor;
             }
 
-            return UserRole.Administrator;
+            // Standard authenticated Windows user
+            if (identity.IsAuthenticated)
+            {
+                return UserRole.Operator;
+            }
+
+            return UserRole.Anonymous;
         }
         catch
         {

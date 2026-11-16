@@ -37,6 +37,7 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
     private readonly ICertificateInstaller _installer;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<CertificateIssuanceWorkflow> _logger;
+    private readonly SemaphoreSlim _workflowLock = new(1, 1);
 
     public CertificateIssuanceWorkflow(
         IAcmeCertificateClient acmeClient,
@@ -57,6 +58,31 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
     public async Task<CertificateRequestStatusResult> ExecuteAsync(
         CertificateRequestModel request,
         CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request?.DomainName))
+        {
+            return new CertificateRequestStatusResult
+            {
+                Success = false,
+                Step = "Validation",
+                ErrorMessage = "Domain name cannot be null or empty."
+            };
+        }
+
+        await _workflowLock.WaitAsync(cancellationToken);
+        try
+        {
+            return await ExecuteInternalAsync(request, cancellationToken);
+        }
+        finally
+        {
+            _workflowLock.Release();
+        }
+    }
+
+    private async Task<CertificateRequestStatusResult> ExecuteInternalAsync(
+        CertificateRequestModel request,
+        CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting certificate issuance workflow for {Domain} (Validation: {Method})", 
             request.DomainName, request.ValidationMethod);
@@ -110,6 +136,12 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
             }
             else
             {
+                // Ensure contact email is set
+                if (string.IsNullOrWhiteSpace(request.ContactEmail))
+                {
+                    request.ContactEmail = $"admin@{primaryDomain.TrimStart('*', '.')}";
+                }
+
                 // 2. Register ACME Account
                 string accountUrl = await _acmeClient.InitializeAccountAsync(request.ContactEmail, request.IsStaging, cancellationToken);
                 _logger.LogInformation("ACME account ready: {AccountUrl}", accountUrl);
@@ -117,80 +149,90 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
                 // 3. Create Order and retrieve challenges
                 string valMethod = isDnsValidation ? "Dns01" : "Http01";
                 var acmeChallenges = await _acmeClient.CreateOrderAndGetChallengesAsync(asciiDomainNames, valMethod, cancellationToken);
-                if (acmeChallenges.Count == 0)
+
+                // If authorizations are already valid on Let's Encrypt (authz reuse), challenges list is empty
+                if (acmeChallenges.Count > 0)
                 {
-                    return new CertificateRequestStatusResult
+                    challenges.AddRange(acmeChallenges);
+
+                    // 4. Provision Challenges
+                    if (isDnsValidation)
                     {
-                        Success = false,
-                        Step = "Order Creation",
-                        ErrorMessage = $"No {valMethod} challenges returned by ACME authority."
-                    };
-                }
-                challenges.AddRange(acmeChallenges);
+                        _logger.LogInformation("Provisioning DNS-01 challenge records...");
+                        IDnsProvider dnsProvider = string.Equals(request.DnsProvider, "Cloudflare", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(request.DnsApiToken)
+                            ? new CloudflareDnsProvider(request.DnsApiToken)
+                            : new ManualDnsProvider();
 
-                // 4. Provision Challenges
-                if (isDnsValidation)
-                {
-                    _logger.LogInformation("Provisioning DNS-01 challenge records...");
-                    IDnsProvider dnsProvider = string.Equals(request.DnsProvider, "Cloudflare", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(request.DnsApiToken)
-                        ? new CloudflareDnsProvider(request.DnsApiToken)
-                        : new ManualDnsProvider();
+                        foreach (var ch in challenges)
+                        {
+                            string recordName = DnsChallengeHelper.GetRecordName(ch.Domain);
+                            string recordValue = ch.DnsTxtValue;
 
+                            // Determine Zone ID
+                            string zoneId = request.DnsZoneId ?? string.Empty;
+                            if (string.IsNullOrWhiteSpace(zoneId))
+                            {
+                                var zones = await dnsProvider.GetZonesAsync(cancellationToken);
+                                string rootDomain = DomainNormalizer.Normalize(ch.Domain).RootDomain;
+                                var matchedZone = zones.FirstOrDefault(z => string.Equals(z.Name, rootDomain, StringComparison.OrdinalIgnoreCase)) ?? zones.FirstOrDefault();
+                                zoneId = matchedZone?.Id ?? "default-zone";
+                            }
+
+                            _logger.LogInformation("Creating TXT record: {Name} = {Value} in zone {ZoneId}", recordName, recordValue, zoneId);
+                            var record = await dnsProvider.CreateTxtRecordAsync(zoneId, recordName, recordValue, cancellationToken);
+                            dnsRecordsToCleanup.Add((dnsProvider, zoneId, record.Id));
+
+                            // Wait for DNS propagation check (up to 30 seconds)
+                            _logger.LogInformation("Verifying DNS propagation for {RecordName}...", recordName);
+                            for (int i = 0; i < 6; i++)
+                            {
+                                if (cancellationToken.IsCancellationRequested) break;
+                                bool visible = await dnsProvider.IsTxtRecordVisibleAsync(recordName, recordValue, cancellationToken);
+                                if (visible)
+                                {
+                                    _logger.LogInformation("DNS TXT record is publicly visible!");
+                                    break;
+                                }
+                                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // HTTP-01 Provisioning: Resolve IIS website physical path
+                        if (request.SiteId <= 0)
+                        {
+                            var sites = await _iisAdapter.DiscoverDetailedWebsitesAsync(cancellationToken);
+                            var matchingSite = sites.FirstOrDefault(s => s.Hostnames.Any(h => string.Equals(h, primaryDomain, StringComparison.OrdinalIgnoreCase)));
+                            if (matchingSite != null)
+                            {
+                                request.SiteId = matchingSite.SiteId;
+                            }
+                        }
+
+                        string? webRoot = request.SiteId > 0 ? _iisAdapter.GetWebsitePhysicalPath(request.SiteId) : null;
+                        if (string.IsNullOrWhiteSpace(webRoot))
+                        {
+                            webRoot = Path.Combine(Path.GetTempPath(), $"certflow_fallback_{request.SiteId}");
+                            Directory.CreateDirectory(webRoot);
+                        }
+
+                        foreach (var ch in challenges)
+                        {
+                            await _challengeResponder.ProvisionChallengeAsync(webRoot, ch.Token, ch.KeyAuthorization, cancellationToken);
+                            _logger.LogInformation("Provisioned HTTP-01 challenge token for {Domain}", ch.Domain);
+                        }
+                    }
+
+                    // 5. Submit Challenge to Let's Encrypt
                     foreach (var ch in challenges)
                     {
-                        string recordName = DnsChallengeHelper.GetRecordName(ch.Domain);
-                        string recordValue = ch.DnsTxtValue;
-
-                        // Determine Zone ID
-                        string zoneId = request.DnsZoneId ?? string.Empty;
-                        if (string.IsNullOrWhiteSpace(zoneId))
-                        {
-                            var zones = await dnsProvider.GetZonesAsync(cancellationToken);
-                            string rootDomain = DomainNormalizer.Normalize(ch.Domain).RootDomain;
-                            var matchedZone = zones.FirstOrDefault(z => string.Equals(z.Name, rootDomain, StringComparison.OrdinalIgnoreCase)) ?? zones.FirstOrDefault();
-                            zoneId = matchedZone?.Id ?? "default-zone";
-                        }
-
-                        _logger.LogInformation("Creating TXT record: {Name} = {Value} in zone {ZoneId}", recordName, recordValue, zoneId);
-                        var record = await dnsProvider.CreateTxtRecordAsync(zoneId, recordName, recordValue, cancellationToken);
-                        dnsRecordsToCleanup.Add((dnsProvider, zoneId, record.Id));
-
-                        // Wait for DNS propagation check (up to 30 seconds)
-                        _logger.LogInformation("Verifying DNS propagation for {RecordName}...", recordName);
-                        for (int i = 0; i < 6; i++)
-                        {
-                            if (cancellationToken.IsCancellationRequested) break;
-                            bool visible = await dnsProvider.IsTxtRecordVisibleAsync(recordName, recordValue, cancellationToken);
-                            if (visible)
-                            {
-                                _logger.LogInformation("DNS TXT record is publicly visible!");
-                                break;
-                            }
-                            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-                        }
+                        await _acmeClient.SubmitChallengeAsync(ch, cancellationToken);
                     }
                 }
                 else
                 {
-                    // HTTP-01 Provisioning
-                    string? webRoot = _iisAdapter.GetWebsitePhysicalPath(request.SiteId);
-                    if (string.IsNullOrWhiteSpace(webRoot))
-                    {
-                        webRoot = Path.Combine(Path.GetTempPath(), $"certflow_fallback_{request.SiteId}");
-                        Directory.CreateDirectory(webRoot);
-                    }
-
-                    foreach (var ch in challenges)
-                    {
-                        await _challengeResponder.ProvisionChallengeAsync(webRoot, ch.Token, ch.KeyAuthorization, cancellationToken);
-                        _logger.LogInformation("Provisioned HTTP-01 challenge token for {Domain}", ch.Domain);
-                    }
-                }
-
-                // 5. Submit Challenge to Let's Encrypt
-                foreach (var ch in challenges)
-                {
-                    await _acmeClient.SubmitChallengeAsync(ch, cancellationToken);
+                    _logger.LogInformation("Domain authorizations are already valid on ACME authority; challenge provisioning not required.");
                 }
 
                 // 6. Finalize Order and Generate PFX
@@ -229,7 +271,7 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
             // 9. Cleanup HTTP-01 files if applicable
             if (!isSelfSigned && !isDnsValidation)
             {
-                string? webRoot = _iisAdapter.GetWebsitePhysicalPath(request.SiteId);
+                string? webRoot = request.SiteId > 0 ? _iisAdapter.GetWebsitePhysicalPath(request.SiteId) : null;
                 if (!string.IsNullOrWhiteSpace(webRoot))
                 {
                     foreach (var ch in challenges)
@@ -241,7 +283,7 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
 
             // 10. Persist into SQLite
             var valMethodSaved = isSelfSigned ? ValidationMethod.SelfSigned : (isDnsValidation ? ValidationMethod.Dns01 : ValidationMethod.Http01);
-            await PersistCertificateRecordAsync(primaryDomain, thumbprint, notAfter, request.SiteId, valMethodSaved, cancellationToken);
+            await PersistCertificateRecordAsync(primaryDomain, thumbprint, notAfter, request.SiteId, valMethodSaved, isSelfSigned, request.IsStaging, cancellationToken);
 
             _logger.LogInformation("Successfully issued, installed, and configured certificate {Thumbprint}", thumbprint);
 
@@ -288,6 +330,8 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
         DateTime notAfter,
         long siteId,
         ValidationMethod validationMethod,
+        bool isSelfSigned,
+        bool isStaging,
         CancellationToken cancellationToken)
     {
         try
@@ -295,15 +339,20 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
             using var scope = _serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<CertManagerDbContext>();
 
-            var profile = new CertificateProfile
+            string profileName = $"{domainName} - Automated";
+            var profile = await db.CertificateProfiles.FirstOrDefaultAsync(p => p.ProfileName == profileName, cancellationToken);
+            if (profile == null)
             {
-                ProfileName = $"{domainName} - Automated",
-                AuthorityId = "letsencrypt",
-                DefaultValidationMethod = validationMethod,
-                RenewalThresholdPercent = 33,
-                UseAri = true
-            };
-            db.CertificateProfiles.Add(profile);
+                profile = new CertificateProfile
+                {
+                    ProfileName = profileName,
+                    AuthorityId = isSelfSigned ? "selfsigned" : "letsencrypt",
+                    DefaultValidationMethod = validationMethod,
+                    RenewalThresholdPercent = 33,
+                    UseAri = true
+                };
+                db.CertificateProfiles.Add(profile);
+            }
 
             var domain = await db.Domains.FirstOrDefaultAsync(d => d.DomainName == domainName, cancellationToken);
             if (domain == null)
@@ -312,23 +361,41 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
                 {
                     DomainName = domainName,
                     DisplayName = domainName,
-                    RootDomain = domainName,
+                    RootDomain = DomainNormalizer.Normalize(domainName).RootDomain,
                     DomainType = domainName.StartsWith("*.", StringComparison.Ordinal) ? DomainType.Wildcard : DomainType.Hostname
                 };
                 db.Domains.Add(domain);
             }
 
+            string issuerName = isSelfSigned 
+                ? "Self-Signed" 
+                : (isStaging ? "Let's Encrypt (Staging)" : "Let's Encrypt");
+
             var certRecord = new CertificateRecord
             {
                 Profile = profile,
                 Subject = $"CN={domainName}",
-                Issuer = "Let's Encrypt",
+                Issuer = issuerName,
                 Thumbprint = thumbprint,
                 NotBefore = DateTime.UtcNow,
                 NotAfter = notAfter,
                 Status = CertManager.Core.Enums.CertificateStatus.Active
             };
             db.Certificates.Add(certRecord);
+
+            // If a valid site ID is provided, associate the bound IIS binding in the database
+            if (siteId > 0)
+            {
+                var binding = await db.IisBindings
+                    .Include(b => b.Website)
+                    .FirstOrDefaultAsync(b => b.Website != null && b.Website.IisSiteId == siteId &&
+                                              (string.IsNullOrEmpty(b.Hostname) || string.Equals(b.Hostname, domainName, StringComparison.OrdinalIgnoreCase)), cancellationToken);
+
+                if (binding != null)
+                {
+                    binding.CertificateId = certRecord.CertificateId;
+                }
+            }
 
             await db.SaveChangesAsync(cancellationToken);
         }

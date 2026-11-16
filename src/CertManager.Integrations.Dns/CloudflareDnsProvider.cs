@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -12,6 +13,7 @@ namespace CertManager.Integrations.Dns;
 
 public class CloudflareDnsProvider : IDnsProvider
 {
+    private static readonly HttpClient DefaultSharedHttpClient = new();
     private readonly HttpClient _httpClient;
     private readonly string _apiToken;
     private const string BaseUrl = "https://api.cloudflare.com/client/v4";
@@ -19,7 +21,7 @@ public class CloudflareDnsProvider : IDnsProvider
     public CloudflareDnsProvider(string apiToken, HttpClient? httpClient = null)
     {
         _apiToken = apiToken ?? throw new ArgumentNullException(nameof(apiToken));
-        _httpClient = httpClient ?? new HttpClient();
+        _httpClient = httpClient ?? DefaultSharedHttpClient;
     }
 
     public string ProviderName => "Cloudflare";
@@ -51,9 +53,9 @@ public class CloudflareDnsProvider : IDnsProvider
         {
             foreach (var item in resultArr.EnumerateArray())
             {
-                string id = item.GetProperty("id").GetString() ?? string.Empty;
-                string name = item.GetProperty("name").GetString() ?? string.Empty;
-                string status = item.GetProperty("status").GetString() ?? "unknown";
+                string id = item.TryGetProperty("id", out var idProp) ? idProp.GetString() ?? string.Empty : string.Empty;
+                string name = item.TryGetProperty("name", out var nameProp) ? nameProp.GetString() ?? string.Empty : string.Empty;
+                string status = item.TryGetProperty("status", out var statusProp) ? statusProp.GetString() ?? "unknown" : "unknown";
                 zones.Add(new DnsZone(id, name, status));
             }
         }
@@ -86,9 +88,15 @@ public class CloudflareDnsProvider : IDnsProvider
         }
 
         using var doc = JsonDocument.Parse(content);
-        var result = doc.RootElement.GetProperty("result");
-        string recordId = result.GetProperty("id").GetString() ?? string.Empty;
-        string recordName = result.GetProperty("name").GetString() ?? name;
+        var root = doc.RootElement;
+        if (!root.TryGetProperty("result", out var result) || result.ValueKind == JsonValueKind.Null)
+        {
+            string errorDetail = root.TryGetProperty("errors", out var errArr) ? errArr.ToString() : content;
+            throw new HttpRequestException($"Cloudflare API returned error creating TXT record ({response.StatusCode}): {errorDetail}");
+        }
+
+        string recordId = result.TryGetProperty("id", out var idProp) ? idProp.GetString() ?? string.Empty : string.Empty;
+        string recordName = result.TryGetProperty("name", out var nameProp) ? nameProp.GetString() ?? name : name;
         int ttl = result.TryGetProperty("ttl", out var ttlProp) ? ttlProp.GetInt32() : 120;
 
         return new DnsRecord(recordId, zoneId, recordName, "TXT", value, ttl);
@@ -102,6 +110,12 @@ public class CloudflareDnsProvider : IDnsProvider
         using var request = CreateRequest(HttpMethod.Delete, $"/zones/{zoneId}/dns_records/{recordId}");
         using var response = await _httpClient.SendAsync(request, cancellationToken);
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        // If the record was already deleted (404 Not Found), treat as successful cleanup
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return;
+        }
 
         if (!response.IsSuccessStatusCode)
         {
@@ -134,7 +148,7 @@ public class CloudflareDnsProvider : IDnsProvider
                 {
                     if (answer.TryGetProperty("data", out var dataProp))
                     {
-                        string data = dataProp.GetString()?.Trim('"') ?? string.Empty;
+                        string data = dataProp.GetString()?.Trim().Trim('"').Replace("\\\"", "\"") ?? string.Empty;
                         if (string.Equals(data, expectedValue, StringComparison.Ordinal))
                         {
                             return true;
@@ -142,6 +156,10 @@ public class CloudflareDnsProvider : IDnsProvider
                     }
                 }
             }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch
         {

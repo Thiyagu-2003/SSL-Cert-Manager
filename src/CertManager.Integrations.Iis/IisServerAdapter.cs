@@ -98,12 +98,22 @@ public class IisServerAdapter : IIisServerAdapter
                 foreach (var b in site.Bindings)
                 {
                     string protocol = b.Protocol;
-                    string host = b.Host;
-                    int port = b.EndPoint?.Port ?? (protocol.Equals("https", StringComparison.OrdinalIgnoreCase) ? 443 : 80);
-                    string ip = b.EndPoint?.Address?.ToString() ?? "*";
+                    string bindingInfo = b.BindingInformation ?? string.Empty;
+                    string[] parts = bindingInfo.Split(':');
+                    string ip = parts.Length > 0 && !string.IsNullOrWhiteSpace(parts[0]) ? parts[0] : (b.EndPoint?.Address?.ToString() ?? "*");
+                    int port = parts.Length > 1 && int.TryParse(parts[1], out var parsedPort)
+                        ? parsedPort
+                        : (b.EndPoint?.Port ?? (protocol.Equals("https", StringComparison.OrdinalIgnoreCase) ? 443 : 80));
+                    string host = !string.IsNullOrWhiteSpace(b.Host) ? b.Host : (parts.Length > 2 ? parts[2] : string.Empty);
                     bool isHttps = protocol.Equals("https", StringComparison.OrdinalIgnoreCase);
 
-                    if (isHttps)
+                    string? thumbprint = null;
+                    if (b.CertificateHash != null && b.CertificateHash.Length > 0)
+                    {
+                        thumbprint = Convert.ToHexString(b.CertificateHash);
+                    }
+
+                    if (isHttps && !string.IsNullOrWhiteSpace(thumbprint))
                     {
                         hasHttps = true;
                     }
@@ -111,12 +121,6 @@ public class IisServerAdapter : IIisServerAdapter
                     if (!string.IsNullOrWhiteSpace(host))
                     {
                         hostnames.Add(host);
-                    }
-
-                    string? thumbprint = null;
-                    if (b.CertificateHash != null && b.CertificateHash.Length > 0)
-                    {
-                        thumbprint = Convert.ToHexString(b.CertificateHash);
                     }
 
                     bool sni = false;
@@ -159,12 +163,18 @@ public class IisServerAdapter : IIisServerAdapter
             return Task.FromResult(new DeploymentResult(true, null, null));
         }
 
-        string cleanThumbprint = certificate.Thumbprint.Replace(" ", "").Replace(":", "").Trim();
-        byte[] certHash = Convert.FromHexString(cleanThumbprint);
         string? previousThumbprint = null;
 
         try
         {
+            if (string.IsNullOrWhiteSpace(certificate.Thumbprint))
+            {
+                return Task.FromResult(new DeploymentResult(false, "Certificate thumbprint cannot be null or empty.", null));
+            }
+
+            string cleanThumbprint = certificate.Thumbprint.Replace(" ", "").Replace(":", "").Trim();
+            byte[] certHash = Convert.FromHexString(cleanThumbprint);
+
             using var serverManager = new ServerManager();
             var site = serverManager.Sites.FirstOrDefault(s => s.Id == target.SiteId);
             if (site == null)
@@ -172,19 +182,28 @@ public class IisServerAdapter : IIisServerAdapter
                 return Task.FromResult(new DeploymentResult(false, $"IIS Site with ID {target.SiteId} not found.", null));
             }
 
+            int GetPort(Binding b) => b.EndPoint?.Port ?? 
+                (int.TryParse(b.BindingInformation?.Split(':').ElementAtOrDefault(1), out var p) ? p : 
+                (b.Protocol.Equals("https", StringComparison.OrdinalIgnoreCase) ? 443 : 80));
+
+            string GetHost(Binding b) => !string.IsNullOrEmpty(b.Host) ? b.Host : 
+                (b.BindingInformation?.Split(':').ElementAtOrDefault(2) ?? string.Empty);
+
             // Look for existing HTTPS binding matching target hostname/port
             var existingBinding = site.Bindings.FirstOrDefault(b =>
                 b.Protocol.Equals("https", StringComparison.OrdinalIgnoreCase) &&
-                b.EndPoint?.Port == target.Port &&
-                string.Equals(b.Host, target.Hostname, StringComparison.OrdinalIgnoreCase));
+                GetPort(b) == target.Port &&
+                string.Equals(GetHost(b), target.Hostname, StringComparison.OrdinalIgnoreCase));
 
-            // If no exact hostname match, check for an existing HTTPS binding on target.Port with empty host
+            // If no exact hostname match, check for an unconfigured placeholder HTTPS binding on target.Port
+            // (i.e. empty hostname AND NO certificate hash bound to it)
             if (existingBinding == null && !string.IsNullOrWhiteSpace(target.Hostname))
             {
                 existingBinding = site.Bindings.FirstOrDefault(b =>
                     b.Protocol.Equals("https", StringComparison.OrdinalIgnoreCase) &&
-                    b.EndPoint?.Port == target.Port &&
-                    string.IsNullOrWhiteSpace(b.Host));
+                    GetPort(b) == target.Port &&
+                    string.IsNullOrWhiteSpace(GetHost(b)) &&
+                    (b.CertificateHash == null || b.CertificateHash.Length == 0));
             }
 
             if (existingBinding != null)
@@ -228,6 +247,43 @@ public class IisServerAdapter : IIisServerAdapter
         DeploymentTarget target,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new HealthCheckResult(true, "HTTPS binding verified."));
+        if (!IsIisAvailable())
+        {
+            return Task.FromResult(new HealthCheckResult(true, "IIS not present on this host; simulated verification passed."));
+        }
+
+        try
+        {
+            using var serverManager = new ServerManager();
+            var site = serverManager.Sites.FirstOrDefault(s => s.Id == target.SiteId);
+            if (site == null)
+            {
+                return Task.FromResult(new HealthCheckResult(false, $"IIS Site with ID {target.SiteId} not found."));
+            }
+
+            int GetPort(Binding b) => b.EndPoint?.Port ?? 
+                (int.TryParse(b.BindingInformation?.Split(':').ElementAtOrDefault(1), out var p) ? p : 
+                (b.Protocol.Equals("https", StringComparison.OrdinalIgnoreCase) ? 443 : 80));
+
+            string GetHost(Binding b) => !string.IsNullOrEmpty(b.Host) ? b.Host : 
+                (b.BindingInformation?.Split(':').ElementAtOrDefault(2) ?? string.Empty);
+
+            bool verified = site.Bindings.Any(b =>
+                b.Protocol.Equals("https", StringComparison.OrdinalIgnoreCase) &&
+                GetPort(b) == target.Port &&
+                b.CertificateHash != null && b.CertificateHash.Length > 0 &&
+                (string.IsNullOrWhiteSpace(target.Hostname) || string.Equals(GetHost(b), target.Hostname, StringComparison.OrdinalIgnoreCase)));
+
+            if (!verified)
+            {
+                return Task.FromResult(new HealthCheckResult(false, $"No active HTTPS binding with valid certificate found for {target.Hostname}:{target.Port} on site '{site.Name}'."));
+            }
+
+            return Task.FromResult(new HealthCheckResult(true, $"HTTPS binding for {target.Hostname}:{target.Port} verified on site '{site.Name}'."));
+        }
+        catch (Exception ex)
+        {
+            return Task.FromResult(new HealthCheckResult(false, $"Verification failed: {ex.Message}"));
+        }
     }
 }

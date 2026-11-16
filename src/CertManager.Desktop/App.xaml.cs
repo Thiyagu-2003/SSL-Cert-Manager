@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
+using CertManager.Service;
 
 namespace CertManager.Desktop;
 
@@ -13,16 +14,56 @@ public partial class App : Application
     {
         AppDomain.CurrentDomain.UnhandledException += (s, args) =>
         {
-            File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "crash.log"), args.ExceptionObject.ToString());
+            LogCrash(args.ExceptionObject);
         };
 
         DispatcherUnhandledException += (s, args) =>
         {
-            File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "crash.log"), args.Exception.ToString());
+            LogCrash(args.Exception);
             args.Handled = false;
         };
 
         base.OnStartup(e);
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        try
+        {
+            if (ServiceHostBuilder.CurrentInProcessHost is { } host)
+            {
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(2));
+                host.StopAsync(cts.Token).GetAwaiter().GetResult();
+                host.Dispose();
+            }
+        }
+        catch
+        {
+            // Ignore during process shutdown
+        }
+
+        base.OnExit(e);
+    }
+
+    private static void LogCrash(object? ex)
+    {
+        try
+        {
+            string logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CertManager");
+            Directory.CreateDirectory(logDir);
+            File.AppendAllText(Path.Combine(logDir, "crash.log"), $"[{DateTime.UtcNow:O}] {ex}\n\n");
+        }
+        catch
+        {
+            try
+            {
+                File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "crash.log"), $"[{DateTime.UtcNow:O}] {ex}\n\n");
+            }
+            catch
+            {
+                // Silently ignore if unable to write crash log
+            }
+        }
     }
 }
 

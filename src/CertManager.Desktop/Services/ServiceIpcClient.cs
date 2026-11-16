@@ -24,8 +24,14 @@ public class ServiceIpcClient
     {
         try
         {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default)
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(3));
+            }
+
             var request = new IpcRequest { Action = "GetStatus" };
-            var response = await _client.SendAsync(request, cancellationToken);
+            var response = await _client.SendAsync(request, cts.Token);
 
             if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
             {
@@ -46,8 +52,14 @@ public class ServiceIpcClient
     {
         try
         {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default)
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(8));
+            }
+
             var request = new IpcRequest { Action = "GetWebsites" };
-            var response = await _client.SendAsync(request, cancellationToken);
+            var response = await _client.SendAsync(request, cts.Token);
 
             if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
             {
@@ -68,8 +80,14 @@ public class ServiceIpcClient
     {
         try
         {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default)
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(8));
+            }
+
             var request = new IpcRequest { Action = "GetCertificates" };
-            var response = await _client.SendAsync(request, cancellationToken);
+            var response = await _client.SendAsync(request, cts.Token);
 
             if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
             {
@@ -90,8 +108,14 @@ public class ServiceIpcClient
     {
         try
         {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default)
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(8));
+            }
+
             var request = new IpcRequest { Action = "GetNotifications" };
-            var response = await _client.SendAsync(request, cancellationToken);
+            var response = await _client.SendAsync(request, cts.Token);
 
             if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
             {
@@ -112,8 +136,14 @@ public class ServiceIpcClient
     {
         try
         {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default)
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(8));
+            }
+
             var request = new IpcRequest { Action = "GetProfiles" };
-            var response = await _client.SendAsync(request, cancellationToken);
+            var response = await _client.SendAsync(request, cts.Token);
 
             if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
             {
@@ -136,13 +166,19 @@ public class ServiceIpcClient
     {
         try
         {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default)
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(120));
+            }
+
             var request = new IpcRequest
             {
                 Action = "RequestCertificate",
                 PayloadJson = JsonSerializer.Serialize(requestModel)
             };
 
-            var response = await _client.SendAsync(request, cancellationToken);
+            var response = await _client.SendAsync(request, cts.Token);
             if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
             {
                 return JsonSerializer.Deserialize<CertificateRequestStatusResult>(

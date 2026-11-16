@@ -47,6 +47,8 @@ public class SmtpNotificationChannel : INotificationChannel
 
     public async Task<bool> SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         if (string.IsNullOrWhiteSpace(_options.ToAddress))
         {
             _logger.LogWarning("SMTP recipient address is not configured. Skipping email notification.");
@@ -94,10 +96,11 @@ public class TelegramChannelOptions
     public string ChatId { get; set; } = string.Empty;
 }
 
-public class TelegramNotificationChannel : INotificationChannel
+public class TelegramNotificationChannel : INotificationChannel, IDisposable
 {
     private readonly TelegramChannelOptions _options;
     private readonly HttpClient _httpClient;
+    private readonly bool _ownsClient;
     private readonly ILogger<TelegramNotificationChannel> _logger;
 
     public TelegramNotificationChannel(
@@ -106,14 +109,25 @@ public class TelegramNotificationChannel : INotificationChannel
         ILogger<TelegramNotificationChannel> logger)
     {
         _options = options;
+        _ownsClient = httpClient == null;
         _httpClient = httpClient ?? new HttpClient();
         _logger = logger;
+    }
+
+    public void Dispose()
+    {
+        if (_ownsClient)
+        {
+            _httpClient.Dispose();
+        }
     }
 
     public string ChannelName => "Telegram";
 
     public async Task<bool> SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         if (string.IsNullOrWhiteSpace(_options.BotToken) || string.IsNullOrWhiteSpace(_options.ChatId))
         {
             _logger.LogDebug("Telegram bot token or chat ID is not configured. Skipping.");
@@ -164,16 +178,23 @@ public class NotificationDispatcher : INotificationProvider
 {
     private readonly CertManagerDbContext _db;
     private readonly ILogger<NotificationDispatcher> _logger;
+    private readonly IEnumerable<INotificationChannel> _channels;
     private static readonly ConcurrentDictionary<string, DateTime> CooldownCache = new();
 
-    public NotificationDispatcher(CertManagerDbContext db, ILogger<NotificationDispatcher> logger)
+    public NotificationDispatcher(
+        CertManagerDbContext db,
+        ILogger<NotificationDispatcher> logger,
+        IEnumerable<INotificationChannel>? channels = null)
     {
         _db = db;
         _logger = logger;
+        _channels = channels ?? Array.Empty<INotificationChannel>();
     }
 
     public async Task SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         // 1. Duplicate Suppression Check: prevent spamming identical alerts within 60 minutes
         string deduplicationKey = $"{message.Level}:{message.Subject}";
         if (CooldownCache.TryGetValue(deduplicationKey, out var lastSentTime))
@@ -187,12 +208,38 @@ public class NotificationDispatcher : INotificationProvider
 
         CooldownCache[deduplicationKey] = DateTime.UtcNow;
 
+        // Periodic eviction to prevent unbounded memory growth in 24/7 service
+        if (CooldownCache.Count > 500)
+        {
+            var cutoff = DateTime.UtcNow - TimeSpan.FromMinutes(60);
+            foreach (var kvp in CooldownCache)
+            {
+                if (kvp.Value < cutoff)
+                {
+                    CooldownCache.TryRemove(kvp.Key, out _);
+                }
+            }
+        }
+
         // 2. Mask any sensitive strings (tokens, private keys) before logging and storing
         string safeBody = MaskSecrets(message.Body);
 
         _logger.LogInformation("[ALERT {Level}] {Subject} - {Body}", message.Level, message.Subject, safeBody);
 
-        // 3. Persist into SQLite Notification Audit Log
+        // 3. Dispatch to external channels (SMTP, Telegram, etc.)
+        foreach (var channel in _channels)
+        {
+            try
+            {
+                await channel.SendAsync(message, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to dispatch notification via channel {Channel}", channel.ChannelName);
+            }
+        }
+
+        // 4. Persist into SQLite Notification Audit Log
         try
         {
             var record = new NotificationRecord

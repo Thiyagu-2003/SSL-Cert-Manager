@@ -20,12 +20,10 @@ public class AcmeAccountItemViewModel
 
 public class AcmeAccountsViewModel : ViewModelBase
 {
-    private readonly ServiceIpcClient _ipcClient;
     private bool _isLoading;
 
     public AcmeAccountsViewModel()
     {
-        _ipcClient = new ServiceIpcClient();
         RefreshCommand = new RelayCommand(async () => await LoadAccountsAsync());
         _ = LoadAccountsAsync();
     }

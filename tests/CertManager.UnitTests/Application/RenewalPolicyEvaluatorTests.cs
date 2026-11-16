@@ -82,4 +82,17 @@ public class RenewalPolicyEvaluatorTests
         int progress = RenewalPolicyEvaluator.CalculateLifetimeProgressPercent(cert, DateTime.UtcNow);
         progress.Should().Be(50);
     }
+
+    [Fact]
+    public void Methods_ThrowArgumentNullException_WhenCertIsNull()
+    {
+        Action act1 = () => RenewalPolicyEvaluator.ShouldRenew(null!, null);
+        act1.Should().Throw<ArgumentNullException>();
+
+        Action act2 = () => RenewalPolicyEvaluator.CalculateLifetimeProgressPercent(null!);
+        act2.Should().Throw<ArgumentNullException>();
+
+        Action act3 = () => RenewalPolicyEvaluator.GetRemainingDays(null!);
+        act3.Should().Throw<ArgumentNullException>();
+    }
 }

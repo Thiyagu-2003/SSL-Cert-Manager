@@ -146,4 +146,36 @@ public class CloudflareDnsProviderTests
 
         isVisible.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task DeleteTxtRecordAsync_NotFound_CompletesSilentlyWithoutThrowing()
+    {
+        var handler = new MockHttpMessageHandler(req =>
+        {
+            return new HttpResponseMessage(HttpStatusCode.NotFound)
+            {
+                Content = new StringContent(@"{""success"":false,""errors"":[{""message"":""Record not found""}]}", Encoding.UTF8, "application/json")
+            };
+        });
+
+        var provider = new CloudflareDnsProvider("test-token", new HttpClient(handler));
+        Func<Task> act = async () => await provider.DeleteTxtRecordAsync("zone-123", "rec-nonexistent");
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task CreateTxtRecordAsync_NullResultOrError_ThrowsHttpRequestException()
+    {
+        var handler = new MockHttpMessageHandler(req =>
+        {
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(@"{""success"":false,""errors"":[{""code"":1004,""message"":""DNS record already exists""}]}", Encoding.UTF8, "application/json")
+            };
+        });
+
+        var provider = new CloudflareDnsProvider("test-token", new HttpClient(handler));
+        Func<Task> act = async () => await provider.CreateTxtRecordAsync("zone-123", "_acme-challenge.example.com", "digest");
+        await act.Should().ThrowAsync<HttpRequestException>().WithMessage("*DNS record already exists*");
+    }
 }

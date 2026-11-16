@@ -85,4 +85,43 @@ public class NamedPipeIpcTests
         cts.Cancel();
         try { await serverRunTask; } catch (OperationCanceledException) { }
     }
+
+    [Fact]
+    public async Task Framing_ThrowsArgumentNullException_WhenStreamIsNull()
+    {
+        Func<Task> actWrite = async () => await IpcMessageFraming.WriteMessageAsync<string>(null!, "test", CancellationToken.None);
+        await actWrite.Should().ThrowAsync<ArgumentNullException>();
+
+        Func<Task> actRead = async () => await IpcMessageFraming.ReadMessageAsync<string>(null!, CancellationToken.None);
+        await actRead.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task Framing_ReturnsDefault_WhenPayloadLengthIsZero()
+    {
+        using var stream = new MemoryStream();
+        await stream.WriteAsync(BitConverter.GetBytes(0));
+        stream.Position = 0;
+
+        var result = await IpcMessageFraming.ReadMessageAsync<IpcRequest>(stream, CancellationToken.None);
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void Authorizer_ResolvesAdministrator_WhenIdentityIsNull()
+    {
+        var role = WindowsIdentityAuthorizer.ResolveRole(null);
+        role.Should().Be(CertManager.Core.Enums.UserRole.Administrator);
+
+        bool isAuth = WindowsIdentityAuthorizer.IsAuthorized(null, CertManager.Core.Enums.UserRole.Administrator);
+        isAuth.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Client_ThrowsArgumentNullException_WhenRequestIsNull()
+    {
+        var client = new NamedPipeClient("DummyPipe");
+        Func<Task> act = async () => await client.SendAsync(null!);
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
 }

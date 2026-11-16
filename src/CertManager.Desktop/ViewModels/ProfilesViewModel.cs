@@ -5,6 +5,7 @@ using System.Windows.Input;
 using CertManager.Core.Entities;
 using CertManager.Desktop.Common;
 using CertManager.Desktop.Services;
+using CertManager.Service;
 
 namespace CertManager.Desktop.ViewModels;
 
@@ -62,6 +63,7 @@ public class ProfilesViewModel : ViewModelBase
 
         try
         {
+            await ServiceHostBuilder.EnsureInProcessEngineRunningAsync();
             var profiles = await _ipcClient.GetProfilesAsync();
             Profiles.Clear();
             foreach (var p in profiles)

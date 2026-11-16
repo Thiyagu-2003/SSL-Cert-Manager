@@ -1,5 +1,6 @@
 using System;
 using System.IO.Pipes;
+using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,12 +33,7 @@ public class NamedPipeServer : INamedPipeServer
             NamedPipeServerStream? serverStream = null;
             try
             {
-                serverStream = new NamedPipeServerStream(
-                    _pipeName,
-                    PipeDirection.InOut,
-                    NamedPipeServerStream.MaxAllowedServerInstances,
-                    PipeTransmissionMode.Byte,
-                    PipeOptions.Asynchronous);
+                serverStream = CreateServerStream(_pipeName);
 
                 await serverStream.WaitForConnectionAsync(cancellationToken);
 
@@ -58,20 +54,67 @@ public class NamedPipeServer : INamedPipeServer
         }
     }
 
+    private static NamedPipeServerStream CreateServerStream(string pipeName)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            try
+            {
+                var pipeSecurity = new PipeSecurity();
+                pipeSecurity.AddAccessRule(new PipeAccessRule(
+                    new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null),
+                    PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance,
+                    AccessControlType.Allow));
+                pipeSecurity.AddAccessRule(new PipeAccessRule(
+                    new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
+                    PipeAccessRights.FullControl,
+                    AccessControlType.Allow));
+                pipeSecurity.AddAccessRule(new PipeAccessRule(
+                    new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+                    PipeAccessRights.FullControl,
+                    AccessControlType.Allow));
+
+                return NamedPipeServerStreamAcl.Create(
+                    pipeName,
+                    PipeDirection.InOut,
+                    NamedPipeServerStream.MaxAllowedServerInstances,
+                    PipeTransmissionMode.Byte,
+                    PipeOptions.Asynchronous,
+                    0,
+                    0,
+                    pipeSecurity);
+            }
+            catch
+            {
+                // Fallback to standard instantiation if ACL creation fails
+            }
+        }
+
+        return new NamedPipeServerStream(
+            pipeName,
+            PipeDirection.InOut,
+            NamedPipeServerStream.MaxAllowedServerInstances,
+            PipeTransmissionMode.Byte,
+            PipeOptions.Asynchronous);
+    }
+
     private async Task HandleClientConnectionAsync(NamedPipeServerStream stream, CancellationToken cancellationToken)
     {
         using (stream)
         {
+            WindowsIdentity? callerIdentity = null;
             try
             {
-                WindowsIdentity? callerIdentity = null;
                 try
                 {
                     if (OperatingSystem.IsWindows())
                     {
                         stream.RunAsClient(() =>
                         {
-                            callerIdentity = WindowsIdentity.GetCurrent();
+                            if (OperatingSystem.IsWindows())
+                            {
+                                callerIdentity = WindowsIdentity.GetCurrent();
+                            }
                         });
                     }
                 }
@@ -98,6 +141,13 @@ public class NamedPipeServer : INamedPipeServer
             catch
             {
                 // Connection or communication error with client
+            }
+            finally
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    callerIdentity?.Dispose();
+                }
             }
         }
     }

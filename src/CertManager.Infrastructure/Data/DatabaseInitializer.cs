@@ -22,5 +22,10 @@ public class DatabaseInitializer : IDatabaseInitializer
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         await _context.Database.EnsureCreatedAsync(cancellationToken);
+        if (_context.Database.IsSqlite())
+        {
+            await _context.Database.ExecuteSqlRawAsync("PRAGMA journal_mode = 'wal';", cancellationToken);
+            await _context.Database.ExecuteSqlRawAsync("PRAGMA busy_timeout = 5000;", cancellationToken);
+        }
     }
 }

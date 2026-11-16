@@ -52,147 +52,172 @@ public class IpcHostService : BackgroundService
         _logger.LogInformation("IPC Named Pipe Server stopped.");
     }
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+    };
+
     private async Task<IpcResponse> HandleIpcRequestAsync(IpcRequest request, WindowsIdentity? callerIdentity)
     {
         _logger.LogDebug("Received IPC action: {Action}", request.Action);
 
-        var callerRole = WindowsIdentityAuthorizer.ResolveRole(callerIdentity);
-        if (callerRole == UserRole.Anonymous)
+        try
         {
-            return IpcResponse.Fail(request.RequestId, "Access denied: Unauthenticated caller.");
-        }
-
-        using var scope = _serviceProvider.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CertManagerDbContext>();
-
-        switch (request.Action)
-        {
-            case "GetStatus":
+            var callerRole = WindowsIdentityAuthorizer.ResolveRole(callerIdentity);
+            if (callerRole == UserRole.Anonymous)
             {
-                var totalCerts = await db.Certificates.CountAsync();
-                var expiringSoonThreshold = DateTime.UtcNow.AddDays(30);
-                var expiringSoon = await db.Certificates
-                    .CountAsync(c => c.Status == CertificateStatus.Active && c.NotAfter <= expiringSoonThreshold);
-                var activeOrders = await db.AcmeOrders
-                    .CountAsync(o => o.Status == AcmeOrderStatus.Pending || o.Status == AcmeOrderStatus.Processing);
-
-                var status = new ServiceStatusResponse
-                {
-                    IsRunning = true,
-                    Version = "2.0.0",
-                    UptimeSeconds = (DateTime.UtcNow - _startTimeUtc).TotalSeconds,
-                    TotalCertificates = totalCerts,
-                    ExpiringSoonCount = expiringSoon,
-                    ActiveOrdersCount = activeOrders,
-                    ServerTimeUtc = DateTime.UtcNow
-                };
-
-                return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(status));
+                return IpcResponse.Fail(request.RequestId, "Access denied: Unauthenticated caller.");
             }
 
-            case "GetWebsites":
+            using var scope = _serviceProvider.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<CertManagerDbContext>();
+
+            switch (request.Action)
             {
-                var discovered = await _iisAdapter.DiscoverDetailedWebsitesAsync();
-
-                try
+                case "GetStatus":
                 {
-                    foreach (var d in discovered)
+                    var totalCerts = await db.Certificates.CountAsync();
+                    var expiringSoonThreshold = DateTime.UtcNow.AddDays(30);
+                    var expiringSoon = await db.Certificates
+                        .CountAsync(c => c.Status == CertificateStatus.Active && c.NotAfter <= expiringSoonThreshold);
+                    var activeOrders = await db.AcmeOrders
+                        .CountAsync(o => o.Status == AcmeOrderStatus.Pending || o.Status == AcmeOrderStatus.Processing);
+
+                    var status = new ServiceStatusResponse
                     {
-                        var existing = await db.IisWebsites
-                            .Include(w => w.Bindings)
-                            .FirstOrDefaultAsync(w => w.IisSiteId == d.SiteId);
+                        IsRunning = true,
+                        Version = "2.0.0",
+                        UptimeSeconds = (DateTime.UtcNow - _startTimeUtc).TotalSeconds,
+                        TotalCertificates = totalCerts,
+                        ExpiringSoonCount = expiringSoon,
+                        ActiveOrdersCount = activeOrders,
+                        ServerTimeUtc = DateTime.UtcNow
+                    };
 
-                        if (existing == null)
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(status, JsonOptions));
+                }
+
+                case "GetWebsites":
+                {
+                    var discovered = await _iisAdapter.DiscoverDetailedWebsitesAsync();
+
+                    try
+                    {
+                        foreach (var d in discovered)
                         {
-                            var newSite = new IisWebsite
-                            {
-                                IisSiteId = d.SiteId,
-                                WebsiteName = d.SiteName,
-                                State = d.State,
-                                LastDiscoveredAt = DateTime.UtcNow
-                            };
+                            var existing = await db.IisWebsites
+                                .Include(w => w.Bindings)
+                                .FirstOrDefaultAsync(w => w.IisSiteId == d.SiteId);
 
-                            foreach (var b in d.Bindings)
+                            if (existing == null)
                             {
-                                newSite.Bindings.Add(new IisBinding
+                                var newSite = new IisWebsite
                                 {
-                                    Protocol = b.Protocol,
-                                    Hostname = b.Hostname,
-                                    Port = b.Port,
-                                    IpAddress = b.IpAddress,
-                                    SslFlagsSni = b.SslFlagsSni
-                                });
-                            }
+                                    IisSiteId = d.SiteId,
+                                    WebsiteName = d.SiteName,
+                                    State = d.State,
+                                    LastDiscoveredAt = DateTime.UtcNow
+                                };
 
-                            db.IisWebsites.Add(newSite);
+                                foreach (var b in d.Bindings)
+                                {
+                                    newSite.Bindings.Add(new IisBinding
+                                    {
+                                        Protocol = b.Protocol,
+                                        Hostname = b.Hostname,
+                                        Port = b.Port,
+                                        IpAddress = b.IpAddress,
+                                        SslFlagsSni = b.SslFlagsSni
+                                    });
+                                }
+
+                                db.IisWebsites.Add(newSite);
+                            }
+                            else
+                            {
+                                existing.WebsiteName = d.SiteName;
+                                existing.State = d.State;
+                                existing.LastDiscoveredAt = DateTime.UtcNow;
+
+                                existing.Bindings.Clear();
+                                foreach (var b in d.Bindings)
+                                {
+                                    existing.Bindings.Add(new IisBinding
+                                    {
+                                        Protocol = b.Protocol,
+                                        Hostname = b.Hostname,
+                                        Port = b.Port,
+                                        IpAddress = b.IpAddress,
+                                        SslFlagsSni = b.SslFlagsSni
+                                    });
+                                }
+                            }
                         }
-                        else
-                        {
-                            existing.WebsiteName = d.SiteName;
-                            existing.State = d.State;
-                            existing.LastDiscoveredAt = DateTime.UtcNow;
-                        }
+
+                        await db.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to persist discovered IIS sites into database.");
                     }
 
-                    await db.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to persist discovered IIS sites into database.");
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(discovered, JsonOptions));
                 }
 
-                return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(discovered));
-            }
-
-            case "RequestCertificate":
-            {
-                if (string.IsNullOrWhiteSpace(request.PayloadJson))
+                case "RequestCertificate":
                 {
-                    return IpcResponse.Fail(request.RequestId, "Request payload cannot be empty.");
+                    if (string.IsNullOrWhiteSpace(request.PayloadJson))
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Request payload cannot be empty.");
+                    }
+
+                    var requestModel = JsonSerializer.Deserialize<CertificateRequestModel>(request.PayloadJson, JsonOptions);
+
+                    if (requestModel == null)
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Malformed CertificateRequestModel JSON payload.");
+                    }
+
+                    var result = await _issuanceWorkflow.ExecuteAsync(requestModel);
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(result, JsonOptions));
                 }
 
-                var requestModel = JsonSerializer.Deserialize<CertificateRequestModel>(request.PayloadJson, new JsonSerializerOptions
+                case "GetCertificates":
                 {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                if (requestModel == null)
-                {
-                    return IpcResponse.Fail(request.RequestId, "Malformed CertificateRequestModel JSON payload.");
+                    var certs = await db.Certificates
+                        .AsNoTracking()
+                        .ToListAsync();
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(certs, JsonOptions));
                 }
 
-                var result = await _issuanceWorkflow.ExecuteAsync(requestModel);
-                return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(result));
-            }
+                case "GetNotifications":
+                {
+                    var logs = await db.Notifications
+                        .AsNoTracking()
+                        .OrderByDescending(n => n.SentAt)
+                        .Take(100)
+                        .ToListAsync();
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(logs, JsonOptions));
+                }
 
-            case "GetCertificates":
-            {
-                var certs = await db.Certificates
-                    .AsNoTracking()
-                    .ToListAsync();
-                return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(certs));
-            }
+                case "GetProfiles":
+                {
+                    var profiles = await db.CertificateProfiles
+                        .AsNoTracking()
+                        .ToListAsync();
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(profiles, JsonOptions));
+                }
 
-            case "GetNotifications":
-            {
-                var logs = await db.Notifications
-                    .AsNoTracking()
-                    .OrderByDescending(n => n.SentAt)
-                    .Take(100)
-                    .ToListAsync();
-                return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(logs));
+                default:
+                    return IpcResponse.Fail(request.RequestId, $"Unknown action '{request.Action}'.");
             }
-
-            case "GetProfiles":
-            {
-                var profiles = await db.CertificateProfiles
-                    .AsNoTracking()
-                    .ToListAsync();
-                return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(profiles));
-            }
-
-            default:
-                return IpcResponse.Fail(request.RequestId, $"Unknown action '{request.Action}'.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unhandled error processing IPC action '{Action}': {Message}", request.Action, ex.Message);
+            return IpcResponse.Fail(request.RequestId, $"Internal service error processing '{request.Action}': {ex.Message}");
         }
     }
 }

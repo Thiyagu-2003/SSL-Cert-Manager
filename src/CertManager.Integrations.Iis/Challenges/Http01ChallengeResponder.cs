@@ -41,6 +41,11 @@ public class Http01ChallengeResponder : IHttp01ChallengeResponder
             throw new ArgumentException("Web root directory path cannot be null or empty.", nameof(webRootPath));
         }
 
+        if (string.IsNullOrWhiteSpace(token) || token.Contains("..") || token.Contains('/') || token.Contains('\\'))
+        {
+            throw new ArgumentException("Invalid ACME challenge token.", nameof(token));
+        }
+
         string challengeDir = Path.Combine(webRootPath, ".well-known", "acme-challenge");
         Directory.CreateDirectory(challengeDir);
 
@@ -68,6 +73,11 @@ public class Http01ChallengeResponder : IHttp01ChallengeResponder
             return Task.CompletedTask;
         }
 
+        if (string.IsNullOrWhiteSpace(token) || token.Contains("..") || token.Contains('/') || token.Contains('\\'))
+        {
+            return Task.CompletedTask;
+        }
+
         string challengeDir = Path.Combine(webRootPath, ".well-known", "acme-challenge");
         string tokenFilePath = Path.Combine(challengeDir, token);
 
@@ -82,6 +92,21 @@ public class Http01ChallengeResponder : IHttp01ChallengeResponder
         {
             try { File.Delete(webConfigPath); } catch { /* Ignore */ }
         }
+
+        // Clean up empty directories if no files remain
+        try
+        {
+            if (Directory.Exists(challengeDir) && !Directory.EnumerateFileSystemEntries(challengeDir).Any())
+            {
+                Directory.Delete(challengeDir);
+                string wellKnownDir = Path.Combine(webRootPath, ".well-known");
+                if (Directory.Exists(wellKnownDir) && !Directory.EnumerateFileSystemEntries(wellKnownDir).Any())
+                {
+                    Directory.Delete(wellKnownDir);
+                }
+            }
+        }
+        catch { /* Ignore */ }
 
         return Task.CompletedTask;
     }

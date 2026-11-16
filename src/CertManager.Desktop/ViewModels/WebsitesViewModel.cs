@@ -74,11 +74,12 @@ public class WebsitesViewModel : ViewModelBase
 
     public void OpenCertificateWizard(DiscoveredIisSite site)
     {
-        string defaultDomain = site.Hostnames.FirstOrDefault() ?? $"{site.SiteName.ToLowerInvariant().Replace(" ", "-")}.com";
+        string defaultDomain = site.Hostnames.FirstOrDefault(h => !string.IsNullOrWhiteSpace(h)) 
+            ?? $"{site.SiteName.ToLowerInvariant().Replace(" ", "-")}.com";
         var wizardVm = new CertificateWizardViewModel(site.SiteId, site.SiteName, defaultDomain);
         var window = new CertificateWizardWindow(wizardVm)
         {
-            Owner = Application.Current.MainWindow
+            Owner = Application.Current?.MainWindow
         };
 
         window.ShowDialog();

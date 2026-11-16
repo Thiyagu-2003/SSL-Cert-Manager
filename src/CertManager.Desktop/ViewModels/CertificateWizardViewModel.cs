@@ -40,14 +40,17 @@ public class CertificateWizardViewModel : ViewModelBase
         _siteId = siteId;
         _siteName = siteName;
         _domainName = defaultDomain;
-        _contactEmail = $"admin@{defaultDomain.TrimStart('*', '.')}";
+        string cleanDomain = defaultDomain.TrimStart('*', '.');
+        _contactEmail = string.IsNullOrWhiteSpace(cleanDomain) ? "admin@example.com" : $"admin@{cleanDomain}";
 
         if (_domainName.StartsWith("*.", StringComparison.Ordinal))
         {
             _isDns01 = true;
         }
 
-        StartIssuanceCommand = new RelayCommand(async () => await StartIssuanceAsync(), () => !IsExecuting && !string.IsNullOrWhiteSpace(DomainName) && !string.IsNullOrWhiteSpace(ContactEmail));
+        StartIssuanceCommand = new RelayCommand(
+            async () => await StartIssuanceAsync(),
+            () => !IsExecuting && !string.IsNullOrWhiteSpace(DomainName) && !string.IsNullOrWhiteSpace(ContactEmail));
     }
 
     public long SiteId
@@ -73,6 +76,7 @@ public class CertificateWizardViewModel : ViewModelBase
                 {
                     IsDns01 = true;
                 }
+                CommandManager.InvalidateRequerySuggested();
             }
         }
     }
@@ -80,7 +84,13 @@ public class CertificateWizardViewModel : ViewModelBase
     public string ContactEmail
     {
         get => _contactEmail;
-        set => SetProperty(ref _contactEmail, value);
+        set
+        {
+            if (SetProperty(ref _contactEmail, value))
+            {
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
     }
 
     public bool IsStaging
@@ -88,12 +98,18 @@ public class CertificateWizardViewModel : ViewModelBase
         get => _isStaging;
         set
         {
-            if (SetProperty(ref _isStaging, value) && value)
+            if (value)
             {
+                _isStaging = true;
                 _isSelfSigned = false;
-                OnPropertyChanged(nameof(IsProduction));
-                OnPropertyChanged(nameof(IsSelfSigned));
             }
+            else
+            {
+                _isStaging = false;
+            }
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsProduction));
+            OnPropertyChanged(nameof(IsSelfSigned));
         }
     }
 
@@ -106,10 +122,10 @@ public class CertificateWizardViewModel : ViewModelBase
             {
                 _isStaging = false;
                 _isSelfSigned = false;
-                OnPropertyChanged(nameof(IsStaging));
-                OnPropertyChanged(nameof(IsProduction));
-                OnPropertyChanged(nameof(IsSelfSigned));
             }
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsStaging));
+            OnPropertyChanged(nameof(IsSelfSigned));
         }
     }
 
@@ -118,31 +134,80 @@ public class CertificateWizardViewModel : ViewModelBase
         get => _isSelfSigned;
         set
         {
-            if (SetProperty(ref _isSelfSigned, value) && value)
+            if (value)
             {
+                _isSelfSigned = true;
                 _isStaging = false;
-                OnPropertyChanged(nameof(IsStaging));
-                OnPropertyChanged(nameof(IsProduction));
             }
+            else
+            {
+                _isSelfSigned = false;
+            }
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsStaging));
+            OnPropertyChanged(nameof(IsProduction));
         }
     }
 
     public bool IsDns01
     {
         get => _isDns01;
-        set => SetProperty(ref _isDns01, value);
+        set
+        {
+            if (SetProperty(ref _isDns01, value))
+            {
+                OnPropertyChanged(nameof(IsHttp01));
+            }
+        }
     }
 
     public bool IsHttp01
     {
         get => !_isDns01;
-        set => IsDns01 = !value;
+        set
+        {
+            if (value)
+            {
+                IsDns01 = false;
+            }
+        }
     }
 
     public string DnsProvider
     {
         get => _dnsProvider;
-        set => SetProperty(ref _dnsProvider, value);
+        set
+        {
+            if (SetProperty(ref _dnsProvider, value))
+            {
+                OnPropertyChanged(nameof(IsCloudflareDns));
+                OnPropertyChanged(nameof(IsManualDns));
+            }
+        }
+    }
+
+    public bool IsCloudflareDns
+    {
+        get => string.Equals(_dnsProvider, "Cloudflare", StringComparison.OrdinalIgnoreCase);
+        set
+        {
+            if (value)
+            {
+                DnsProvider = "Cloudflare";
+            }
+        }
+    }
+
+    public bool IsManualDns
+    {
+        get => string.Equals(_dnsProvider, "Manual", StringComparison.OrdinalIgnoreCase);
+        set
+        {
+            if (value)
+            {
+                DnsProvider = "Manual";
+            }
+        }
     }
 
     public string DnsApiToken
@@ -160,7 +225,13 @@ public class CertificateWizardViewModel : ViewModelBase
     public bool IsExecuting
     {
         get => _isExecuting;
-        set => SetProperty(ref _isExecuting, value);
+        set
+        {
+            if (SetProperty(ref _isExecuting, value))
+            {
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
     }
 
     public string CurrentStep
@@ -196,8 +267,16 @@ public class CertificateWizardViewModel : ViewModelBase
     public string ErrorMessage
     {
         get => _errorMessage;
-        set => SetProperty(ref _errorMessage, value);
+        set
+        {
+            if (SetProperty(ref _errorMessage, value))
+            {
+                OnPropertyChanged(nameof(HasError));
+            }
+        }
     }
+
+    public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
 
     public ICommand StartIssuanceCommand { get; }
 
@@ -212,6 +291,14 @@ public class CertificateWizardViewModel : ViewModelBase
 
         try
         {
+            if (!IsSelfSigned && IsDns01 && IsCloudflareDns && string.IsNullOrWhiteSpace(DnsApiToken))
+            {
+                ErrorMessage = "Cloudflare API Token is required for automated DNS-01 validation.";
+                CurrentStep = "Validation Error";
+                StatusMessage = "Please enter your Cloudflare API token or switch to HTTP-01.";
+                return;
+            }
+
             // Ensure service / engine is available
             await ServiceHostBuilder.EnsureInProcessEngineRunningAsync();
 

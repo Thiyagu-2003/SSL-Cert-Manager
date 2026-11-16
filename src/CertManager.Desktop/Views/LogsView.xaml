@@ -50,6 +50,23 @@
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <ComboBox SelectedValue="{Binding Filter, Mode=TwoWay}"
+                          SelectedValuePath="Tag"
+                          Width="130" Height="34" Margin="0,0,10,0"
+                          VerticalContentAlignment="Center"
+                          Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1"
+                          Padding="8,4">
+                    <ComboBox.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </ComboBox.Resources>
+                    <ComboBoxItem Content="All Events" Tag="All" IsSelected="True"/>
+                    <ComboBoxItem Content="Errors" Tag="Error"/>
+                    <ComboBoxItem Content="Warnings" Tag="Warning"/>
+                    <ComboBoxItem Content="Info" Tag="Info"/>
+                </ComboBox>
+
                 <Button Command="{Binding RefreshCommand}" Background="#FFFFFF" BorderBrush="#E2E8F0" 
                         BorderThickness="1" Foreground="#334155" Padding="14,8" Cursor="Hand" Margin="0,0,8,0">
                     <Button.Resources>

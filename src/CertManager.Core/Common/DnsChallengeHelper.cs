@@ -17,10 +17,17 @@ public static class DnsChallengeHelper
             throw new ArgumentException("Domain cannot be empty.", nameof(domain));
         }
 
-        string cleanDomain = domain.Trim().TrimEnd('.');
+        string cleanDomain = domain.Trim();
         if (cleanDomain.StartsWith("*.", StringComparison.Ordinal))
         {
             cleanDomain = cleanDomain[2..];
+        }
+
+        cleanDomain = cleanDomain.Trim().TrimEnd('.');
+
+        if (string.IsNullOrWhiteSpace(cleanDomain) || cleanDomain == "*")
+        {
+            throw new ArgumentException("Domain cannot be empty or invalid.", nameof(domain));
         }
 
         return $"_acme-challenge.{cleanDomain}";
@@ -47,6 +54,7 @@ public static class DnsChallengeHelper
     /// </summary>
     public static string Base64UrlEncode(byte[] input)
     {
+        ArgumentNullException.ThrowIfNull(input);
         return Convert.ToBase64String(input)
             .TrimEnd('=')
             .Replace('+', '-')

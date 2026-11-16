@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CertManager.Core.Interfaces;
 using CertManager.Core.Models;
 using CertManager.Integrations.Iis;
 using FluentAssertions;
@@ -50,5 +51,26 @@ public class IisServerAdapterTests
         );
 
         securedSite.NeedsCertificate.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task VerifyAsync_WhenIisNotAvailable_ReturnsResultWithoutThrowing()
+    {
+        var adapter = new IisServerAdapter();
+        var target = new DeploymentTarget(999, "test.local", 443, "*");
+        var result = await adapter.VerifyAsync(target);
+        result.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task DeployCertificateAsync_EmptyThumbprint_ReturnsFailure()
+    {
+        var adapter = new IisServerAdapter();
+        if (!adapter.IsIisAvailable()) return;
+
+        var certRef = new CertificateReference("", "My", "LocalMachine");
+        var target = new DeploymentTarget(1, "test.local", 443, "*");
+        var result = await adapter.DeployCertificateAsync(certRef, target);
+        result.Success.Should().BeFalse();
     }
 }

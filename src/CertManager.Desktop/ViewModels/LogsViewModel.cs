@@ -6,6 +6,7 @@ using System.Windows.Input;
 using CertManager.Core.Entities;
 using CertManager.Desktop.Common;
 using CertManager.Desktop.Services;
+using CertManager.Service;
 
 namespace CertManager.Desktop.ViewModels;
 
@@ -96,6 +97,7 @@ public class LogsViewModel : ViewModelBase
 
         try
         {
+            await ServiceHostBuilder.EnsureInProcessEngineRunningAsync();
             var items = await _ipcClient.GetNotificationsAsync();
             Logs.Clear();
 

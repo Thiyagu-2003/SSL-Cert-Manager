@@ -11,11 +11,12 @@ namespace CertManager.Integrations.Dns;
 
 public class ManualDnsProvider : IDnsProvider
 {
+    private static readonly HttpClient DefaultSharedHttpClient = new();
     private readonly HttpClient _httpClient;
 
     public ManualDnsProvider(HttpClient? httpClient = null)
     {
-        _httpClient = httpClient ?? new HttpClient();
+        _httpClient = httpClient ?? DefaultSharedHttpClient;
     }
 
     public string ProviderName => "Manual";
@@ -72,7 +73,7 @@ public class ManualDnsProvider : IDnsProvider
                 {
                     if (answer.TryGetProperty("data", out var dataProp))
                     {
-                        string data = dataProp.GetString()?.Trim('"') ?? string.Empty;
+                        string data = dataProp.GetString()?.Trim().Trim('"').Replace("\\\"", "\"") ?? string.Empty;
                         if (string.Equals(data, expectedValue, StringComparison.Ordinal))
                         {
                             return true;
@@ -80,6 +81,10 @@ public class ManualDnsProvider : IDnsProvider
                     }
                 }
             }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch
         {

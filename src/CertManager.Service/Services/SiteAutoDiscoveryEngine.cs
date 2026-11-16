@@ -50,9 +50,12 @@ public class SiteAutoDiscoveryEngine : ISiteAutoDiscoveryEngine
     {
         _logger.LogInformation("Scanning for newly added IIS websites for auto-discovery...");
         var discoveredSites = await _iisAdapter.DiscoverDetailedWebsitesAsync(cancellationToken);
+        var now = DateTime.UtcNow;
         var activeCerts = await _db.Certificates
             .AsNoTracking()
-            .Where(c => c.Status == Core.Enums.CertificateStatus.Active)
+            .Include(c => c.CertificateDomains)
+                .ThenInclude(cd => cd.Domain)
+            .Where(c => c.Status == Core.Enums.CertificateStatus.Active && c.NotAfter > now)
             .ToListAsync(cancellationToken);
 
         var proposals = new List<ProposedDeployment>();
@@ -115,29 +118,60 @@ public class SiteAutoDiscoveryEngine : ISiteAutoDiscoveryEngine
 
     public static CertificateRecord? FindMatchingCertificate(string hostname, IEnumerable<CertificateRecord> certificates)
     {
+        if (string.IsNullOrWhiteSpace(hostname)) return null;
         string normalizedHost = hostname.Trim().ToLowerInvariant();
 
         foreach (var cert in certificates)
         {
-            string subjectName = cert.Subject.Replace("CN=", "", StringComparison.OrdinalIgnoreCase).Trim().ToLowerInvariant();
+            // Collect all candidate names for this cert (CN + SAN domains)
+            var candidateNames = new List<string>();
 
-            // Direct exact match
-            if (string.Equals(subjectName, normalizedHost, StringComparison.OrdinalIgnoreCase))
+            // Extract CN from cert.Subject (handles "CN=example.com" or "CN=example.com, O=Org, C=US")
+            string subject = cert.Subject ?? string.Empty;
+            var match = System.Text.RegularExpressions.Regex.Match(subject, @"(?:^|,\s*)CN=([^,]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (match.Success)
             {
-                return cert;
+                candidateNames.Add(match.Groups[1].Value.Trim().ToLowerInvariant());
+            }
+            else
+            {
+                candidateNames.Add(subject.Replace("CN=", "", StringComparison.OrdinalIgnoreCase).Trim().ToLowerInvariant());
             }
 
-            // Wildcard match (e.g. *.example.com matches sub.example.com)
-            if (subjectName.StartsWith("*.", StringComparison.Ordinal))
+            // Also add any SAN domains from CertificateDomains
+            if (cert.CertificateDomains != null)
             {
-                string suffix = subjectName[2..]; // "example.com"
-                if (normalizedHost.EndsWith("." + suffix, StringComparison.OrdinalIgnoreCase))
+                foreach (var cd in cert.CertificateDomains)
                 {
-                    // Ensure it's a single label subdomain (e.g. foo.example.com, not foo.bar.example.com)
-                    string leftPart = normalizedHost[..^(suffix.Length + 1)];
-                    if (!leftPart.Contains('.'))
+                    if (cd.Domain != null && !string.IsNullOrWhiteSpace(cd.Domain.DomainName))
                     {
-                        return cert;
+                        candidateNames.Add(cd.Domain.DomainName.Trim().ToLowerInvariant());
+                    }
+                }
+            }
+
+            foreach (var candidate in candidateNames.Distinct())
+            {
+                if (string.IsNullOrWhiteSpace(candidate)) continue;
+
+                // Direct exact match
+                if (string.Equals(candidate, normalizedHost, StringComparison.OrdinalIgnoreCase))
+                {
+                    return cert;
+                }
+
+                // Wildcard match (e.g. *.example.com matches sub.example.com)
+                if (candidate.StartsWith("*.", StringComparison.Ordinal))
+                {
+                    string suffix = candidate[2..]; // "example.com"
+                    if (normalizedHost.EndsWith("." + suffix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Ensure it's a single label subdomain (e.g. foo.example.com, not foo.bar.example.com)
+                        string leftPart = normalizedHost[..^(suffix.Length + 1)];
+                        if (!leftPart.Contains('.'))
+                        {
+                            return cert;
+                        }
                     }
                 }
             }

@@ -8,6 +8,8 @@ public static class RenewalPolicyEvaluator
 {
     public static bool ShouldRenew(CertificateRecord cert, CertificateProfile? profile, DateTime? referenceTime = null)
     {
+        ArgumentNullException.ThrowIfNull(cert);
+
         if (cert.Status == CertificateStatus.Revoked || cert.Status == CertificateStatus.Archived)
         {
             return false;
@@ -43,6 +45,8 @@ public static class RenewalPolicyEvaluator
 
     public static int CalculateLifetimeProgressPercent(CertificateRecord cert, DateTime? referenceTime = null)
     {
+        ArgumentNullException.ThrowIfNull(cert);
+
         DateTime now = referenceTime ?? DateTime.UtcNow;
 
         if (now <= cert.NotBefore) return 0;
@@ -59,6 +63,8 @@ public static class RenewalPolicyEvaluator
 
     public static double GetRemainingDays(CertificateRecord cert, DateTime? referenceTime = null)
     {
+        ArgumentNullException.ThrowIfNull(cert);
+
         DateTime now = referenceTime ?? DateTime.UtcNow;
         var diff = cert.NotAfter - now;
         return Math.Max(0, diff.TotalDays);

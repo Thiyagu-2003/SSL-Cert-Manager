@@ -17,6 +17,8 @@ public static class IpcMessageFraming
 
     public static async Task WriteMessageAsync<T>(Stream stream, T message, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(stream);
+
         byte[] payload = JsonSerializer.SerializeToUtf8Bytes(message, JsonOptions);
         if (payload.Length > MaxPayloadBytes)
         {
@@ -31,6 +33,8 @@ public static class IpcMessageFraming
 
     public static async Task<T?> ReadMessageAsync<T>(Stream stream, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(stream);
+
         byte[] lengthHeader = new byte[4];
         int bytesRead = await ReadExactBytesAsync(stream, lengthHeader, cancellationToken);
         if (bytesRead == 0)
@@ -42,6 +46,11 @@ public static class IpcMessageFraming
         if (payloadLength < 0 || payloadLength > MaxPayloadBytes)
         {
             throw new InvalidDataException($"Message payload size ({payloadLength} bytes) exceeds maximum allowed size ({MaxPayloadBytes} bytes).");
+        }
+
+        if (payloadLength == 0)
+        {
+            return default;
         }
 
         byte[] payload = new byte[payloadLength];

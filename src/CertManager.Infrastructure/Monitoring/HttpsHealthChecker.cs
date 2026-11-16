@@ -54,6 +54,7 @@ public class HttpsHealthChecker : IHttpsHealthChecker
             {
                 if (cert != null)
                 {
+                    capturedCert?.Dispose();
                     capturedCert = new X509Certificate2(cert);
                 }
                 capturedErrors = errors;
@@ -61,7 +62,7 @@ public class HttpsHealthChecker : IHttpsHealthChecker
             }
         };
 
-        using var client = new HttpClient(handler)
+        using var client = new HttpClient(handler, disposeHandler: true)
         {
             Timeout = TimeSpan.FromSeconds(10)
         };
@@ -75,8 +76,13 @@ public class HttpsHealthChecker : IHttpsHealthChecker
                 return new HealthCheckResult(false, $"No TLS certificate presented by server at {url}.");
             }
 
-            DateTime notAfter = capturedCert.NotAfter;
-            DateTime notBefore = capturedCert.NotBefore;
+            if (capturedErrors != SslPolicyErrors.None)
+            {
+                return new HealthCheckResult(false, $"TLS Certificate policy error ({capturedErrors}) for {url}. Subject: {capturedCert.Subject}");
+            }
+
+            DateTime notAfter = capturedCert.NotAfter.ToUniversalTime();
+            DateTime notBefore = capturedCert.NotBefore.ToUniversalTime();
             var now = DateTime.UtcNow;
 
             if (now > notAfter)

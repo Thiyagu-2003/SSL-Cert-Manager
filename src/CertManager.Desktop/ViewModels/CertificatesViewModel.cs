@@ -9,6 +9,7 @@ using CertManager.Core.Enums;
 using CertManager.Core.Models;
 using CertManager.Desktop.Common;
 using CertManager.Desktop.Services;
+using CertManager.Service;
 
 namespace CertManager.Desktop.ViewModels;
 
@@ -104,10 +105,23 @@ public class CertificatesViewModel : ViewModelBase
     {
         if (IsBusy) return;
         IsBusy = true;
+        try
+        {
+            await LoadCertificatesInternalAsync();
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task LoadCertificatesInternalAsync()
+    {
         StatusMessage = "Loading certificate inventory from background service...";
 
         try
         {
+            await ServiceHostBuilder.EnsureInProcessEngineRunningAsync();
             var certs = await _ipcClient.GetCertificatesAsync();
             Certificates.Clear();
 
@@ -133,33 +147,49 @@ public class CertificatesViewModel : ViewModelBase
         {
             StatusMessage = $"Failed to load certificates: {ex.Message}";
         }
-        finally
-        {
-            IsBusy = false;
-        }
     }
 
     private async Task ForceRenewCertificateAsync(CertificateItemViewModel item)
     {
+        if (IsBusy) return;
+        IsBusy = true;
         StatusMessage = $"Force renewing certificate for {item.Subject}...";
-        var request = new CertificateRequestModel
-        {
-            SiteId = 1,
-            DomainName = item.Subject,
-            ContactEmail = $"admin@{item.Subject.TrimStart('*', '.')}",
-            IsStaging = item.Issuer.Contains("Staging", StringComparison.OrdinalIgnoreCase),
-            ValidationMethod = "Http01"
-        };
 
-        var result = await _ipcClient.RequestCertificateAsync(request);
-        if (result != null && result.Success)
+        try
         {
-            StatusMessage = $"Renewal succeeded for {item.Subject}! New thumbprint: {result.Thumbprint}";
-            await LoadCertificatesAsync();
+            await ServiceHostBuilder.EnsureInProcessEngineRunningAsync();
+
+            bool isWildcard = item.Subject.StartsWith("*.", StringComparison.Ordinal);
+            string cleanDomain = item.Subject.TrimStart('*', '.');
+            string contactEmail = string.IsNullOrWhiteSpace(cleanDomain) ? "admin@example.com" : $"admin@{cleanDomain}";
+
+            var request = new CertificateRequestModel
+            {
+                SiteId = 1,
+                DomainName = item.Subject,
+                ContactEmail = contactEmail,
+                IsStaging = item.Issuer.Contains("Staging", StringComparison.OrdinalIgnoreCase),
+                ValidationMethod = isWildcard ? "Dns01" : "Http01"
+            };
+
+            var result = await _ipcClient.RequestCertificateAsync(request);
+            if (result != null && result.Success)
+            {
+                StatusMessage = $"Renewal succeeded for {item.Subject}! New thumbprint: {result.Thumbprint}";
+                await LoadCertificatesInternalAsync();
+            }
+            else
+            {
+                StatusMessage = $"Renewal failed for {item.Subject}: {result?.ErrorMessage}";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            StatusMessage = $"Renewal failed for {item.Subject}: {result?.ErrorMessage}";
+            StatusMessage = $"Renewal error for {item.Subject}: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 }

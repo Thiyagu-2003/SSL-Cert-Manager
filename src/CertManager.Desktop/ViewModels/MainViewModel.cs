@@ -1,12 +1,14 @@
+using System;
 using System.Windows.Input;
 using CertManager.Desktop.Common;
 
 namespace CertManager.Desktop.ViewModels;
 
-public class MainViewModel : ViewModelBase
+public class MainViewModel : ViewModelBase, IDisposable
 {
     private object _currentView;
     private string _activeSection = "Dashboard";
+    private bool _isDisposed;
 
     public MainViewModel()
     {
@@ -78,4 +80,11 @@ public class MainViewModel : ViewModelBase
     }
 
     public ICommand NavigateCommand { get; }
+
+    public void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        DashboardVM.Dispose();
+    }
 }

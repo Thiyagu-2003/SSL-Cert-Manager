@@ -54,4 +54,29 @@ public class Http01ChallengeResponderTests : IDisposable
         await _responder.CleanupChallengeAsync(_tempWebRoot, token);
         File.Exists(filePath).Should().BeFalse();
     }
+
+    [Theory]
+    [InlineData("../evil.txt")]
+    [InlineData("..\\evil.txt")]
+    [InlineData("/evil.txt")]
+    [InlineData("")]
+    public async Task ProvisionChallengeAsync_WithDirectoryTraversalToken_ThrowsArgumentException(string invalidToken)
+    {
+        Func<Task> act = async () => await _responder.ProvisionChallengeAsync(_tempWebRoot, invalidToken, "test-auth");
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CleanupChallengeAsync_CleansUpEmptyDirectories()
+    {
+        string token = "test-clean-dir";
+        string keyAuth = "auth-val";
+
+        await _responder.ProvisionChallengeAsync(_tempWebRoot, token, keyAuth);
+        string challengeDir = Path.Combine(_tempWebRoot, ".well-known", "acme-challenge");
+        Directory.Exists(challengeDir).Should().BeTrue();
+
+        await _responder.CleanupChallengeAsync(_tempWebRoot, token);
+        Directory.Exists(challengeDir).Should().BeFalse();
+    }
 }
