@@ -189,18 +189,13 @@
             </Button>
         </Grid>
 
-        <!-- Row 2: Filters & Actions Toolbar -->
-        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,16">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Left: Search and Dropdown Filters -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+        <!-- Row 2: Filters & Actions Toolbar (2-Tier Non-Overlapping Responsive Layout) -->
+        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14,12" Margin="0,0,0,16">
+            <StackPanel>
+                <!-- Tier 1: Search & Filter Controls (Dedicated Full Width) -->
+                <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <!-- Search Input Box -->
-                    <Grid Width="220" Height="34" Margin="0,0,10,0">
+                    <Grid Width="200" Height="34" Margin="0,0,8,0">
                         <TextBox x:Name="SearchInput" 
                                  Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
                                  Padding="30,6,10,6" 
@@ -214,8 +209,8 @@
                             </TextBox.Resources>
                         </TextBox>
                         <Path Data="{StaticResource IconSearch}" Fill="#94A3B8" Width="12" Height="12" Stretch="Uniform" 
-                              HorizontalAlignment="Left" VerticalAlignment="Center" 
-                              Margin="11,0,0,0" IsHitTestVisible="False"/>
+                               HorizontalAlignment="Left" VerticalAlignment="Center" 
+                               Margin="11,0,0,0" IsHitTestVisible="False"/>
                         <TextBlock Text="Search subject, body..." FontSize="12" Foreground="#94A3B8" 
                                    HorizontalAlignment="Left" VerticalAlignment="Center" 
                                    Margin="32,0,0,0" IsHitTestVisible="False">
@@ -236,26 +231,34 @@
                     <ComboBox ItemsSource="{Binding FilterOptions}"
                               SelectedItem="{Binding Filter, Mode=TwoWay}"
                               Style="{StaticResource ModernComboBox}"
-                              Width="120" Height="34" Margin="0,0,8,0"/>
+                              Width="115" Height="34" Margin="0,0,8,0"/>
 
                     <!-- Filter 2: Time Window -->
                     <ComboBox ItemsSource="{Binding TimeFilterOptions}"
                               SelectedItem="{Binding TimeFilter, Mode=TwoWay}"
                               Style="{StaticResource ModernComboBox}"
-                              Width="125" Height="34" Margin="0,0,8,0"/>
+                              Width="120" Height="34" Margin="0,0,8,0"/>
 
                     <!-- Filter 3: Channel -->
                     <ComboBox ItemsSource="{Binding ChannelOptions}"
                               SelectedItem="{Binding ChannelFilter, Mode=TwoWay}"
                               Style="{StaticResource ModernComboBox}"
-                              Width="130" Height="34" Margin="0,0,8,0"/>
-                </StackPanel>
+                              Width="125" Height="34" Margin="0,0,8,0"/>
+                </WrapPanel>
 
-                <!-- Right: Action Buttons (Live Stream, Refresh, Export, Folder, Clear) -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <!-- Live Stream Auto-Refresh Toggle -->
-                    <Button Command="{Binding ToggleLiveAutoRefreshCommand}" 
-                            Margin="0,0,8,0">
+                <!-- Subtle Clean Divider -->
+                <Border Background="#F1F5F9" Height="1" Margin="-14,10,-14,10"/>
+
+                <!-- Tier 2: Stream & Operational Actions -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left: Live Stream Auto-Refresh Toggle -->
+                    <Button Grid.Column="0" Command="{Binding ToggleLiveAutoRefreshCommand}" 
+                            HorizontalAlignment="Left" VerticalAlignment="Center">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource LiveStreamToggleBtn}">
                                 <Style.Triggers>
@@ -291,57 +294,60 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- Refresh Button -->
-                    <Button Command="{Binding RefreshCommand}" 
-                            Style="{StaticResource ModernToolbarRefreshBtn}"
-                            Padding="11,7" Margin="0,0,6,0">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Refresh" FontSize="11.5" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                    <!-- Right: Action Buttons (Refresh, Export, Copy All, Folder, Clear) -->
+                    <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <!-- Refresh Button -->
+                        <Button Command="{Binding RefreshCommand}" 
+                                Style="{StaticResource ModernToolbarRefreshBtn}"
+                                Padding="11,7" Margin="0,0,6,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Refresh" FontSize="11.5" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
 
-                    <!-- Export Logs Button -->
-                    <Button Command="{Binding ExportLogsCommand}" 
-                            Style="{StaticResource ModernToolbarRefreshBtn}"
-                            Padding="11,7" Margin="0,0,6,0">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconDownload}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Export" FontSize="11.5" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                        <!-- Export Logs Button -->
+                        <Button Command="{Binding ExportLogsCommand}" 
+                                Style="{StaticResource ModernToolbarRefreshBtn}"
+                                Padding="11,7" Margin="0,0,6,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconDownload}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Export" FontSize="11.5" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
 
-                    <!-- Copy All Logs Button -->
-                    <Button Command="{Binding CopyAllLogsCommand}" 
-                            Style="{StaticResource ModernToolbarRefreshBtn}"
-                            Padding="11,7" Margin="0,0,6,0">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconCopy}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="11" Height="11" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Copy All" FontSize="11.5" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                        <!-- Copy All Logs Button -->
+                        <Button Command="{Binding CopyAllLogsCommand}" 
+                                Style="{StaticResource ModernToolbarRefreshBtn}"
+                                Padding="11,7" Margin="0,0,6,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconCopy}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="11" Height="11" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Copy All" FontSize="11.5" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
 
-                    <!-- Logs Folder Button -->
-                    <Button Command="{Binding OpenLogsFolderCommand}" 
-                            Style="{StaticResource ModernToolbarRefreshBtn}"
-                            Padding="11,7" Margin="0,0,6,0">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconFolder}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Folder" FontSize="11.5" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                        <!-- Logs Folder Button -->
+                        <Button Command="{Binding OpenLogsFolderCommand}" 
+                                Style="{StaticResource ModernToolbarRefreshBtn}"
+                                Padding="11,7" Margin="0,0,6,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconFolder}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Folder" FontSize="11.5" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
 
-                    <!-- Clear Logs Button -->
-                    <Button Command="{Binding ClearLogsCommand}" 
-                            Style="{StaticResource ModernToolbarDangerBtn}"
-                            Padding="11,7">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconTrash}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="11" Height="11" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Clear" FontSize="11.5" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </Grid>
+                        <!-- Clear Logs Button -->
+                        <Button Command="{Binding ClearLogsCommand}" 
+                                Style="{StaticResource ModernToolbarDangerBtn}"
+                                Padding="11,7">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconTrash}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="11" Height="11" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Clear" FontSize="11.5" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </WrapPanel>
+                </Grid>
+            </StackPanel>
         </Border>
 
         <!-- Row 3: Logs Content Table / Interactive Cards -->
