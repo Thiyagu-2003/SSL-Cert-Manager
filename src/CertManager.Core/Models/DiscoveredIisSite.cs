@@ -17,7 +17,8 @@ public record DiscoveredIisSite(
     string State,
     bool HasHttps,
     IReadOnlyList<DiscoveredBinding> Bindings,
-    IReadOnlyList<string> Hostnames)
+    IReadOnlyList<string> Hostnames,
+    bool HasHttpsRedirect = false)
 {
     public bool NeedsCertificate => !HasHttps && Bindings.Count > 0;
 }

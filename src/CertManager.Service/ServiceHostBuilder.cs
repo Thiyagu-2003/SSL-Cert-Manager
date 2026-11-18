@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using CertManager.Acme.Clients;
+using CertManager.Application.Diagnostics;
 using CertManager.Core.Interfaces;
 using CertManager.Infrastructure.Certificates;
 using CertManager.Infrastructure.Data;
@@ -82,10 +83,13 @@ public static class ServiceHostBuilder
         builder.Services.AddSingleton<IHttp01ChallengeResponder, Http01ChallengeResponder>();
         builder.Services.AddSingleton<IAcmeCertificateClient, CertesAcmeClient>();
         builder.Services.AddSingleton<ICertificateInstaller, WindowsCertificateInstaller>();
+        builder.Services.AddSingleton<ICertificateExportService, CertificateExportService>();
         builder.Services.AddSingleton<ICertificateIssuanceWorkflow, CertificateIssuanceWorkflow>();
         builder.Services.AddSingleton<IHttpsHealthChecker, HttpsHealthChecker>();
         builder.Services.AddScoped<INotificationProvider, NotificationDispatcher>();
         builder.Services.AddScoped<ISiteAutoDiscoveryEngine, SiteAutoDiscoveryEngine>();
+        builder.Services.AddSingleton<IDomainReadinessProbe, DefaultDomainReadinessProbe>();
+        builder.Services.AddSingleton<IDomainReadinessChecker, DomainReadinessChecker>();
 
         // Hosted background services
         builder.Services.AddHostedService<Worker>();

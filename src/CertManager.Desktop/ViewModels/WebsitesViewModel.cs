@@ -26,6 +26,18 @@ public class WebsitesViewModel : ViewModelBase
         _ipcClient = new ServiceIpcClient();
         Sites = new ObservableCollection<DiscoveredIisSite>();
         ScanCommand = new RelayCommand(async () => await ScanWebsitesAsync());
+        ToggleHttpsRedirectCommand = new RelayCommand(async param =>
+        {
+            if (param is DiscoveredIisSite site)
+            {
+                bool targetState = !site.HasHttpsRedirect;
+                bool success = await _ipcClient.ToggleHttpsRedirectAsync(site.SiteId, targetState);
+                if (success)
+                {
+                    await ScanWebsitesAsync();
+                }
+            }
+        });
         RequestCertificateCommand = new RelayCommand(param =>
         {
             if (param is DiscoveredIisSite site)
@@ -70,6 +82,7 @@ public class WebsitesViewModel : ViewModelBase
     }
 
     public ICommand ScanCommand { get; }
+    public ICommand ToggleHttpsRedirectCommand { get; }
     public ICommand RequestCertificateCommand { get; }
 
     public void OpenCertificateWizard(DiscoveredIisSite site)
@@ -79,7 +92,7 @@ public class WebsitesViewModel : ViewModelBase
         var wizardVm = new CertificateWizardViewModel(site.SiteId, site.SiteName, defaultDomain);
         var window = new CertificateWizardWindow(wizardVm)
         {
-            Owner = Application.Current?.MainWindow
+            Owner = System.Windows.Application.Current?.MainWindow
         };
 
         window.ShowDialog();

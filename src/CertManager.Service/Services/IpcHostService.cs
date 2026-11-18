@@ -5,10 +5,13 @@ using System.Security.Principal;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using CertManager.Application.Diagnostics;
 using CertManager.Core.Entities;
 using CertManager.Core.Enums;
+using CertManager.Core.Interfaces;
 using CertManager.Core.Ipc;
 using CertManager.Core.Models;
+using CertManager.Infrastructure.Certificates;
 using CertManager.Infrastructure.Data;
 using CertManager.Infrastructure.Ipc;
 using CertManager.Integrations.Iis;
@@ -216,6 +219,85 @@ public class IpcHostService : BackgroundService
                         .AsNoTracking()
                         .ToListAsync();
                     return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(profiles, JsonOptions));
+                }
+
+                case "ToggleHttpsRedirect":
+                {
+                    if (string.IsNullOrWhiteSpace(request.PayloadJson))
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Payload required: { siteId, enable }.");
+                    }
+
+                    using var doc = JsonDocument.Parse(request.PayloadJson);
+                    long siteId = doc.RootElement.GetProperty("siteId").GetInt64();
+                    bool enable = doc.RootElement.GetProperty("enable").GetBoolean();
+
+                    bool success = await _iisAdapter.SetHttpsRedirectAsync(siteId, enable);
+                    bool current = _iisAdapter.IsHttpsRedirectEnabled(siteId);
+
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(new { success, siteId, hasHttpsRedirect = current }, JsonOptions));
+                }
+
+                case "ExportCertificate":
+                {
+                    if (string.IsNullOrWhiteSpace(request.PayloadJson))
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Payload required: CertificateExportRequest.");
+                    }
+
+                    var exportReq = JsonSerializer.Deserialize<CertificateExportRequest>(request.PayloadJson, JsonOptions);
+                    if (exportReq == null)
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Malformed CertificateExportRequest payload.");
+                    }
+
+                    var exportService = _serviceProvider.GetService<ICertificateExportService>()
+                        ?? new CertificateExportService();
+
+                    var result = await exportService.ExportCertificateAsync(exportReq);
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(result, JsonOptions));
+                }
+
+                case "TestDomainReadiness":
+                {
+                    string? domain = null;
+                    if (!string.IsNullOrWhiteSpace(request.PayloadJson))
+                    {
+                        try
+                        {
+                            using var doc = JsonDocument.Parse(request.PayloadJson);
+                            if (doc.RootElement.ValueKind == JsonValueKind.String)
+                            {
+                                domain = doc.RootElement.GetString();
+                            }
+                            else if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                            {
+                                if (doc.RootElement.TryGetProperty("domainName", out var p) ||
+                                    doc.RootElement.TryGetProperty("DomainName", out p) ||
+                                    doc.RootElement.TryGetProperty("domain", out p) ||
+                                    doc.RootElement.TryGetProperty("Domain", out p))
+                                {
+                                    domain = p.GetString();
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            domain = request.PayloadJson.Trim('"', ' ');
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(domain))
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Domain name is required.");
+                    }
+
+                    var readinessChecker = _serviceProvider.GetService<IDomainReadinessChecker>()
+                        ?? scope.ServiceProvider.GetService<IDomainReadinessChecker>()
+                        ?? new DomainReadinessChecker();
+
+                    var result = await readinessChecker.CheckReadinessAsync(domain);
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(result, JsonOptions));
                 }
 
                 default:

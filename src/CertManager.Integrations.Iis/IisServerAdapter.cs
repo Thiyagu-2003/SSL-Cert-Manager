@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using CertManager.Core.Interfaces;
 using CertManager.Core.Models;
 using Microsoft.Web.Administration;
@@ -15,6 +16,8 @@ public interface IIisServerAdapter : IServerAdapter
     bool IsIisAvailable();
     string? GetWebsitePhysicalPath(long siteId);
     Task<IReadOnlyList<DiscoveredIisSite>> DiscoverDetailedWebsitesAsync(CancellationToken cancellationToken = default);
+    bool IsHttpsRedirectEnabled(long siteId);
+    Task<bool> SetHttpsRedirectAsync(long siteId, bool enable, CancellationToken cancellationToken = default);
 }
 
 public class IisServerAdapter : IIisServerAdapter
@@ -138,13 +141,15 @@ public class IisServerAdapter : IIisServerAdapter
                     bindings.Add(new DiscoveredBinding(protocol, host, port, ip, sni, thumbprint));
                 }
 
+                bool hasRedirect = IsHttpsRedirectEnabled(site.Id);
                 results.Add(new DiscoveredIisSite(
                     site.Id,
                     site.Name,
                     siteState,
                     hasHttps,
                     bindings,
-                    hostnames.ToList()
+                    hostnames.ToList(),
+                    hasRedirect
                 ));
             }
         }
@@ -284,6 +289,133 @@ public class IisServerAdapter : IIisServerAdapter
         catch (Exception ex)
         {
             return Task.FromResult(new HealthCheckResult(false, $"Verification failed: {ex.Message}"));
+        }
+    }
+
+    public bool IsHttpsRedirectEnabled(long siteId)
+    {
+        string? webRoot = GetWebsitePhysicalPath(siteId);
+        if (string.IsNullOrWhiteSpace(webRoot) || !Directory.Exists(webRoot)) return false;
+
+        string webConfigPath = Path.Combine(webRoot, "web.config");
+        if (!File.Exists(webConfigPath)) return false;
+
+        try
+        {
+            string content = File.ReadAllText(webConfigPath);
+            return content.Contains("CertFlow HTTP to HTTPS", StringComparison.OrdinalIgnoreCase) ||
+                   (content.Contains("Redirect", StringComparison.OrdinalIgnoreCase) &&
+                    content.Contains("{HTTPS}", StringComparison.OrdinalIgnoreCase));
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public Task<bool> SetHttpsRedirectAsync(long siteId, bool enable, CancellationToken cancellationToken = default)
+    {
+        string? webRoot = GetWebsitePhysicalPath(siteId);
+        if (string.IsNullOrWhiteSpace(webRoot)) return Task.FromResult(false);
+
+        if (!Directory.Exists(webRoot))
+        {
+            try { Directory.CreateDirectory(webRoot); } catch { return Task.FromResult(false); }
+        }
+
+        string webConfigPath = Path.Combine(webRoot, "web.config");
+
+        try
+        {
+            XDocument doc;
+            if (File.Exists(webConfigPath))
+            {
+                try
+                {
+                    doc = XDocument.Load(webConfigPath);
+                }
+                catch
+                {
+                    doc = new XDocument(new XElement("configuration", new XElement("system.webServer")));
+                }
+            }
+            else
+            {
+                doc = new XDocument(new XElement("configuration", new XElement("system.webServer")));
+            }
+
+            var configuration = doc.Element("configuration");
+            if (configuration == null)
+            {
+                configuration = new XElement("configuration");
+                doc.Add(configuration);
+            }
+
+            var webServer = configuration.Element("system.webServer");
+            if (webServer == null)
+            {
+                webServer = new XElement("system.webServer");
+                configuration.Add(webServer);
+            }
+
+            var rewrite = webServer.Element("rewrite");
+            if (enable)
+            {
+                if (rewrite == null)
+                {
+                    rewrite = new XElement("rewrite");
+                    webServer.Add(rewrite);
+                }
+
+                var rules = rewrite.Element("rules");
+                if (rules == null)
+                {
+                    rules = new XElement("rules");
+                    rewrite.Add(rules);
+                }
+
+                var existingRule = rules.Elements("rule")
+                    .FirstOrDefault(r => (string?)r.Attribute("name") == "CertFlow HTTP to HTTPS");
+
+                if (existingRule == null)
+                {
+                    var ruleElement = new XElement("rule",
+                        new XAttribute("name", "CertFlow HTTP to HTTPS"),
+                        new XAttribute("stopProcessing", "true"),
+                        new XElement("match", new XAttribute("url", "(.*)")),
+                        new XElement("conditions",
+                            new XElement("add",
+                                new XAttribute("input", "{HTTPS}"),
+                                new XAttribute("pattern", "off"),
+                                new XAttribute("ignoreCase", "true"))),
+                        new XElement("action",
+                            new XAttribute("type", "Redirect"),
+                            new XAttribute("url", "https://{HTTP_HOST}/{R:1}"),
+                            new XAttribute("redirectType", "Permanent")));
+
+                    rules.Add(ruleElement);
+                }
+            }
+            else
+            {
+                if (rewrite != null)
+                {
+                    var rules = rewrite.Element("rules");
+                    if (rules != null)
+                    {
+                        var ruleToRemove = rules.Elements("rule")
+                            .FirstOrDefault(r => (string?)r.Attribute("name") == "CertFlow HTTP to HTTPS");
+                        ruleToRemove?.Remove();
+                    }
+                }
+            }
+
+            doc.Save(webConfigPath);
+            return Task.FromResult(true);
+        }
+        catch
+        {
+            return Task.FromResult(false);
         }
     }
 }

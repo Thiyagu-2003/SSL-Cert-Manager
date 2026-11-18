@@ -216,6 +216,9 @@ public class MwaBindingTests
             Task.FromResult(new DeploymentResult(true, null, null));
         public Task<HealthCheckResult> VerifyAsync(DeploymentTarget target, CancellationToken cancellationToken = default) =>
             Task.FromResult(new HealthCheckResult(true, "OK"));
+        public bool IsHttpsRedirectEnabled(long siteId) => false;
+        public Task<bool> SetHttpsRedirectAsync(long siteId, bool enable, CancellationToken cancellationToken = default) =>
+            Task.FromResult(true);
     }
 
     private class FakeHttp01ChallengeResponder : IHttp01ChallengeResponder

@@ -1,11 +1,14 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CertManager.Core.Common;
 using CertManager.Core.Entities;
 using CertManager.Core.Enums;
+using CertManager.Core.Interfaces;
 using CertManager.Core.Models;
 using CertManager.Desktop.Common;
 using CertManager.Desktop.Services;
@@ -62,11 +65,29 @@ public class CertificatesViewModel : ViewModelBase
                 await ForceRenewCertificateAsync(item);
             }
         });
+        ExportPfxCommand = new RelayCommand(async param =>
+        {
+            if (param is CertificateItemViewModel item)
+            {
+                await ExportCertificateAsync(item, CertificateExportFormat.Pfx);
+            }
+        });
+        ExportPemCommand = new RelayCommand(async param =>
+        {
+            if (param is CertificateItemViewModel item)
+            {
+                await ExportCertificateAsync(item, CertificateExportFormat.PemBundle);
+            }
+        });
 
         _ = LoadCertificatesAsync();
     }
 
     public ObservableCollection<CertificateItemViewModel> Certificates { get; }
+    public ICommand RefreshCommand { get; }
+    public ICommand ForceRenewCommand { get; }
+    public ICommand ExportPfxCommand { get; }
+    public ICommand ExportPemCommand { get; }
 
     public bool IsBusy
     {
@@ -97,9 +118,6 @@ public class CertificatesViewModel : ViewModelBase
         get => _expiredCount;
         set => SetProperty(ref _expiredCount, value);
     }
-
-    public ICommand RefreshCommand { get; }
-    public ICommand ForceRenewCommand { get; }
 
     public async Task LoadCertificatesAsync()
     {
@@ -186,6 +204,53 @@ public class CertificatesViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusMessage = $"Renewal error for {item.Subject}: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task ExportCertificateAsync(CertificateItemViewModel item, CertificateExportFormat format)
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        StatusMessage = $"Exporting certificate {item.Subject} as {format}...";
+
+        try
+        {
+            string exportDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "CertFlow_Exports");
+            Directory.CreateDirectory(exportDir);
+
+            var req = new CertificateExportRequest(
+                item.Thumbprint,
+                exportDir,
+                format,
+                Password: null,
+                DomainName: item.Subject);
+
+            var result = await _ipcClient.ExportCertificateAsync(req);
+            if (result != null && result.Success)
+            {
+                StatusMessage = $"Certificate successfully exported to: {result.ExportedPath}";
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = exportDir,
+                        UseShellExecute = true
+                    });
+                }
+                catch { }
+            }
+            else
+            {
+                StatusMessage = $"Export failed: {result?.ErrorMessage}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Export error: {ex.Message}";
         }
         finally
         {

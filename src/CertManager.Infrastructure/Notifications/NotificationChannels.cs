@@ -174,6 +174,138 @@ public class TelegramNotificationChannel : INotificationChannel, IDisposable
     }
 }
 
+public class WebhookChannelOptions
+{
+    public string WebhookUrl { get; set; } = string.Empty;
+}
+
+public class WebhookNotificationChannel : INotificationChannel, IDisposable
+{
+    private readonly WebhookChannelOptions _options;
+    private readonly HttpClient _httpClient;
+    private readonly bool _ownsClient;
+    private readonly ILogger<WebhookNotificationChannel> _logger;
+
+    public WebhookNotificationChannel(
+        WebhookChannelOptions options,
+        HttpClient? httpClient,
+        ILogger<WebhookNotificationChannel> logger)
+    {
+        _options = options;
+        _ownsClient = httpClient == null;
+        _httpClient = httpClient ?? new HttpClient();
+        _logger = logger;
+    }
+
+    public string ChannelName => "Webhook";
+
+    public async Task<bool> SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+
+        if (string.IsNullOrWhiteSpace(_options.WebhookUrl))
+        {
+            return false;
+        }
+
+        try
+        {
+            string url = _options.WebhookUrl.Trim();
+            int color = message.Level.ToLowerInvariant() switch
+            {
+                "error" => 0xE11D48,
+                "warning" => 0xD97706,
+                _ => 0x16A34A
+            };
+
+            string safeSubject = NotificationDispatcher.MaskSecrets(message.Subject);
+            string safeBody = NotificationDispatcher.MaskSecrets(message.Body);
+
+            object payload;
+
+            if (url.Contains("discord.com/api/webhooks", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = new
+                {
+                    username = "CertFlow SSL Automation",
+                    embeds = new[]
+                    {
+                        new
+                        {
+                            title = safeSubject,
+                            description = safeBody,
+                            color = color,
+                            timestamp = DateTime.UtcNow.ToString("o"),
+                            footer = new { text = "CertFlow Automated Lifecycle Manager" }
+                        }
+                    }
+                };
+            }
+            else if (url.Contains("hooks.slack.com", StringComparison.OrdinalIgnoreCase))
+            {
+                string hexColor = message.Level.ToLowerInvariant() switch
+                {
+                    "error" => "#e11d48",
+                    "warning" => "#d97706",
+                    _ => "#16a34a"
+                };
+
+                payload = new
+                {
+                    text = $"*[CertFlow {message.Level.ToUpperInvariant()}]* {safeSubject}",
+                    attachments = new[]
+                    {
+                        new
+                        {
+                            color = hexColor,
+                            title = safeSubject,
+                            text = safeBody,
+                            footer = "CertFlow Automated Lifecycle Manager",
+                            ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                        }
+                    }
+                };
+            }
+            else
+            {
+                payload = new
+                {
+                    title = $"[CertFlow {message.Level.ToUpperInvariant()}] {safeSubject}",
+                    text = safeBody,
+                    level = message.Level,
+                    timestamp = DateTime.UtcNow
+                };
+            }
+
+            using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            using var response = await _httpClient.PostAsync(url, content, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Webhook alert delivered successfully for: {Subject}", message.Subject);
+                return true;
+            }
+
+            string err = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogWarning("Webhook delivery failed with HTTP {Status}: {Err}", response.StatusCode, err);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to deliver Webhook notification: {Message}", ex.Message);
+            return false;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_ownsClient)
+        {
+            _httpClient.Dispose();
+        }
+    }
+}
+
 public class NotificationDispatcher : INotificationProvider
 {
     private readonly CertManagerDbContext _db;

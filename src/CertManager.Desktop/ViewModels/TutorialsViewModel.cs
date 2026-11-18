@@ -42,7 +42,7 @@ public class TutorialsViewModel : ViewModelBase
 
             var window = new CertificateWizardWindow(wizardVm)
             {
-                Owner = Application.Current?.MainWindow
+                Owner = System.Windows.Application.Current?.MainWindow
             };
             window.ShowDialog();
         });

@@ -31,6 +31,8 @@ public class CertificateWizardViewModel : ViewModelBase
     private string _issuedThumbprint = string.Empty;
     private string _issuedExpiration = string.Empty;
     private string _errorMessage = string.Empty;
+    private bool _isCheckingReadiness;
+    private DomainReadinessResult? _readinessResult;
 
     public CertificateWizardViewModel() : this(1, "Default Web Site", "example.com")
     {
@@ -76,7 +78,7 @@ public class CertificateWizardViewModel : ViewModelBase
         {
             var setup = new InitialSetupWindow
             {
-                Owner = Application.Current?.MainWindow
+                Owner = System.Windows.Application.Current?.MainWindow
             };
             if (setup.ShowDialog() == true)
             {
@@ -93,9 +95,59 @@ public class CertificateWizardViewModel : ViewModelBase
                 CommandManager.InvalidateRequerySuggested();
             }
         });
+
+        TestReadinessCommand = new RelayCommand(
+            async () => await RunReadinessCheckAsync(),
+            () => !IsCheckingReadiness && !IsExecuting && !string.IsNullOrWhiteSpace(DomainName));
     }
 
     public ICommand ChangeGlobalEmailCommand { get; }
+    public ICommand TestReadinessCommand { get; }
+
+    public bool IsCheckingReadiness
+    {
+        get => _isCheckingReadiness;
+        set => SetProperty(ref _isCheckingReadiness, value);
+    }
+
+    public DomainReadinessResult? ReadinessResult
+    {
+        get => _readinessResult;
+        set
+        {
+            if (SetProperty(ref _readinessResult, value))
+            {
+                OnPropertyChanged(nameof(HasReadinessResult));
+            }
+        }
+    }
+
+    public bool HasReadinessResult => ReadinessResult != null;
+
+    public async Task RunReadinessCheckAsync()
+    {
+        if (IsCheckingReadiness || string.IsNullOrWhiteSpace(DomainName)) return;
+        IsCheckingReadiness = true;
+        try
+        {
+            await ServiceHostBuilder.EnsureInProcessEngineRunningAsync();
+            ReadinessResult = await _ipcClient.TestDomainReadinessAsync(DomainName.Trim());
+        }
+        catch (Exception ex)
+        {
+            ReadinessResult = new DomainReadinessResult
+            {
+                OverallReady = false,
+                DomainName = DomainName,
+                DnsStatusMessage = $"Diagnostic check failed: {ex.Message}",
+                Recommendations = new List<string> { "Ensure the CertFlow background service is active." }
+            };
+        }
+        finally
+        {
+            IsCheckingReadiness = false;
+        }
+    }
 
     public long SiteId
     {
@@ -332,7 +384,7 @@ public class CertificateWizardViewModel : ViewModelBase
         {
             var setup = new InitialSetupWindow
             {
-                Owner = Application.Current?.MainWindow
+                Owner = System.Windows.Application.Current?.MainWindow
             };
             if (setup.ShowDialog() == true)
             {

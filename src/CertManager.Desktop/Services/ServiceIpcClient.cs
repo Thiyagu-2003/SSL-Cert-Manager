@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CertManager.Core.Entities;
+using CertManager.Core.Interfaces;
 using CertManager.Core.Ipc;
 using CertManager.Core.Models;
 using CertManager.Infrastructure.Ipc;
@@ -222,5 +223,105 @@ public class ServiceIpcClient
                 ErrorMessage = $"Failed to communicate with CertFlow background service: {ex.Message}"
             };
         }
+    }
+
+    public async Task<bool> ToggleHttpsRedirectAsync(long siteId, bool enable, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default)
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(8));
+            }
+
+            var request = new IpcRequest
+            {
+                Action = "ToggleHttpsRedirect",
+                PayloadJson = JsonSerializer.Serialize(new { siteId, enable })
+            };
+
+            var response = await _client.SendAsync(request, cts.Token);
+            if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
+            {
+                using var doc = JsonDocument.Parse(response.PayloadJson);
+                if (doc.RootElement.TryGetProperty("success", out var succElem))
+                {
+                    return succElem.GetBoolean();
+                }
+            }
+        }
+        catch
+        {
+            // Service offline or error
+        }
+
+        return false;
+    }
+
+    public async Task<CertificateExportResult?> ExportCertificateAsync(
+        CertificateExportRequest exportRequest,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default)
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(15));
+            }
+
+            var request = new IpcRequest
+            {
+                Action = "ExportCertificate",
+                PayloadJson = JsonSerializer.Serialize(exportRequest)
+            };
+
+            var response = await _client.SendAsync(request, cts.Token);
+            if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
+            {
+                return JsonSerializer.Deserialize<CertificateExportResult>(
+                    response.PayloadJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+
+            return new CertificateExportResult(false, null, response.ErrorMessage ?? "Export failed.");
+        }
+        catch (Exception ex)
+        {
+            return new CertificateExportResult(false, null, ex.Message);
+        }
+    }
+
+    public async Task<DomainReadinessResult?> TestDomainReadinessAsync(string domainName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default)
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(15));
+            }
+
+            var request = new IpcRequest
+            {
+                Action = "TestDomainReadiness",
+                PayloadJson = JsonSerializer.Serialize(domainName)
+            };
+
+            var response = await _client.SendAsync(request, cts.Token);
+            if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
+            {
+                return JsonSerializer.Deserialize<DomainReadinessResult>(
+                    response.PayloadJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+        }
+        catch
+        {
+            // Service offline or error
+        }
+
+        return null;
     }
 }

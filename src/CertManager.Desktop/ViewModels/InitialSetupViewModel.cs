@@ -9,6 +9,7 @@ namespace CertManager.Desktop.ViewModels;
 public class InitialSetupViewModel : ViewModelBase
 {
     private string _contactEmail = string.Empty;
+    private string _webhookUrl = string.Empty;
     private bool _isProduction;
     private bool _isStaging = true;
     private string _errorMessage = string.Empty;
@@ -17,6 +18,7 @@ public class InitialSetupViewModel : ViewModelBase
     {
         var current = UserSettingsService.Instance.Settings;
         _contactEmail = current.GlobalContactEmail;
+        _webhookUrl = current.WebhookUrl;
         if (string.Equals(current.PreferredEnvironment, "Production", StringComparison.OrdinalIgnoreCase))
         {
             _isProduction = true;
@@ -42,6 +44,12 @@ public class InitialSetupViewModel : ViewModelBase
                 OnPropertyChanged(nameof(HasError));
             }
         }
+    }
+
+    public string WebhookUrl
+    {
+        get => _webhookUrl;
+        set => SetProperty(ref _webhookUrl, value);
     }
 
     public bool IsStaging
@@ -105,6 +113,7 @@ public class InitialSetupViewModel : ViewModelBase
 
         var settings = UserSettingsService.Instance.Settings;
         settings.GlobalContactEmail = email;
+        settings.WebhookUrl = (WebhookUrl ?? string.Empty).Trim();
         settings.PreferredEnvironment = IsProduction ? "Production" : "Staging";
         settings.IsInitialSetupCompleted = true;
         UserSettingsService.Instance.SaveSettings(settings);
