@@ -50,10 +50,10 @@
                         <Border Background="#E0F2FE" CornerRadius="6" Padding="7,3" Margin="0,0,10,0" VerticalAlignment="Center">
                             <TextBlock Text="ALERTS &amp; WEBHOOKS" FontSize="10" FontWeight="Bold" Foreground="#0284C7"/>
                         </Border>
-                        <TextBlock Text="Notifications &amp; Team Alerts" FontSize="23" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                        <TextBlock Text="Notifications &amp; Team Alerts" FontSize="23" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBlock Text="Configure real-time broadcasts for certificate expirations, autonomous renewals, and errors across Teams, Discord, Slack, Telegram, Push, and Email." 
-                               FontSize="13" Foreground="#64748B" TextWrapping="Wrap" LineHeight="18"/>
+                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -143,7 +143,7 @@
 
                 <!-- SECTION 1: Event Lifecycle Subscriptions & Expiry Policies -->
                 <TextBlock Text="ALERT EVENT SUBSCRIPTIONS &amp; EXPIRY POLICIES" Style="{StaticResource FormFieldLabel}" Margin="0,0,0,8"/>
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,24">
+                <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,24">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="8" Opacity="0.03" ShadowDepth="2" Color="#0F172A"/>
                     </Border.Effect>
@@ -674,7 +674,7 @@
                 </Border>
 
                 <!-- Bottom Sticky Save Bar -->
-                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="18,16" Margin="0,0,0,16">
+                <Border Background="{DynamicResource MutedBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18,16" Margin="0,0,0,16">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="8" Opacity="0.04" ShadowDepth="2" Color="#0F172A"/>
                     </Border.Effect>
@@ -686,8 +686,8 @@
                         </Grid.ColumnDefinitions>
                         <Path Grid.Column="0" Data="{StaticResource IconShieldCheck}" Fill="#0284C7" Width="20" Height="20" Stretch="Uniform" Margin="0,0,12,0" VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Ready to persist configuration across background service and desktop UI?" FontSize="13" FontWeight="Bold" Foreground="#0F172A"/>
-                            <TextBlock Text="Settings apply immediately to the 24/7 autonomous renewal engine without requiring a service restart." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                            <TextBlock Text="Ready to persist configuration across background service and desktop UI?" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Settings apply immediately to the 24/7 autonomous renewal engine without requiring a service restart." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                         </StackPanel>
                         <Button Grid.Column="2" Command="{Binding SaveSettingsCommand}" Style="{StaticResource ModernToolbarPrimaryBtn}">
                             <StackPanel Orientation="Horizontal">

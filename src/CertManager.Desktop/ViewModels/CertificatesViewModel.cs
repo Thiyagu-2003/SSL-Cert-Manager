@@ -30,6 +30,8 @@ public class CertificateItemViewModel : ViewModelBase
         LifetimePercent = RenewalPolicyEvaluator.CalculateLifetimeProgressPercent(cert);
         IsExpiringSoon = RenewalPolicyEvaluator.ShouldRenew(cert, cert.Profile);
         IsExpired = DateTime.UtcNow >= cert.NotAfter;
+
+        Timeline = RenewalTimelineInfo.FromCertificate(cert);
     }
 
     public CertificateRecord Record { get; }
@@ -42,6 +44,18 @@ public class CertificateItemViewModel : ViewModelBase
     public int LifetimePercent { get; }
     public bool IsExpiringSoon { get; }
     public bool IsExpired { get; }
+
+    public RenewalTimelineInfo Timeline { get; }
+    public int TotalLifetimeDays => Timeline.TotalLifetimeDays;
+    public int ElapsedDays => Timeline.ElapsedDays;
+    public double ProgressPercent => Timeline.ProgressPercent;
+    public string ZoneLabel => Timeline.ZoneLabel;
+    public string ZoneColorHex => Timeline.ZoneColorHex;
+    public string ZoneBadgeBackground => Timeline.ZoneBadgeBackground;
+    public string ZoneBadgeForeground => Timeline.ZoneBadgeForeground;
+    public string StatusDescription => Timeline.StatusDescription;
+    public bool IsInsideAriWindow => Timeline.IsInsideAriWindow;
+    public int DaysUntilAriWindow => Timeline.DaysUntilAriWindow;
 }
 
 public class CertificatesViewModel : ViewModelBase
@@ -94,6 +108,10 @@ public class CertificatesViewModel : ViewModelBase
             }
         });
         ExportVaultBackupCommand = new RelayCommand(async () => await ExportVaultBackupAsync());
+        ToggleGanttTimelineCommand = new RelayCommand(() =>
+        {
+            IsGanttTimelineExpanded = !IsGanttTimelineExpanded;
+        });
 
         _ = LoadCertificatesAsync();
     }
@@ -106,6 +124,42 @@ public class CertificatesViewModel : ViewModelBase
     public ICommand BindToRdpCommand { get; }
     public ICommand InspectLiveTlsCommand { get; }
     public ICommand ExportVaultBackupCommand { get; }
+    public ICommand ToggleGanttTimelineCommand { get; }
+
+    private bool _isGanttTimelineExpanded;
+    public bool IsGanttTimelineExpanded
+    {
+        get => _isGanttTimelineExpanded;
+        set => SetProperty(ref _isGanttTimelineExpanded, value);
+    }
+
+    private int _inAriWindowCount;
+    public int InAriWindowCount
+    {
+        get => _inAriWindowCount;
+        set => SetProperty(ref _inAriWindowCount, value);
+    }
+
+    private int _optimalActiveCount;
+    public int OptimalActiveCount
+    {
+        get => _optimalActiveCount;
+        set => SetProperty(ref _optimalActiveCount, value);
+    }
+
+    private int _inWarningCount;
+    public int InWarningCount
+    {
+        get => _inWarningCount;
+        set => SetProperty(ref _inWarningCount, value);
+    }
+
+    private int _inCriticalCount;
+    public int InCriticalCount
+    {
+        get => _inCriticalCount;
+        set => SetProperty(ref _inCriticalCount, value);
+    }
 
     public bool IsBusy
     {
@@ -169,6 +223,10 @@ public class CertificatesViewModel : ViewModelBase
             TotalCertificates = Certificates.Count;
             ExpiringSoonCount = Certificates.Count(c => c.IsExpiringSoon && !c.IsExpired);
             ExpiredCount = Certificates.Count(c => c.IsExpired);
+            InAriWindowCount = Certificates.Count(c => c.IsInsideAriWindow);
+            OptimalActiveCount = Certificates.Count(c => c.Timeline.CurrentZone == RenewalTimelineZone.Active);
+            InWarningCount = Certificates.Count(c => c.Timeline.CurrentZone == RenewalTimelineZone.Warning);
+            InCriticalCount = Certificates.Count(c => c.Timeline.CurrentZone == RenewalTimelineZone.Critical);
 
             if (Certificates.Count == 0)
             {

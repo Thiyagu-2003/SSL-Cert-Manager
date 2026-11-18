@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Input;
 using CertManager.Desktop.Common;
+using CertManager.Desktop.Services;
 
 namespace CertManager.Desktop.ViewModels;
 
@@ -29,6 +30,19 @@ public class MainViewModel : ViewModelBase, IDisposable
         });
 
         _currentView = DashboardVM;
+
+        ToggleThemeCommand = new RelayCommand(() =>
+        {
+            ThemeManager.Instance.ToggleTheme();
+            OnPropertyChanged(nameof(IsDarkTheme));
+            OnPropertyChanged(nameof(ThemeButtonLabel));
+        });
+
+        ThemeManager.Instance.ThemeChanged += isDark =>
+        {
+            OnPropertyChanged(nameof(IsDarkTheme));
+            OnPropertyChanged(nameof(ThemeButtonLabel));
+        };
 
         NavigateCommand = new RelayCommand(param =>
         {
@@ -98,6 +112,10 @@ public class MainViewModel : ViewModelBase, IDisposable
     }
 
     public ICommand NavigateCommand { get; }
+    public ICommand ToggleThemeCommand { get; }
+
+    public bool IsDarkTheme => ThemeManager.Instance.IsDarkTheme;
+    public string ThemeButtonLabel => IsDarkTheme ? "Light Mode" : "Dark Mode";
 
     public void Dispose()
     {

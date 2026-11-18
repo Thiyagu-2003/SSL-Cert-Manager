@@ -24,7 +24,9 @@
 | **Encrypted Vault Backup** | 🔐 1-Click AES-256-GCM Encrypted Vault Export/Import | Unencrypted XML/JSON registry exports | File copies |
 | **Runtime Architecture** | Standalone In-Process OR Windows Service | Strict client-service requirement (`127.0.0.2:9696`) | Scheduled Task |
 | **ACME ARI Support** | ✅ RFC-draft ACME Renewal Information (ARI) | ✅ ARI supported | ⚠️ Basic schedule window |
-| **Unit Test Coverage** | 128 automated xUnit tests passing | Closed source core / partial repo | Open source tests |
+| **90-Day Renewal Gantt Chart** | 📊 Interactive 90-Day Horizon & Fleet Gantt Chart (Active, ARI 60-76d, Warning, Critical) | Basic date labels / single progress bar | Terminal dates only |
+| **Theming & UI Modes** | 🌓 1-Click Dark Mode & Light Mode with dynamic runtime brush switching | Light theme only | N/A (Console) |
+| **Unit Test Coverage** | 134 automated xUnit tests passing | Closed source core / partial repo | Open source tests |
 
 ---
 
@@ -187,3 +189,25 @@
 * **Military-Grade Encryption**: Protects backup archives using **AES-256-GCM** authenticated encryption with PBKDF2 (100,000 SHA256 iterations) and 16-byte random salts.
 * **Complete State Preservation**: Archives ACME account private keys, certificate records, notification webhook configurations, and profile policies into a portable `.vault` bundle.
 * **1-Click Restore**: Instant passphrase-verified decryption and database restoration on any new server with zero manual re-entry.
+
+---
+
+### 16. Visual 90-Day Renewal Horizon & ACME ARI Gantt Chart *(NEW)*
+* **Interactive 90-Day Horizon Mapping**: Visualizes the entire certificate lifespan mapped across standard 90-day validity cycles used by modern Web PKI authorities.
+* **ACME ARI Optimal Window Integration**: Automatically calculates and highlights the optimal ACME Renewal Information (ARI) auto-renewal window:
+  * 🟢 **Active & Healthy Phase (Days 0–60)**: Standard operating window with full cryptographic validity.
+  * 🔵 **ACME ARI Window (Days 60–76)**: Optimal autonomous renewal window recommended by ACME CAs to prevent peak server load.
+  * 🟡 **Warning Window (Days 76–87)**: High-visibility advance alert phase (< 14 days remaining).
+  * 🔴 **Critical Emergency Phase (Days 87–90)**: Emergency notice phase (< 3 days remaining).
+* **Multi-Track Fleet Gantt Schedule**: 1-Click expandable "90-Day Gantt Schedule" view displaying all server certificates aligned across the 90-day horizon with real-time progress cursors and milestone ticks.
+* **Actionable Tooltips & Zone Badges**: Instant clarity into renewal deadlines, elapsed days, and days remaining until ARI auto-renewal triggers.
+
+---
+
+### 17. 1-Click Dark Mode / Light Mode Dynamic Theme Switcher *(NEW)*
+* **Cybersecurity Dark Palette**: High-contrast, eye-friendly theme with deep slate navy (`#0B0F19`), elevated card surfaces (`#131B2E`), subtle borders (`#223049`), and crisp typography (`#F8FAFC`).
+* **Clean Light Enterprise Palette**: Crisp, modern corporate aesthetic (`#F8FAFC` background, pure white elevated cards, subtle slate borders).
+* **Instant Dynamic Switching**: Swaps theme brushes in real-time with zero screen flicker and no application restart required.
+* **Persistent Preference**: Automatically saves user theme preference to local settings and restores upon launch.
+* **Modern Nav Toggle Pill**: Quick-access Sun/Moon toggle pill positioned directly in the sidebar navigation footer.
+

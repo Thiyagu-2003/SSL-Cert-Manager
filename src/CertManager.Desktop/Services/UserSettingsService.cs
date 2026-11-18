@@ -12,6 +12,7 @@ public class UserSettings
     public bool IsInitialSetupCompleted { get; set; } = false;
     public string WebhookUrl { get; set; } = string.Empty;
     public bool EnableWebhooks { get; set; } = false;
+    public string ThemeMode { get; set; } = "Light";
 }
 
 public class UserSettingsService

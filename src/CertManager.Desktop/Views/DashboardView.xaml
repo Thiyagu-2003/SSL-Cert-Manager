@@ -17,11 +17,11 @@
 
         <!-- Animated Modern Metric Card Style with Crisp Border & Defined Shadow -->
         <Style x:Key="MetricCardBorder" TargetType="Border">
-            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
             <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="Padding" Value="22"/>
             <Setter Property="Margin" Value="0,0,16,0"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="RenderTransform">
                 <Setter.Value>
@@ -74,11 +74,11 @@
 
         <!-- Animated Action Card Style -->
         <Style x:Key="ActionCardBorder" TargetType="Border">
-            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
             <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="Padding" Value="20"/>
             <Setter Property="Margin" Value="0,0,16,16"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="RenderTransform">
                 <Setter.Value>
@@ -213,9 +213,9 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0">
-                    <TextBlock Text="Operations Dashboard" FontSize="26" FontWeight="Bold" Foreground="#0F172A"/>
+                    <TextBlock Text="Operations Dashboard" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     <TextBlock Text="Automated SSL/TLS discovery, Let's Encrypt issuance, and IIS bindings" 
-                               FontSize="13.5" FontWeight="Medium" Foreground="#334155" Margin="0,5,0,0"/>
+                               FontSize="13.5" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0"/>
                 </StackPanel>
 
                 <!-- Refresh Button & Timestamp -->
@@ -430,10 +430,10 @@
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconPlus}" Fill="#0284C7" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Request Certificate" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            <TextBlock Text="Request Certificate" FontWeight="Bold" FontSize="14.5" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Request a new SSL/TLS certificate via Let's Encrypt using HTTP-01 or DNS-01." 
-                                   TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
+                                   TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,16"/>
                         <Button Content="New Certificate Wizard" Command="{Binding NewCertificateWizardCommand}" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
@@ -443,10 +443,10 @@
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconSearch}" Fill="#0284C7" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Discover IIS Sites" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            <TextBlock Text="Discover IIS Sites" FontWeight="Bold" FontSize="14.5" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Scan local Microsoft IIS web server for existing sites, hostnames, and HTTPS bindings." 
-                                   TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
+                                   TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,16"/>
                         <Button Content="Scan IIS Web Server" Command="{Binding ScanIisServerCommand}" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
@@ -456,19 +456,19 @@
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconLogs}" Fill="#0284C7" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Test ACME Staging" FontWeight="Bold" FontSize="14.5" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            <TextBlock Text="Test ACME Staging" FontWeight="Bold" FontSize="14.5" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Validate end-to-end issuance without hitting Let's Encrypt production rate limits." 
-                                   TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="#334155" Margin="0,6,0,16"/>
+                                   TextWrapping="Wrap" FontSize="12.5" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,16"/>
                         <Button Content="Run Staging Pre-flight" Command="{Binding RunStagingPreflightCommand}" Style="{StaticResource SecondaryActionBtn}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
             <!-- System Capabilities & Architecture -->
-            <Border Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="12" Padding="20">
+            <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
                 <StackPanel>
-                    <TextBlock Text="System Capabilities &amp; Architecture" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,14"/>
+                    <TextBlock Text="System Capabilities &amp; Architecture" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,14"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
