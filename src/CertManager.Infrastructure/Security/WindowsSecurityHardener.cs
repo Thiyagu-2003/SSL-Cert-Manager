@@ -204,6 +204,8 @@ public class WindowsSecurityHardener : IWindowsSecurityHardener
 
     public Task<bool> ApplyHardeningAsync(ApplyHardeningOptions options, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         if (!OperatingSystem.IsWindows())
         {
             return Task.FromResult(false);

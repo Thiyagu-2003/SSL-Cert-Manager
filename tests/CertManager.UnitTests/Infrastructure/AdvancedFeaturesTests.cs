@@ -142,4 +142,190 @@ public class AdvancedFeaturesTests
             if (File.Exists(tempFile)) File.Delete(tempFile);
         }
     }
+
+    [Fact]
+    public async Task VaultBackupManager_ExportToNonExistentDirectory_CreatesDirectoryAndSucceeds()
+    {
+        var manager = new VaultBackupManager();
+        string tempDir = Path.Combine(Path.GetTempPath(), $"certflow_nested_{Guid.NewGuid():N}", "subfolder");
+        string tempFile = Path.Combine(tempDir, "vault.vault");
+        string originalPayload = "{\"Test\":true}";
+
+        try
+        {
+            bool success = await manager.ExportVaultToFileAsync(tempFile, "pass12345", originalPayload);
+            Assert.True(success);
+            Assert.True(File.Exists(tempFile));
+
+            string readBack = await manager.ImportVaultFromFileAsync(tempFile, "pass12345");
+            Assert.Equal(originalPayload, readBack);
+        }
+        finally
+        {
+            if (File.Exists(tempFile)) File.Delete(tempFile);
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void RenewalTimelineInfo_ZeroLifetime_DoesNotReturnNaN()
+    {
+        var cert = new CertManager.Core.Entities.CertificateRecord
+        {
+            NotBefore = DateTime.UtcNow,
+            NotAfter = DateTime.UtcNow // zero lifetime
+        };
+
+        var info = RenewalTimelineInfo.FromCertificate(cert);
+        Assert.False(double.IsNaN(info.ProgressPercent));
+        Assert.Equal(100.0, info.ProgressPercent);
+        Assert.Equal(RenewalTimelineZone.Expired, info.CurrentZone);
+    }
+
+    [Fact]
+    public async Task RenewalHookExecutor_ServiceRestart_RejectsInjectionDelimiters()
+    {
+        var executor = new RenewalHookExecutor();
+        var config = new RenewalHookConfig
+        {
+            HookType = RenewalHookType.WindowsServiceRestart,
+            ScriptOrTarget = "MyService & calc.exe"
+        };
+
+        var result = await executor.ExecuteHookAsync(config, "domain.com", "112233");
+        Assert.False(result.Success);
+        Assert.Contains("Invalid service name", result.StandardError);
+    }
+
+    [Fact]
+    public async Task RenewalHookExecutor_NullParameters_DoesNotThrow()
+    {
+        var executor = new RenewalHookExecutor();
+        var config = new RenewalHookConfig
+        {
+            HookType = RenewalHookType.BatchScript,
+            ScriptOrTarget = "echo",
+            Arguments = "{Domain} {Thumbprint} {PfxPath} {Expires}"
+        };
+
+        var result = await executor.ExecuteHookAsync(config, null!, null!, null, null);
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public async Task RdsCertificateBinder_InvalidThumbprintLength_ReturnsFailure()
+    {
+        var binder = new RdsCertificateBinder();
+        var result = await binder.BindCertificateToRdsAsync("SHORT_THUMB");
+        Assert.False(result.Success);
+        Assert.Contains("40-character", result.Message);
+    }
+
+    [Fact]
+    public async Task WindowsSecurityHardener_ApplyHardening_NullOptions_ThrowsArgumentNullException()
+    {
+        var hardener = new WindowsSecurityHardener();
+        await Assert.ThrowsAsync<ArgumentNullException>(() => hardener.ApplyHardeningAsync(null!));
+    }
+
+    [Fact]
+    public async Task RdsCertificateBinder_NonHexThumbprint_ReturnsFailure()
+    {
+        var binder = new RdsCertificateBinder();
+        // 40 characters but non-hex 'G'
+        var result = await binder.BindCertificateToRdsAsync("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
+        Assert.False(result.Success);
+        Assert.Contains("40-character", result.Message);
+    }
+
+    [Fact]
+    public async Task RenewalHookExecutor_NonExistentScript_ReturnsFailure()
+    {
+        var executor = new RenewalHookExecutor();
+        var config = new RenewalHookConfig
+        {
+            HookType = RenewalHookType.PowerShellScript,
+            ScriptOrTarget = "C:\\non_existent_folder_xyz_123\\test_hook.ps1"
+        };
+
+        var result = await executor.ExecuteHookAsync(config, "app.test.com", "112233");
+        Assert.False(result.Success);
+        Assert.Contains("not found", result.StandardError);
+    }
+
+    [Fact]
+    public async Task CertesAcmeClient_NullOrEmptySerial_ReturnsNullAri()
+    {
+        var client = new CertManager.Acme.Clients.CertesAcmeClient();
+        var ari = await client.GetRenewalInfoAsync("");
+        Assert.Null(ari);
+    }
+
+    [Fact]
+    public async Task Route53DnsProvider_IsTxtRecordVisibleAsync_NonExistent_ReturnsFalse()
+    {
+        var provider = new Route53DnsProvider("AKIAIOSFODNN7EXAMPLE", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY");
+        bool visible = await provider.IsTxtRecordVisibleAsync("_acme-challenge.nonexistent-domain-test-12345.com", "some-value");
+        Assert.False(visible);
+    }
+
+    [Fact]
+    public async Task AzureDnsProvider_IsTxtRecordVisibleAsync_NonExistent_ReturnsFalse()
+    {
+        var provider = new AzureDnsProvider("sub-1", "rg-1", "client-1", "sec-1", "ten-1");
+        bool visible = await provider.IsTxtRecordVisibleAsync("_acme-challenge.nonexistent-domain-test-12345.com", "some-value");
+        Assert.False(visible);
+    }
+
+    [Fact]
+    public async Task CertificateExportService_NullRequest_ThrowsArgumentNullException()
+    {
+        var exportService = new CertManager.Infrastructure.Certificates.CertificateExportService();
+        await Assert.ThrowsAsync<ArgumentNullException>(() => exportService.ExportCertificateAsync(null!));
+    }
+
+    [Fact]
+    public async Task CertificateExportService_EmptyThumbprint_ReturnsFailure()
+    {
+        var exportService = new CertManager.Infrastructure.Certificates.CertificateExportService();
+        var request = new CertManager.Core.Interfaces.CertificateExportRequest(
+            "",
+            "example.com",
+            CertManager.Core.Interfaces.CertificateExportFormat.Pfx,
+            "C:\\Temp");
+        var result = await exportService.ExportCertificateAsync(request);
+        Assert.False(result.Success);
+        Assert.Contains("Thumbprint cannot be empty", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task CertificateExportService_NonExistentCertificate_ReturnsNotFound()
+    {
+        var exportService = new CertManager.Infrastructure.Certificates.CertificateExportService();
+        var request = new CertManager.Core.Interfaces.CertificateExportRequest(
+            "0000000000000000000000000000000000000000",
+            "*.example.com",
+            CertManager.Core.Interfaces.CertificateExportFormat.Pfx,
+            "C:\\Temp");
+        var result = await exportService.ExportCertificateAsync(request);
+        Assert.False(result.Success);
+        Assert.Contains("was not found", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task LiveTlsInspector_EmptyOrWhitespaceDomain_ThrowsArgumentException()
+    {
+        var inspector = new CertManager.Infrastructure.Diagnostics.LiveTlsInspector();
+        await Assert.ThrowsAsync<ArgumentException>(() => inspector.InspectLiveDomainAsync(""));
+        await Assert.ThrowsAsync<ArgumentException>(() => inspector.InspectLiveDomainAsync("   "));
+    }
+
+    [Fact]
+    public async Task LiveTlsInspector_UnreachableHost_ReturnsGradeF()
+    {
+        var inspector = new CertManager.Infrastructure.Diagnostics.LiveTlsInspector();
+        var result = await inspector.InspectLiveDomainAsync("invalid-host-name-that-cannot-exist.local");
+        Assert.False(result.IsReachable);
+        Assert.Equal("F", result.OverallGrade);
+    }
 }

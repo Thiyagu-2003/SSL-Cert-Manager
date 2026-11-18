@@ -134,7 +134,6 @@ public sealed class HttpChallengeServer : IHttpChallengeServer
                 response.ContentType = "text/plain";
                 response.ContentLength64 = okBytes.Length;
                 response.OutputStream.Write(okBytes, 0, okBytes.Length);
-                response.Close();
                 return;
             }
 
@@ -145,7 +144,6 @@ public sealed class HttpChallengeServer : IHttpChallengeServer
                 response.ContentType = "text/plain";
                 response.ContentLength64 = buffer.Length;
                 response.OutputStream.Write(buffer, 0, buffer.Length);
-                response.Close();
                 _logger.LogInformation("Embedded HTTP challenge server successfully answered ACME challenge for token: {Token}", token);
             }
             else
@@ -155,12 +153,22 @@ public sealed class HttpChallengeServer : IHttpChallengeServer
                 response.ContentType = "text/plain";
                 response.ContentLength64 = notFoundBytes.Length;
                 response.OutputStream.Write(notFoundBytes, 0, notFoundBytes.Length);
-                response.Close();
             }
         }
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "Error handling HTTP challenge response context.");
+        }
+        finally
+        {
+            try
+            {
+                context.Response.Close();
+            }
+            catch
+            {
+                // Suppress if connection was already closed or reset by remote peer
+            }
         }
     }
 

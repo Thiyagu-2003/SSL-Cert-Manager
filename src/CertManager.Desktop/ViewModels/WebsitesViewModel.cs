@@ -28,14 +28,31 @@ public class WebsitesViewModel : ViewModelBase
         ScanCommand = new RelayCommand(async () => await ScanWebsitesAsync());
         ToggleHttpsRedirectCommand = new RelayCommand(async param =>
         {
-            if (param is DiscoveredIisSite site)
+            if (param is not DiscoveredIisSite site || IsBusy) return;
+            IsBusy = true;
+            bool targetState = !site.HasHttpsRedirect;
+            StatusMessage = $"{(targetState ? "Enabling" : "Disabling")} HTTPS redirect for {site.SiteName}...";
+            try
             {
-                bool targetState = !site.HasHttpsRedirect;
+                await ServiceHostBuilder.EnsureInProcessEngineRunningAsync();
                 bool success = await _ipcClient.ToggleHttpsRedirectAsync(site.SiteId, targetState);
                 if (success)
                 {
-                    await ScanWebsitesAsync();
+                    await ScanWebsitesInternalAsync();
+                    StatusMessage = $"Successfully {(targetState ? "enabled" : "disabled")} HTTPS redirect for {site.SiteName}.";
                 }
+                else
+                {
+                    StatusMessage = $"Failed to toggle HTTPS redirect for {site.SiteName}. Ensure IIS URL Rewrite module is installed.";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error updating HTTPS redirect: {ex.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
             }
         });
         RequestCertificateCommand = new RelayCommand(param =>
@@ -140,6 +157,18 @@ public class WebsitesViewModel : ViewModelBase
     {
         if (IsBusy) return;
         IsBusy = true;
+        try
+        {
+            await ScanWebsitesInternalAsync();
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task ScanWebsitesInternalAsync()
+    {
         StatusMessage = "Scanning local IIS server for sites and bindings...";
 
         try
@@ -169,10 +198,6 @@ public class WebsitesViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusMessage = $"Discovery error: {ex.Message}";
-        }
-        finally
-        {
-            IsBusy = false;
         }
     }
 }

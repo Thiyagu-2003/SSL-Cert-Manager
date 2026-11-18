@@ -5,8 +5,11 @@ using CertManager.Application.Diagnostics;
 using CertManager.Core.Interfaces;
 using CertManager.Infrastructure.Certificates;
 using CertManager.Infrastructure.Data;
+using CertManager.Infrastructure.Diagnostics;
+using CertManager.Infrastructure.Hooks;
 using CertManager.Infrastructure.Monitoring;
 using CertManager.Infrastructure.Notifications;
+using CertManager.Infrastructure.Rds;
 using CertManager.Integrations.Iis;
 using CertManager.Integrations.Iis.Challenges;
 using CertManager.Service.Services;
@@ -90,6 +93,9 @@ public static class ServiceHostBuilder
         builder.Services.AddScoped<ISiteAutoDiscoveryEngine, SiteAutoDiscoveryEngine>();
         builder.Services.AddSingleton<IDomainReadinessProbe, DefaultDomainReadinessProbe>();
         builder.Services.AddSingleton<IDomainReadinessChecker, DomainReadinessChecker>();
+        builder.Services.AddSingleton<IRdsCertificateBinder, RdsCertificateBinder>();
+        builder.Services.AddSingleton<ILiveTlsInspector, LiveTlsInspector>();
+        builder.Services.AddSingleton<IRenewalHookExecutor, RenewalHookExecutor>();
 
         // Hosted background services
         builder.Services.AddHostedService<Worker>();

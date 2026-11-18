@@ -13,6 +13,7 @@ public class TutorialsViewModel : ViewModelBase
     private readonly Action<string>? _navigateAction;
     private string _selectedGuideKey = "PublicDomain";
     private string _copyNotification = string.Empty;
+    private int _copyNotificationId;
 
     public TutorialsViewModel(Action<string>? navigateAction = null)
     {
@@ -49,12 +50,16 @@ public class TutorialsViewModel : ViewModelBase
 
         CopyServiceInstallCommand = new RelayCommand(async () =>
         {
+            int currentId = System.Threading.Interlocked.Increment(ref _copyNotificationId);
             try
             {
                 Clipboard.SetText(".\\CertFlow.exe --install-service");
                 CopyNotification = "Copied to clipboard: .\\CertFlow.exe --install-service";
                 await Task.Delay(3000);
-                CopyNotification = string.Empty;
+                if (_copyNotificationId == currentId)
+                {
+                    CopyNotification = string.Empty;
+                }
             }
             catch
             {
@@ -72,8 +77,16 @@ public class TutorialsViewModel : ViewModelBase
     public string CopyNotification
     {
         get => _copyNotification;
-        set => SetProperty(ref _copyNotification, value);
+        set
+        {
+            if (SetProperty(ref _copyNotification, value))
+            {
+                OnPropertyChanged(nameof(HasCopyNotification));
+            }
+        }
     }
+
+    public bool HasCopyNotification => !string.IsNullOrWhiteSpace(CopyNotification);
 
     public ICommand SelectGuideCommand { get; }
     public ICommand NavigateToWebsitesCommand { get; }

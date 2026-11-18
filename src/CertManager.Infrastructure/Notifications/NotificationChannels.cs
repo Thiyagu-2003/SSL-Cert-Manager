@@ -61,7 +61,8 @@ public class SmtpNotificationChannel : INotificationChannel
         try
         {
             using var mail = new MailMessage();
-            mail.From = new MailAddress(_options.FromAddress, "CertFlow Automation");
+            string from = string.IsNullOrWhiteSpace(_options.FromAddress) ? "certflow@local" : _options.FromAddress;
+            mail.From = new MailAddress(from, "CertFlow Automation");
 
             var recipients = _options.ToAddress.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             if (recipients.Length == 0)
@@ -70,9 +71,24 @@ public class SmtpNotificationChannel : INotificationChannel
                 return false;
             }
 
+            int validRecipients = 0;
             foreach (var recipient in recipients)
             {
-                mail.To.Add(recipient);
+                try
+                {
+                    mail.To.Add(recipient);
+                    validRecipients++;
+                }
+                catch (FormatException ex)
+                {
+                    _logger.LogWarning("Skipping invalid SMTP recipient '{Recipient}': {Message}", recipient, ex.Message);
+                }
+            }
+
+            if (validRecipients == 0)
+            {
+                _logger.LogWarning("No valid SMTP recipients parsed from: {ToAddress}", _options.ToAddress);
+                return false;
             }
 
             mail.Subject = $"[CertFlow {message.Level.ToUpperInvariant()}] {message.Subject}";
@@ -80,6 +96,7 @@ public class SmtpNotificationChannel : INotificationChannel
             mail.IsBodyHtml = false;
 
             using var client = new SmtpClient(_options.Host, _options.Port);
+            client.Timeout = 15000;
             client.EnableSsl = _options.EnableSsl;
             if (!string.IsNullOrWhiteSpace(_options.Username))
             {
@@ -490,6 +507,8 @@ public class GotifyNotificationChannel : INotificationChannel, IDisposable
 
 public static class NotificationChannelFactory
 {
+    public static readonly HttpClient SharedNotificationHttpClient = new();
+
     public static List<INotificationChannel> CreateChannelsFromSettings(
         NotificationSettings settings,
         ILoggerFactory? loggerFactory = null)
@@ -502,7 +521,7 @@ public static class NotificationChannelFactory
         {
             channels.Add(new WebhookNotificationChannel(
                 new WebhookChannelOptions { WebhookUrl = settings.DiscordWebhookUrl },
-                null,
+                SharedNotificationHttpClient,
                 factory.CreateLogger<WebhookNotificationChannel>()));
         }
 
@@ -511,7 +530,7 @@ public static class NotificationChannelFactory
         {
             channels.Add(new WebhookNotificationChannel(
                 new WebhookChannelOptions { WebhookUrl = settings.SlackWebhookUrl },
-                null,
+                SharedNotificationHttpClient,
                 factory.CreateLogger<WebhookNotificationChannel>()));
         }
 
@@ -520,7 +539,7 @@ public static class NotificationChannelFactory
         {
             channels.Add(new WebhookNotificationChannel(
                 new WebhookChannelOptions { WebhookUrl = settings.TeamsWebhookUrl },
-                null,
+                SharedNotificationHttpClient,
                 factory.CreateLogger<WebhookNotificationChannel>()));
         }
 
@@ -529,7 +548,7 @@ public static class NotificationChannelFactory
         {
             channels.Add(new WebhookNotificationChannel(
                 new WebhookChannelOptions { WebhookUrl = settings.GenericWebhookUrl },
-                null,
+                SharedNotificationHttpClient,
                 factory.CreateLogger<WebhookNotificationChannel>()));
         }
 
@@ -538,7 +557,7 @@ public static class NotificationChannelFactory
         {
             channels.Add(new TelegramNotificationChannel(
                 new TelegramChannelOptions { BotToken = settings.TelegramBotToken, ChatId = settings.TelegramChatId },
-                null,
+                SharedNotificationHttpClient,
                 factory.CreateLogger<TelegramNotificationChannel>()));
         }
 
@@ -564,7 +583,7 @@ public static class NotificationChannelFactory
         {
             channels.Add(new PushoverNotificationChannel(
                 new PushoverChannelOptions { AppToken = settings.PushoverAppToken, UserKey = settings.PushoverUserKey },
-                null,
+                SharedNotificationHttpClient,
                 factory.CreateLogger<PushoverNotificationChannel>()));
         }
 
@@ -573,7 +592,7 @@ public static class NotificationChannelFactory
         {
             channels.Add(new GotifyNotificationChannel(
                 new GotifyChannelOptions { ServerUrl = settings.GotifyServerUrl, AppToken = settings.GotifyAppToken },
-                null,
+                SharedNotificationHttpClient,
                 factory.CreateLogger<GotifyNotificationChannel>()));
         }
 
@@ -670,16 +689,32 @@ public class NotificationDispatcher : INotificationProvider
             channelsToDispatch = NotificationChannelFactory.CreateChannelsFromSettings(settings, _loggerFactory);
         }
 
-        // Dispatch to external channels (Teams, Discord, Slack, Telegram, SMTP, Pushover, Gotify, Custom Webhook)
-        foreach (var channel in channelsToDispatch)
+        try
         {
-            try
+            // Dispatch to external channels (Teams, Discord, Slack, Telegram, SMTP, Pushover, Gotify, Custom Webhook)
+            foreach (var channel in channelsToDispatch)
             {
-                await channel.SendAsync(message, cancellationToken);
+                try
+                {
+                    await channel.SendAsync(message, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to dispatch notification via channel {Channel}", channel.ChannelName);
+                }
             }
-            catch (Exception ex)
+        }
+        finally
+        {
+            if (_explicitChannels == null)
             {
-                _logger.LogWarning(ex, "Failed to dispatch notification via channel {Channel}", channel.ChannelName);
+                foreach (var channel in channelsToDispatch)
+                {
+                    if (channel is IDisposable disp)
+                    {
+                        try { disp.Dispose(); } catch { }
+                    }
+                }
             }
         }
 
@@ -730,7 +765,7 @@ public class NotificationDispatcher : INotificationProvider
                     }
                     channel = new WebhookNotificationChannel(
                         new WebhookChannelOptions { WebhookUrl = request.TargetUrl.Trim() },
-                        null,
+                        NotificationChannelFactory.SharedNotificationHttpClient,
                         Microsoft.Extensions.Logging.Abstractions.NullLogger<WebhookNotificationChannel>.Instance);
                     break;
 
@@ -741,7 +776,7 @@ public class NotificationDispatcher : INotificationProvider
                     }
                     channel = new TelegramNotificationChannel(
                         new TelegramChannelOptions { BotToken = request.Token.Trim(), ChatId = request.SecondaryTokenOrChatId.Trim() },
-                        null,
+                        NotificationChannelFactory.SharedNotificationHttpClient,
                         Microsoft.Extensions.Logging.Abstractions.NullLogger<TelegramNotificationChannel>.Instance);
                     break;
 
@@ -772,7 +807,7 @@ public class NotificationDispatcher : INotificationProvider
                     }
                     channel = new PushoverNotificationChannel(
                         new PushoverChannelOptions { AppToken = request.Token.Trim(), UserKey = request.SecondaryTokenOrChatId.Trim() },
-                        null,
+                        NotificationChannelFactory.SharedNotificationHttpClient,
                         Microsoft.Extensions.Logging.Abstractions.NullLogger<PushoverNotificationChannel>.Instance);
                     break;
 
@@ -783,7 +818,7 @@ public class NotificationDispatcher : INotificationProvider
                     }
                     channel = new GotifyNotificationChannel(
                         new GotifyChannelOptions { ServerUrl = request.TargetUrl.Trim(), AppToken = request.Token.Trim() },
-                        null,
+                        NotificationChannelFactory.SharedNotificationHttpClient,
                         Microsoft.Extensions.Logging.Abstractions.NullLogger<GotifyNotificationChannel>.Instance);
                     break;
 

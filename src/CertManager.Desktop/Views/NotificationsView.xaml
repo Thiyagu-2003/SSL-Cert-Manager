@@ -72,71 +72,74 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Success Toast Banner -->
-            <Border Grid.Row="1" Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="9" Padding="14,10" Margin="0,0,0,16">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Visibility" Value="Collapsed"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding HasToastMessage}" Value="True">
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Path Grid.Column="0" Data="{StaticResource IconCheckCircle}" Fill="#059669" Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="1" Text="{Binding ToastMessage}" Foreground="#065F46" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                </Grid>
-            </Border>
+            <!-- Status & Test Alert Banners (Stacked to prevent visual collision) -->
+            <StackPanel Grid.Row="1">
+                <!-- Success Toast Banner -->
+                <Border Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="9" Padding="14,10" Margin="0,0,0,16">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasToastMessage}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Path Grid.Column="0" Data="{StaticResource IconCheckCircle}" Fill="#059669" Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding ToastMessage}" Foreground="#065F46" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    </Grid>
+                </Border>
 
-            <!-- Test Feedback Alert Banner -->
-            <Border Grid.Row="1" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="9" Padding="14,10" Margin="0,0,0,16">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Visibility" Value="Collapsed"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding HasTestStatus}" Value="True">
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Path Grid.Column="0" Data="{StaticResource IconInfo}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center">
-                        <Path.Style>
-                            <Style TargetType="Path">
-                                <Setter Property="Fill" Value="#0284C7"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding TestStatusIsError}" Value="True">
-                                        <Setter Property="Fill" Value="#EF4444"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Path.Style>
-                    </Path>
-                    <TextBlock Grid.Column="1" Text="{Binding TestStatusMessage}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="#1E40AF"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding TestStatusIsError}" Value="True">
-                                        <Setter Property="Foreground" Value="#B91C1C"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </Grid>
-            </Border>
+                <!-- Test Feedback Alert Banner -->
+                <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="9" Padding="14,10" Margin="0,0,0,16">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasTestStatus}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Path Grid.Column="0" Data="{StaticResource IconInfo}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center">
+                            <Path.Style>
+                                <Style TargetType="Path">
+                                    <Setter Property="Fill" Value="#0284C7"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding TestStatusIsError}" Value="True">
+                                            <Setter Property="Fill" Value="#EF4444"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Path.Style>
+                        </Path>
+                        <TextBlock Grid.Column="1" Text="{Binding TestStatusMessage}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#1E40AF"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding TestStatusIsError}" Value="True">
+                                            <Setter Property="Foreground" Value="#B91C1C"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+            </StackPanel>
 
             <!-- Main Content Container -->
             <StackPanel Grid.Row="2">

@@ -25,7 +25,7 @@
 | **Runtime Architecture** | Standalone In-Process OR Windows Service | Strict client-service requirement (`127.0.0.2:9696`) | Scheduled Task |
 | **ACME ARI Support** | ✅ RFC-draft ACME Renewal Information (ARI) | ✅ ARI supported | ⚠️ Basic schedule window |
 | **90-Day Renewal Gantt Chart** | 📊 Interactive 90-Day Horizon & Fleet Gantt Chart (Active, ARI 60-76d, Warning, Critical) | Basic date labels / single progress bar | Terminal dates only |
-| **Unit Test Coverage** | 134 automated xUnit tests passing | Closed source core / partial repo | Open source tests |
+| **Unit Test Coverage** | 150 automated xUnit tests passing | Closed source core / partial repo | Open source tests |
 
 ---
 

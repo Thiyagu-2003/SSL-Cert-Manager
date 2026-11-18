@@ -558,7 +558,7 @@
 
                 <!-- Copy Feedback Toast -->
                 <TextBlock Text="{Binding CopyNotification}" Foreground="#16A34A" FontWeight="Bold" Margin="0,0,0,10"
-                           Visibility="{Binding CopyNotification, Converter={x:Null}}"/>
+                           Visibility="{Binding HasCopyNotification, Converter={StaticResource BoolToVisConverter}}"/>
 
                 <!-- Service Instructions Card -->
                 <Border Style="{StaticResource GuideCard}">

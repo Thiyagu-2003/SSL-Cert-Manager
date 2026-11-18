@@ -21,6 +21,7 @@ public class NotificationsViewModel : ViewModelBase
     private bool _testStatusIsError;
     private string _toastMessage = string.Empty;
     private bool _hasToastMessage;
+    private int _toastId;
 
     // Subscriptions
     private bool _notifyOnExpiryWarning = true;
@@ -353,6 +354,7 @@ public class NotificationsViewModel : ViewModelBase
 
     public async Task LoadSettingsAsync()
     {
+        if (IsLoading) return;
         IsLoading = true;
         try
         {
@@ -518,7 +520,7 @@ public class NotificationsViewModel : ViewModelBase
         return new NotificationSettings
         {
             NotifyOnExpiryWarning = NotifyOnExpiryWarning,
-            ExpiryWarningDays = ExpiryWarningDays,
+            ExpiryWarningDays = ExpiryWarningDays > 0 ? ExpiryWarningDays : 14,
             NotifyOnRenewalSuccess = NotifyOnRenewalSuccess,
             NotifyOnRenewalFailure = NotifyOnRenewalFailure,
             NotifyOnManualIssuance = NotifyOnManualIssuance,
@@ -562,12 +564,16 @@ public class NotificationsViewModel : ViewModelBase
     {
         ToastMessage = message;
         HasToastMessage = true;
+        int currentId = System.Threading.Interlocked.Increment(ref _toastId);
 
         Task.Delay(4000).ContinueWith(_ =>
         {
             System.Windows.Application.Current?.Dispatcher.Invoke(() =>
             {
-                HasToastMessage = false;
+                if (_toastId == currentId)
+                {
+                    HasToastMessage = false;
+                }
             });
         });
     }

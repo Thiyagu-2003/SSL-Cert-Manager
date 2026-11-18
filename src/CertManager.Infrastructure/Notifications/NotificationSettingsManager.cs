@@ -21,10 +21,17 @@ public static class NotificationSettingsManager
             try { Directory.CreateDirectory(primaryDir); }
             catch
             {
-                primaryDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "CertManager");
-                Directory.CreateDirectory(primaryDir);
+                try
+                {
+                    primaryDir = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "CertManager");
+                    Directory.CreateDirectory(primaryDir);
+                }
+                catch
+                {
+                    primaryDir = AppContext.BaseDirectory;
+                }
             }
         }
 

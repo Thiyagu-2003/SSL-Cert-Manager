@@ -44,14 +44,30 @@ public class CertificateExportService : ICertificateExportService
                 return Task.FromResult(new CertificateExportResult(false, null, $"Certificate with thumbprint '{request.Thumbprint}' was not found in the Windows Certificate Store."));
             }
 
-            string domainSlug = !string.IsNullOrWhiteSpace(request.DomainName)
+            string rawSlug = !string.IsNullOrWhiteSpace(request.DomainName)
                 ? request.DomainName.Replace('*', '_').Trim()
                 : (cert.GetNameInfo(X509NameType.DnsName, false) ?? cert.Thumbprint);
+
+            string domainSlug = rawSlug;
+            foreach (char c in Path.GetInvalidFileNameChars())
+            {
+                domainSlug = domainSlug.Replace(c, '_');
+            }
+
+            if (string.IsNullOrWhiteSpace(domainSlug))
+            {
+                domainSlug = cert.Thumbprint;
+            }
 
             switch (request.Format)
             {
                 case CertificateExportFormat.Pfx:
                 {
+                    if (!cert.HasPrivateKey)
+                    {
+                        return Task.FromResult(new CertificateExportResult(false, null, "Certificate does not have an associated private key in the store. Cannot export PFX."));
+                    }
+
                     string targetFile = request.TargetDirectoryOrFilePath;
                     if (Directory.Exists(targetFile) || !Path.HasExtension(targetFile))
                     {
@@ -154,10 +170,13 @@ public class CertificateExportService : ICertificateExportService
         {
             machineStore.Open(OpenFlags.ReadOnly);
             var matches = machineStore.Certificates.Find(X509FindType.FindByThumbprint, cleanThumbprint, false);
+            X509Certificate2? found = null;
             if (matches.Count > 0)
             {
-                return new X509Certificate2(matches[0]);
+                found = new X509Certificate2(matches[0]);
             }
+            foreach (var m in matches) m.Dispose();
+            if (found != null) return found;
         }
         catch { }
 
@@ -167,10 +186,13 @@ public class CertificateExportService : ICertificateExportService
         {
             userStore.Open(OpenFlags.ReadOnly);
             var matches = userStore.Certificates.Find(X509FindType.FindByThumbprint, cleanThumbprint, false);
+            X509Certificate2? found = null;
             if (matches.Count > 0)
             {
-                return new X509Certificate2(matches[0]);
+                found = new X509Certificate2(matches[0]);
             }
+            foreach (var m in matches) m.Dispose();
+            if (found != null) return found;
         }
         catch { }
 

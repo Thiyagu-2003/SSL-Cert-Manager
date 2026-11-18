@@ -44,9 +44,12 @@ public class RenewalTimelineInfo
     public static RenewalTimelineInfo FromCertificate(CertificateRecord cert, DateTime? referenceTime = null)
     {
         ArgumentNullException.ThrowIfNull(cert);
-        DateTime now = referenceTime ?? DateTime.UtcNow;
+        DateTime now = referenceTime?.ToUniversalTime() ?? DateTime.UtcNow;
 
-        int totalDays = (int)Math.Max(1, Math.Round((cert.NotAfter - cert.NotBefore).TotalDays));
+        DateTime notBeforeUtc = cert.NotBefore.Kind == DateTimeKind.Local ? cert.NotBefore.ToUniversalTime() : cert.NotBefore;
+        DateTime notAfterUtc = cert.NotAfter.Kind == DateTimeKind.Local ? cert.NotAfter.ToUniversalTime() : cert.NotAfter;
+
+        int totalDays = (int)Math.Max(1, Math.Round((notAfterUtc - notBeforeUtc).TotalDays));
         
         // Standard Web PKI / ARI thresholds:
         // ARI Window starts at 66.7% of lifetime (Day 60 of 90)
@@ -56,16 +59,16 @@ public class RenewalTimelineInfo
         int warningStart = Math.Max(ariStart + 1, totalDays - 14);
         int criticalStart = Math.Max(warningStart + 1, totalDays - 3);
 
-        int elapsed = (int)Math.Round((now - cert.NotBefore).TotalDays);
-        int remaining = (int)Math.Max(0, Math.Round((cert.NotAfter - now).TotalDays));
+        int elapsed = (int)Math.Round((now - notBeforeUtc).TotalDays);
+        int remaining = (int)Math.Max(0, Math.Round((notAfterUtc - now).TotalDays));
 
         double progress;
-        if (now <= cert.NotBefore)
+        if (now <= notBeforeUtc)
         {
             progress = 0;
             elapsed = 0;
         }
-        else if (now >= cert.NotAfter)
+        else if (now >= notAfterUtc)
         {
             progress = 100;
             elapsed = totalDays;
@@ -73,7 +76,15 @@ public class RenewalTimelineInfo
         }
         else
         {
-            progress = Math.Clamp(((now - cert.NotBefore).TotalSeconds / (cert.NotAfter - cert.NotBefore).TotalSeconds) * 100.0, 0.0, 100.0);
+            double totalSeconds = (notAfterUtc - notBeforeUtc).TotalSeconds;
+            if (totalSeconds <= 0)
+            {
+                progress = 100;
+            }
+            else
+            {
+                progress = Math.Clamp(((now - notBeforeUtc).TotalSeconds / totalSeconds) * 100.0, 0.0, 100.0);
+            }
         }
 
         RenewalTimelineZone zone;
@@ -85,7 +96,7 @@ public class RenewalTimelineInfo
         bool inAri = false;
         int daysUntilAri = Math.Max(0, ariStart - elapsed);
 
-        if (now >= cert.NotAfter)
+        if (now >= notAfterUtc)
         {
             zone = RenewalTimelineZone.Expired;
             label = "EXPIRED";

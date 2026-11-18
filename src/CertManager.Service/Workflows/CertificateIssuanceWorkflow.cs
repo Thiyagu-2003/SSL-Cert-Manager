@@ -195,9 +195,37 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
                     if (isDnsValidation)
                     {
                         _logger.LogInformation("Provisioning DNS-01 challenge records...");
-                        IDnsProvider dnsProvider = string.Equals(request.DnsProvider, "Cloudflare", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(request.DnsApiToken)
-                            ? new CloudflareDnsProvider(request.DnsApiToken)
-                            : new ManualDnsProvider();
+                        IDnsProvider dnsProvider;
+                        if (string.Equals(request.DnsProvider, "Cloudflare", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(request.DnsApiToken))
+                        {
+                            dnsProvider = new CloudflareDnsProvider(request.DnsApiToken);
+                        }
+                        else if ((string.Equals(request.DnsProvider, "Route53", StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(request.DnsProvider, "AWS Route 53", StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(request.DnsProvider, "AWS", StringComparison.OrdinalIgnoreCase)) &&
+                                 !string.IsNullOrWhiteSpace(request.DnsApiToken))
+                        {
+                            var parts = request.DnsApiToken.Split(new[] { ':', ';' }, 2);
+                            string accessKey = parts[0];
+                            string secretKey = parts.Length > 1 ? parts[1] : parts[0];
+                            dnsProvider = new Route53DnsProvider(accessKey, secretKey);
+                        }
+                        else if ((string.Equals(request.DnsProvider, "Azure", StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(request.DnsProvider, "Azure DNS", StringComparison.OrdinalIgnoreCase)) &&
+                                 !string.IsNullOrWhiteSpace(request.DnsApiToken))
+                        {
+                            var parts = request.DnsApiToken.Split(new[] { ':', ';' }, 5);
+                            string subId = parts[0];
+                            string rg = parts.Length > 1 ? parts[1] : "default-rg";
+                            string clientId = parts.Length > 2 ? parts[2] : "client-id";
+                            string clientSecret = parts.Length > 3 ? parts[3] : "secret";
+                            string tenantId = parts.Length > 4 ? parts[4] : "tenant-id";
+                            dnsProvider = new AzureDnsProvider(subId, rg, clientId, clientSecret, tenantId);
+                        }
+                        else
+                        {
+                            dnsProvider = new ManualDnsProvider();
+                        }
 
                         foreach (var ch in challenges)
                         {
@@ -552,7 +580,7 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
         {
             using var loopbackReq = new HttpRequestMessage(HttpMethod.Get, $"http://127.0.0.1/.well-known/acme-challenge/{token}");
             loopbackReq.Headers.Host = domain;
-            var response = await httpClient.SendAsync(loopbackReq, cancellationToken);
+            using var response = await httpClient.SendAsync(loopbackReq, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
                 string body = (await response.Content.ReadAsStringAsync(cancellationToken)).Trim();
@@ -573,7 +601,7 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
         {
             try
             {
-                var response = await httpClient.GetAsync($"http://{domain}/.well-known/acme-challenge/{token}", cancellationToken);
+                using var response = await httpClient.GetAsync($"http://{domain}/.well-known/acme-challenge/{token}", cancellationToken);
                 if (response.IsSuccessStatusCode)
                 {
                     string body = (await response.Content.ReadAsStringAsync(cancellationToken)).Trim();

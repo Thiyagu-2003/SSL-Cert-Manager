@@ -51,6 +51,8 @@ public class UserSettingsService
 
     public void SaveSettings(UserSettings settings)
     {
+        ArgumentNullException.ThrowIfNull(settings);
+
         try
         {
             _settings = settings;

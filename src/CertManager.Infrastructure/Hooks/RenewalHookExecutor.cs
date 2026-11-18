@@ -46,11 +46,16 @@ public class RenewalHookExecutor : IRenewalHookExecutor
         }
 
         string rawArgs = config.Arguments ?? string.Empty;
+        string resolvedDomain = domain ?? string.Empty;
+        string resolvedThumbprint = thumbprint ?? string.Empty;
+        string resolvedPfx = pfxPath ?? string.Empty;
+        string resolvedExpires = expires?.ToString("yyyy-MM-dd") ?? string.Empty;
+
         string resolvedArgs = rawArgs
-            .Replace("{Domain}", domain, StringComparison.OrdinalIgnoreCase)
-            .Replace("{Thumbprint}", thumbprint, StringComparison.OrdinalIgnoreCase)
-            .Replace("{PfxPath}", pfxPath ?? string.Empty, StringComparison.OrdinalIgnoreCase)
-            .Replace("{Expires}", expires?.ToString("yyyy-MM-dd") ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+            .Replace("{Domain}", resolvedDomain, StringComparison.OrdinalIgnoreCase)
+            .Replace("{Thumbprint}", resolvedThumbprint, StringComparison.OrdinalIgnoreCase)
+            .Replace("{PfxPath}", resolvedPfx, StringComparison.OrdinalIgnoreCase)
+            .Replace("{Expires}", resolvedExpires, StringComparison.OrdinalIgnoreCase);
 
         try
         {
@@ -61,10 +66,22 @@ public class RenewalHookExecutor : IRenewalHookExecutor
                     break;
 
                 case RenewalHookType.PowerShellScript:
+                    if (config.ScriptOrTarget.EndsWith(".ps1", StringComparison.OrdinalIgnoreCase) && !File.Exists(config.ScriptOrTarget))
+                    {
+                        result.Success = false;
+                        result.StandardError = $"PowerShell script file '{config.ScriptOrTarget}' not found.";
+                        return result;
+                    }
                     await ExecuteProcessAsync("powershell.exe", $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"{config.ScriptOrTarget}\" {resolvedArgs}", config.TimeoutSeconds, result, cancellationToken);
                     break;
 
                 case RenewalHookType.BatchScript:
+                    if ((config.ScriptOrTarget.EndsWith(".bat", StringComparison.OrdinalIgnoreCase) || config.ScriptOrTarget.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase)) && !File.Exists(config.ScriptOrTarget))
+                    {
+                        result.Success = false;
+                        result.StandardError = $"Batch script file '{config.ScriptOrTarget}' not found.";
+                        return result;
+                    }
                     await ExecuteProcessAsync("cmd.exe", $"/c \"{config.ScriptOrTarget}\" {resolvedArgs}", config.TimeoutSeconds, result, cancellationToken);
                     break;
 
@@ -121,6 +138,7 @@ public class RenewalHookExecutor : IRenewalHookExecutor
         try
         {
             await process.WaitForExitAsync(linkedCts.Token);
+            process.WaitForExit();
             result.ExitCode = process.ExitCode;
             result.Success = (process.ExitCode == 0);
             result.StandardOutput = stdout.ToString().Trim();
@@ -140,6 +158,14 @@ public class RenewalHookExecutor : IRenewalHookExecutor
         HookExecutionResult result, 
         CancellationToken cancellationToken)
     {
+        // Sanitize service name against command injection
+        if (string.IsNullOrWhiteSpace(serviceName) || serviceName.IndexOfAny(new[] { '&', '|', ';', '"', '<', '>', '\r', '\n' }) >= 0)
+        {
+            result.Success = false;
+            result.StandardError = "Invalid service name for Windows Service restart.";
+            return;
+        }
+
         // Safe command line restart via net.exe
         await ExecuteProcessAsync("cmd.exe", $"/c net stop \"{serviceName}\" & net start \"{serviceName}\"", 30, result, cancellationToken);
     }

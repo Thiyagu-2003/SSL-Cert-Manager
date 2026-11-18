@@ -295,7 +295,11 @@ public class CertificatesViewModel : ViewModelBase
 
         try
         {
-            string exportDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "CertFlow_Exports");
+            string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string baseExportDir = string.IsNullOrWhiteSpace(userProfile)
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CertFlow")
+                : userProfile;
+            string exportDir = Path.Combine(baseExportDir, "Downloads", "CertFlow_Exports");
             Directory.CreateDirectory(exportDir);
 
             var req = new CertificateExportRequest(
@@ -412,6 +416,10 @@ public class CertificatesViewModel : ViewModelBase
                     });
                 }
                 catch { }
+            }
+            else
+            {
+                StatusMessage = "Failed to create encrypted vault backup archive.";
             }
         }
         catch (Exception ex)

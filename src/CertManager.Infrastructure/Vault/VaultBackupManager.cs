@@ -36,34 +36,47 @@ public class VaultBackupManager : IVaultBackupManager
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
         ArgumentException.ThrowIfNullOrWhiteSpace(passphrase);
 
+        string? parentDir = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
+        {
+            Directory.CreateDirectory(parentDir);
+        }
+
         var package = new VaultExportPackage
         {
             PayloadJson = payloadJson ?? "{}"
         };
 
         byte[] plainBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(package));
-
         byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
         byte[] nonce = RandomNumberGenerator.GetBytes(NonceSize);
         byte[] key = Rfc2898DeriveBytes.Pbkdf2(passphrase, salt, Iterations, HashAlgorithmName.SHA256, KeySize);
 
-        byte[] ciphertext = new byte[plainBytes.Length];
-        byte[] tag = new byte[TagSize];
-
-        using (var aesGcm = new AesGcm(key, TagSize))
+        try
         {
-            aesGcm.Encrypt(nonce, plainBytes, ciphertext, tag);
+            byte[] ciphertext = new byte[plainBytes.Length];
+            byte[] tag = new byte[TagSize];
+
+            using (var aesGcm = new AesGcm(key, TagSize))
+            {
+                aesGcm.Encrypt(nonce, plainBytes, ciphertext, tag);
+            }
+
+            // File format: [Salt: 16] [Nonce: 12] [Tag: 16] [Ciphertext: N]
+            using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
+            await fs.WriteAsync(salt, cancellationToken);
+            await fs.WriteAsync(nonce, cancellationToken);
+            await fs.WriteAsync(tag, cancellationToken);
+            await fs.WriteAsync(ciphertext, cancellationToken);
+            await fs.FlushAsync(cancellationToken);
+
+            return true;
         }
-
-        // File format: [Salt: 16] [Nonce: 12] [Tag: 16] [Ciphertext: N]
-        using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
-        await fs.WriteAsync(salt, cancellationToken);
-        await fs.WriteAsync(nonce, cancellationToken);
-        await fs.WriteAsync(tag, cancellationToken);
-        await fs.WriteAsync(ciphertext, cancellationToken);
-        await fs.FlushAsync(cancellationToken);
-
-        return true;
+        finally
+        {
+            CryptographicOperations.ZeroMemory(key);
+            CryptographicOperations.ZeroMemory(plainBytes);
+        }
     }
 
     public async Task<string> ImportVaultFromFileAsync(string filePath, string passphrase, CancellationToken cancellationToken = default)
@@ -90,21 +103,37 @@ public class VaultBackupManager : IVaultBackupManager
         byte[] ciphertext = fileBytes[(SaltSize + NonceSize + TagSize)..];
 
         byte[] key = Rfc2898DeriveBytes.Pbkdf2(passphrase, salt, Iterations, HashAlgorithmName.SHA256, KeySize);
-
         byte[] plainBytes = new byte[ciphertext.Length];
-        using (var aesGcm = new AesGcm(key, TagSize))
+
+        try
         {
-            aesGcm.Decrypt(nonce, ciphertext, tag, plainBytes);
+            using (var aesGcm = new AesGcm(key, TagSize))
+            {
+                aesGcm.Decrypt(nonce, ciphertext, tag, plainBytes);
+            }
+
+            string json = Encoding.UTF8.GetString(plainBytes);
+            VaultExportPackage? package;
+            try
+            {
+                package = JsonSerializer.Deserialize<VaultExportPackage>(json);
+            }
+            catch (JsonException ex)
+            {
+                throw new CryptographicException("Decrypted vault payload is malformed.", ex);
+            }
+
+            if (package == null || package.Magic != "CERTFLOW_VAULT_V1")
+            {
+                throw new CryptographicException("Unrecognized vault backup header or corrupted payload.");
+            }
+
+            return package.PayloadJson;
         }
-
-        string json = Encoding.UTF8.GetString(plainBytes);
-        var package = JsonSerializer.Deserialize<VaultExportPackage>(json);
-
-        if (package == null || package.Magic != "CERTFLOW_VAULT_V1")
+        finally
         {
-            throw new CryptographicException("Unrecognized vault backup header or corrupted payload.");
+            CryptographicOperations.ZeroMemory(key);
+            CryptographicOperations.ZeroMemory(plainBytes);
         }
-
-        return package.PayloadJson;
     }
 }

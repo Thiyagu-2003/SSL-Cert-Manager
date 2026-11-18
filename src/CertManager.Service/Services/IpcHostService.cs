@@ -13,8 +13,10 @@ using CertManager.Core.Ipc;
 using CertManager.Core.Models;
 using CertManager.Infrastructure.Certificates;
 using CertManager.Infrastructure.Data;
+using CertManager.Infrastructure.Diagnostics;
 using CertManager.Infrastructure.Ipc;
 using CertManager.Infrastructure.Notifications;
+using CertManager.Infrastructure.Rds;
 using CertManager.Integrations.Iis;
 using CertManager.Service.Workflows;
 using Microsoft.EntityFrameworkCore;
@@ -339,6 +341,95 @@ public class IpcHostService : BackgroundService
 
                     var testResult = await NotificationDispatcher.SendTestAlertAsync(testReq);
                     return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(testResult, JsonOptions));
+                }
+
+                case "GetRdsStatus":
+                {
+                    var rdsBinder = _serviceProvider.GetService<IRdsCertificateBinder>()
+                        ?? scope.ServiceProvider.GetService<IRdsCertificateBinder>()
+                        ?? new RdsCertificateBinder();
+                    var info = await rdsBinder.GetCurrentRdsCertificateAsync();
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(info, JsonOptions));
+                }
+
+                case "BindRdsCertificate":
+                {
+                    if (string.IsNullOrWhiteSpace(request.PayloadJson))
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Payload required: { thumbprint }.");
+                    }
+                    string? thumbprint = null;
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(request.PayloadJson);
+                        if (doc.RootElement.ValueKind == JsonValueKind.String)
+                        {
+                            thumbprint = doc.RootElement.GetString();
+                        }
+                        else if (doc.RootElement.TryGetProperty("thumbprint", out var p) || doc.RootElement.TryGetProperty("Thumbprint", out p))
+                        {
+                            thumbprint = p.GetString();
+                        }
+                    }
+                    catch
+                    {
+                        thumbprint = request.PayloadJson.Trim('"', ' ');
+                    }
+
+                    if (string.IsNullOrWhiteSpace(thumbprint))
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Thumbprint cannot be empty.");
+                    }
+
+                    var rdsBinder = _serviceProvider.GetService<IRdsCertificateBinder>()
+                        ?? scope.ServiceProvider.GetService<IRdsCertificateBinder>()
+                        ?? new RdsCertificateBinder();
+                    var bindResult = await rdsBinder.BindCertificateToRdsAsync(thumbprint);
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(bindResult, JsonOptions));
+                }
+
+                case "InspectLiveTls":
+                {
+                    if (string.IsNullOrWhiteSpace(request.PayloadJson))
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Payload required: { domain, port }.");
+                    }
+                    string domain = "";
+                    int port = 443;
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(request.PayloadJson);
+                        if (doc.RootElement.ValueKind == JsonValueKind.String)
+                        {
+                            domain = doc.RootElement.GetString() ?? "";
+                        }
+                        else
+                        {
+                            if (doc.RootElement.TryGetProperty("domain", out var dp) || doc.RootElement.TryGetProperty("Domain", out dp))
+                            {
+                                domain = dp.GetString() ?? "";
+                            }
+                            if (doc.RootElement.TryGetProperty("port", out var pp) || doc.RootElement.TryGetProperty("Port", out pp))
+                            {
+                                port = pp.GetInt32();
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        domain = request.PayloadJson.Trim('"', ' ');
+                    }
+
+                    if (string.IsNullOrWhiteSpace(domain))
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Domain is required.");
+                    }
+
+                    var tlsInspector = _serviceProvider.GetService<ILiveTlsInspector>()
+                        ?? scope.ServiceProvider.GetService<ILiveTlsInspector>()
+                        ?? new LiveTlsInspector();
+                    var inspection = await tlsInspector.InspectLiveDomainAsync(domain, port);
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(inspection, JsonOptions));
                 }
 
                 default:

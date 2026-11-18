@@ -24,12 +24,19 @@ public static class FileLoggerHelper
         }
         catch
         {
-            string fallback = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "CertManager",
-                "Logs");
-            Directory.CreateDirectory(fallback);
-            return fallback;
+            try
+            {
+                string fallback = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "CertManager",
+                    "Logs");
+                Directory.CreateDirectory(fallback);
+                return fallback;
+            }
+            catch
+            {
+                return AppContext.BaseDirectory;
+            }
         }
     }
 
@@ -53,7 +60,11 @@ public static class FileLoggerHelper
                     try { File.Move(path, oldPath); } catch { /* ignore */ }
                 }
 
-                string entry = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC] [{level.ToUpperInvariant()}] {subject}: {body}{Environment.NewLine}";
+                string safeLevel = (level ?? "INFO").ToUpperInvariant();
+                string safeSubject = subject ?? string.Empty;
+                string safeBody = body ?? string.Empty;
+
+                string entry = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC] [{safeLevel}] {safeSubject}: {safeBody}{Environment.NewLine}";
                 File.AppendAllText(path, entry);
             }
         }

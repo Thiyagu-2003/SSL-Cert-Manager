@@ -23,9 +23,26 @@ public class LiveTlsInspector : ILiveTlsInspector
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(domain);
 
+        string cleanDomain = domain.Trim();
+        if (cleanDomain.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            cleanDomain = cleanDomain.Substring(7);
+        else if (cleanDomain.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            cleanDomain = cleanDomain.Substring(8);
+
+        int slashIdx = cleanDomain.IndexOf('/');
+        if (slashIdx >= 0)
+            cleanDomain = cleanDomain.Substring(0, slashIdx);
+
+        int colonIdx = cleanDomain.LastIndexOf(':');
+        if (colonIdx > 0 && int.TryParse(cleanDomain.Substring(colonIdx + 1), out int parsedPort))
+        {
+            port = parsedPort;
+            cleanDomain = cleanDomain.Substring(0, colonIdx);
+        }
+
         var result = new LiveTlsInspectionResult
         {
-            Domain = domain.Trim(),
+            Domain = cleanDomain,
             Port = port
         };
 
@@ -58,17 +75,22 @@ public class LiveTlsInspector : ILiveTlsInspector
             result.NegotiatedProtocol = sslStream.SslProtocol.ToString();
             result.CipherSuite = $"{sslStream.NegotiatedCipherSuite}";
 
-            if (sslStream.RemoteCertificate is X509Certificate2 cert)
+            if (sslStream.RemoteCertificate != null)
             {
+                using var cert = new X509Certificate2(sslStream.RemoteCertificate);
                 result.CertificateSubject = cert.Subject;
                 result.CertificateIssuer = cert.Issuer;
                 result.CertificateThumbprint = cert.Thumbprint;
-                result.ValidFrom = cert.NotBefore;
-                result.ValidTo = cert.NotAfter;
 
-                var remaining = cert.NotAfter - DateTime.UtcNow;
+                DateTime notBeforeUtc = cert.NotBefore.Kind == DateTimeKind.Local ? cert.NotBefore.ToUniversalTime() : cert.NotBefore;
+                DateTime notAfterUtc = cert.NotAfter.Kind == DateTimeKind.Local ? cert.NotAfter.ToUniversalTime() : cert.NotAfter;
+
+                result.ValidFrom = notBeforeUtc;
+                result.ValidTo = notAfterUtc;
+
+                var remaining = notAfterUtc - DateTime.UtcNow;
                 result.DaysRemaining = (int)Math.Max(0, remaining.TotalDays);
-                result.IsExpired = DateTime.UtcNow > cert.NotAfter;
+                result.IsExpired = DateTime.UtcNow > notAfterUtc;
                 result.IsSelfSigned = string.Equals(cert.Subject, cert.Issuer, StringComparison.OrdinalIgnoreCase);
 
                 // Build Chain
@@ -100,9 +122,10 @@ public class LiveTlsInspector : ILiveTlsInspector
                 await sslStream.WriteAsync(requestBytes, linkedCts.Token);
                 await sslStream.FlushAsync(linkedCts.Token);
 
-                using var reader = new StreamReader(sslStream, Encoding.ASCII);
+                using var reader = new StreamReader(sslStream, Encoding.ASCII, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true);
                 string? line;
-                while (!string.IsNullOrEmpty(line = await reader.ReadLineAsync(linkedCts.Token)))
+                int linesRead = 0;
+                while (!string.IsNullOrEmpty(line = await reader.ReadLineAsync(linkedCts.Token)) && linesRead++ < 100)
                 {
                     if (line.StartsWith("Strict-Transport-Security:", StringComparison.OrdinalIgnoreCase))
                     {
@@ -138,6 +161,14 @@ public class LiveTlsInspector : ILiveTlsInspector
         {
             res.OverallGrade = "F";
             res.GradeExplanation = "Handshake Failed";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(res.CertificateThumbprint))
+        {
+            res.OverallGrade = "F";
+            res.GradeExplanation = "No Server Certificate Presented";
+            res.Findings.Add("No TLS certificate was presented by the remote server.");
             return;
         }
 

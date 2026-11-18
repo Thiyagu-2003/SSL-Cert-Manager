@@ -2,6 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Certes;
@@ -19,6 +22,9 @@ public record AcmeChallengeItem(
     string ChallengeType, // "http-01" or "dns-01"
     IChallengeContext ChallengeContext);
 
+public record AriRenewalWindow(DateTime Start, DateTime End);
+public record AriRenewalInfo(AriRenewalWindow SuggestedWindow, string? ExplanationUrl);
+
 public interface IAcmeCertificateClient
 {
     Task<string> InitializeAccountAsync(string email, bool isStaging, CancellationToken cancellationToken = default);
@@ -29,10 +35,12 @@ public interface IAcmeCertificateClient
         CancellationToken cancellationToken = default);
     Task<bool> SubmitChallengeAsync(AcmeChallengeItem challengeItem, CancellationToken cancellationToken = default);
     Task<byte[]> FinalizeOrderAndExportPfxAsync(string friendlyName, string password, IReadOnlyList<string>? sanDomains = null, string keyAlgorithm = "RS256", CancellationToken cancellationToken = default);
+    Task<AriRenewalInfo?> GetRenewalInfoAsync(string certificateSerialOrId, CancellationToken cancellationToken = default) => Task.FromResult<AriRenewalInfo?>(null);
 }
 
 public class CertesAcmeClient : IAcmeCertificateClient
 {
+    private static readonly HttpClient SharedHttpClient = new();
     private AcmeContext? _context;
     private IOrderContext? _currentOrder;
     private readonly SemaphoreSlim _syncLock = new(1, 1);
@@ -280,6 +288,80 @@ public class CertesAcmeClient : IAcmeCertificateClient
         {
             _syncLock.Release();
         }
+    }
+
+    public async Task<AriRenewalInfo?> GetRenewalInfoAsync(string certificateSerialOrId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(certificateSerialOrId) || _context == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            // 1. Query ACME directory to locate renewalInfo endpoint (RFC draft-ietf-acme-ari)
+            using var dirReq = new HttpRequestMessage(HttpMethod.Get, _context.DirectoryUri);
+            dirReq.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            using var dirResp = await SharedHttpClient.SendAsync(dirReq, cancellationToken);
+            if (!dirResp.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            var dirContent = await dirResp.Content.ReadAsStringAsync(cancellationToken);
+            using var dirDoc = JsonDocument.Parse(dirContent);
+            if (!dirDoc.RootElement.TryGetProperty("renewalInfo", out var renewalInfoProp))
+            {
+                return null;
+            }
+
+            string? renewalInfoEndpoint = renewalInfoProp.GetString();
+            if (string.IsNullOrWhiteSpace(renewalInfoEndpoint))
+            {
+                return null;
+            }
+
+            // Clean cert ID (remove colons or spaces)
+            string cleanId = certificateSerialOrId.Replace(":", "").Replace(" ", "").Trim();
+            string ariUrl = $"{renewalInfoEndpoint.TrimEnd('/')}/{cleanId}";
+
+            using var ariReq = new HttpRequestMessage(HttpMethod.Get, ariUrl);
+            ariReq.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            using var ariResp = await SharedHttpClient.SendAsync(ariReq, cancellationToken);
+            if (!ariResp.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            var ariContent = await ariResp.Content.ReadAsStringAsync(cancellationToken);
+            using var ariDoc = JsonDocument.Parse(ariContent);
+            var root = ariDoc.RootElement;
+
+            if (root.TryGetProperty("suggestedWindow", out var windowProp))
+            {
+                if (windowProp.TryGetProperty("start", out var startProp) &&
+                    windowProp.TryGetProperty("end", out var endProp) &&
+                    startProp.TryGetDateTime(out var start) &&
+                    endProp.TryGetDateTime(out var end))
+                {
+                    string? explanationUrl = root.TryGetProperty("explanationURL", out var expProp)
+                        ? expProp.GetString()
+                        : null;
+
+                    return new AriRenewalInfo(new AriRenewalWindow(start, end), explanationUrl);
+                }
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch
+        {
+            // Non-fatal if CA does not implement ARI or cert not found
+        }
+
+        return null;
     }
 
     private static string FormatAcmeError(AcmeError? error, string defaultMessage)

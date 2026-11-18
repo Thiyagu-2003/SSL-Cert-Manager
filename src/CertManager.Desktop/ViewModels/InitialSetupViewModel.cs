@@ -57,9 +57,12 @@ public class InitialSetupViewModel : ViewModelBase
         get => _isStaging;
         set
         {
-            if (SetProperty(ref _isStaging, value) && value)
+            if (value && !_isStaging)
             {
-                IsProduction = false;
+                _isStaging = true;
+                _isProduction = false;
+                OnPropertyChanged(nameof(IsStaging));
+                OnPropertyChanged(nameof(IsProduction));
             }
         }
     }
@@ -69,9 +72,12 @@ public class InitialSetupViewModel : ViewModelBase
         get => _isProduction;
         set
         {
-            if (SetProperty(ref _isProduction, value) && value)
+            if (value && !_isProduction)
             {
-                IsStaging = false;
+                _isProduction = true;
+                _isStaging = false;
+                OnPropertyChanged(nameof(IsProduction));
+                OnPropertyChanged(nameof(IsStaging));
             }
         }
     }

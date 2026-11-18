@@ -124,11 +124,16 @@ public class Worker : BackgroundService
                 if (!_lastExpiryAlertSent.TryGetValue(cert.CertificateId, out var lastSent) || (now - lastSent).TotalHours >= 24)
                 {
                     _lastExpiryAlertSent[cert.CertificateId] = now;
-                    await notifier.SendAsync(new NotificationMessage(
-                        $"Certificate Expiring Soon ({domain})",
-                        $"Certificate for {cert.Subject} expires on {cert.NotAfter:yyyy-MM-dd HH:mm UTC} (in {(cert.NotAfter - now).TotalDays:F1} days). Automated renewal scheduled.",
-                        "Warning"
-                    ), cancellationToken);
+                    bool isAlreadyExpired = cert.NotAfter <= now;
+                    string alertSubject = isAlreadyExpired
+                        ? $"Certificate Expired ({domain})"
+                        : $"Certificate Expiring Soon ({domain})";
+                    string alertLevel = isAlreadyExpired ? "Error" : "Warning";
+                    string alertBody = isAlreadyExpired
+                        ? $"Certificate for {cert.Subject} expired on {cert.NotAfter:yyyy-MM-dd HH:mm UTC}. Automated renewal attempt is underway."
+                        : $"Certificate for {cert.Subject} expires on {cert.NotAfter:yyyy-MM-dd HH:mm UTC} (in {(cert.NotAfter - now).TotalDays:F1} days). Automated renewal scheduled.";
+
+                    await notifier.SendAsync(new NotificationMessage(alertSubject, alertBody, alertLevel), cancellationToken);
                 }
             }
 

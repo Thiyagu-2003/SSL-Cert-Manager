@@ -51,16 +51,23 @@ public class RdsCertificateBinder : IRdsCertificateBinder
                 using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                 store.Open(OpenFlags.ReadOnly);
                 var certs = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
-                if (certs.Count > 0)
+                try
                 {
-                    var cert = certs[0];
-                    info.CurrentCertSubject = cert.Subject;
-                    info.CurrentCertExpires = cert.NotAfter;
-                    info.StatusMessage = $"RDP is currently bound to: {cert.Subject} (Expires: {cert.NotAfter:yyyy-MM-dd})";
+                    if (certs.Count > 0)
+                    {
+                        var cert = certs[0];
+                        info.CurrentCertSubject = cert.Subject;
+                        info.CurrentCertExpires = cert.NotAfter.Kind == DateTimeKind.Local ? cert.NotAfter.ToUniversalTime() : cert.NotAfter;
+                        info.StatusMessage = $"RDP is currently bound to: {cert.Subject} (Expires: {info.CurrentCertExpires:yyyy-MM-dd})";
+                    }
+                    else
+                    {
+                        info.StatusMessage = $"RDP is configured with thumbprint {thumbprint}, but certificate was not found in LocalMachine\\My.";
+                    }
                 }
-                else
+                finally
                 {
-                    info.StatusMessage = $"RDP is configured with thumbprint {thumbprint}, but certificate was not found in LocalMachine\\My.";
+                    foreach (var c in certs) c.Dispose();
                 }
             }
             else
@@ -90,17 +97,31 @@ public class RdsCertificateBinder : IRdsCertificateBinder
             return Task.FromResult(result);
         }
 
+        if (cleanThumb.Length != 40 || !cleanThumb.All(c => (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F')))
+        {
+            result.Success = false;
+            result.Message = "Thumbprint must be a valid 40-character SHA-1 hex string.";
+            return Task.FromResult(result);
+        }
+
         try
         {
             // Verify certificate exists in LocalMachine\My
             using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
             store.Open(OpenFlags.ReadOnly);
             var matches = store.Certificates.Find(X509FindType.FindByThumbprint, cleanThumb, false);
-            if (matches.Count == 0)
+            try
             {
-                result.Success = false;
-                result.Message = $"Certificate with thumbprint {cleanThumb} was not found in LocalMachine\\My store.";
-                return Task.FromResult(result);
+                if (matches.Count == 0)
+                {
+                    result.Success = false;
+                    result.Message = $"Certificate with thumbprint {cleanThumb} was not found in LocalMachine\\My store.";
+                    return Task.FromResult(result);
+                }
+            }
+            finally
+            {
+                foreach (var m in matches) m.Dispose();
             }
 
             byte[] hashBytes = Convert.FromHexString(cleanThumb);
@@ -125,6 +146,11 @@ public class RdsCertificateBinder : IRdsCertificateBinder
 
             result.Success = true;
             result.Message = $"Successfully bound certificate {cleanThumb} to Windows Remote Desktop (RDP-Tcp) listener.";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            result.Success = false;
+            result.Message = "Administrator elevation required to update Remote Desktop (RDP-Tcp) registry settings.";
         }
         catch (Exception ex)
         {
