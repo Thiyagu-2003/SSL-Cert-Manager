@@ -78,6 +78,7 @@ public static class ServiceHostBuilder
 
         builder.Services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
         builder.Services.AddSingleton<IIisServerAdapter, IisServerAdapter>();
+        builder.Services.AddSingleton<IHttpChallengeServer, HttpChallengeServer>();
         builder.Services.AddSingleton<IHttp01ChallengeResponder, Http01ChallengeResponder>();
         builder.Services.AddSingleton<IAcmeCertificateClient, CertesAcmeClient>();
         builder.Services.AddSingleton<ICertificateInstaller, WindowsCertificateInstaller>();

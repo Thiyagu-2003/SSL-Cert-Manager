@@ -37,6 +37,7 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
     private readonly ICertificateInstaller _installer;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<CertificateIssuanceWorkflow> _logger;
+    private readonly IHttpChallengeServer? _httpChallengeServer;
     private readonly SemaphoreSlim _workflowLock = new(1, 1);
 
     public CertificateIssuanceWorkflow(
@@ -45,7 +46,8 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
         IHttp01ChallengeResponder challengeResponder,
         ICertificateInstaller installer,
         IServiceProvider serviceProvider,
-        ILogger<CertificateIssuanceWorkflow> logger)
+        ILogger<CertificateIssuanceWorkflow> logger,
+        IHttpChallengeServer? httpChallengeServer = null)
     {
         _acmeClient = acmeClient;
         _iisAdapter = iisAdapter;
@@ -53,6 +55,7 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
         _installer = installer;
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _httpChallengeServer = httpChallengeServer;
     }
 
     public async Task<CertificateRequestStatusResult> ExecuteAsync(
@@ -89,6 +92,7 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
 
         // Track created DNS records for safe cleanup
         var dnsRecordsToCleanup = new List<(IDnsProvider Provider, string ZoneId, string RecordId)>();
+        var challenges = new List<AcmeChallengeItem>();
 
         try
         {
@@ -126,7 +130,6 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
             byte[] pfxBytes;
             string thumbprint;
             DateTime notAfter;
-            var challenges = new List<AcmeChallengeItem>();
 
             if (isSelfSigned)
             {
@@ -244,10 +247,31 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
                             }
                         }
 
+                        // 4a. Start embedded HTTP.sys challenge server (intercepts /.well-known/acme-challenge/* on port 80)
+                        if (_httpChallengeServer != null)
+                        {
+                            try
+                            {
+                                await _httpChallengeServer.StartAsync(cancellationToken);
+                            }
+                            catch (Exception srvEx)
+                            {
+                                _logger.LogWarning(srvEx, "Embedded HTTP challenge server could not be started: {Message}", srvEx.Message);
+                            }
+                        }
+
+                        // 4b. Register token in embedded server & provision files on disk
                         foreach (var ch in challenges)
                         {
+                            _httpChallengeServer?.RegisterToken(ch.Token, ch.KeyAuthorization);
                             await _challengeResponder.ProvisionChallengeAsync(webRoot, ch.Token, ch.KeyAuthorization, cancellationToken);
                             _logger.LogInformation("Provisioned HTTP-01 challenge token for {Domain}", ch.Domain);
+                        }
+
+                        // 4c. Pre-flight verification self-check (local HTTP probe before notifying Let's Encrypt)
+                        foreach (var ch in challenges)
+                        {
+                            await PerformPreflightCheckAsync(ch, cancellationToken);
                         }
                     }
 
@@ -365,6 +389,20 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
         }
         finally
         {
+            // Clean up embedded challenge server tokens and shutdown listener
+            if (_httpChallengeServer != null)
+            {
+                foreach (var ch in challenges)
+                {
+                    _httpChallengeServer.UnregisterToken(ch.Token);
+                }
+                try
+                {
+                    await _httpChallengeServer.StopAsync(CancellationToken.None);
+                }
+                catch { /* Non-fatal */ }
+            }
+
             // Clean up any DNS records created during the challenge so only owned challenge records are cleaned up
             foreach (var (provider, zoneId, recordId) in dnsRecordsToCleanup)
             {
@@ -459,6 +497,65 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Could not record issued certificate in database: {Message}", ex.Message);
+        }
+    }
+
+    private async Task PerformPreflightCheckAsync(AcmeChallengeItem challenge, CancellationToken cancellationToken)
+    {
+        string token = challenge.Token;
+        string expectedAuthz = challenge.KeyAuthorization;
+        string domain = challenge.Domain;
+
+        _logger.LogInformation("Starting pre-flight validation self-check for '{Domain}'...", domain);
+
+        using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+
+        // Test 1: HTTP.sys / IIS local loopback (127.0.0.1 with Host header)
+        bool verified = false;
+        try
+        {
+            using var loopbackReq = new HttpRequestMessage(HttpMethod.Get, $"http://127.0.0.1/.well-known/acme-challenge/{token}");
+            loopbackReq.Headers.Host = domain;
+            var response = await httpClient.SendAsync(loopbackReq, cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                string body = (await response.Content.ReadAsStringAsync(cancellationToken)).Trim();
+                if (body == expectedAuthz || body.StartsWith(token, StringComparison.Ordinal))
+                {
+                    verified = true;
+                    _logger.LogInformation("Pre-flight self-check passed: Local loopback verified HTTP-01 challenge response for '{Domain}' (HTTP 200).", domain);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug("Local loopback pre-flight probe: {Message}", ex.Message);
+        }
+
+        // Test 2: Direct domain probe if loopback was not conclusive
+        if (!verified)
+        {
+            try
+            {
+                var response = await httpClient.GetAsync($"http://{domain}/.well-known/acme-challenge/{token}", cancellationToken);
+                if (response.IsSuccessStatusCode)
+                {
+                    string body = (await response.Content.ReadAsStringAsync(cancellationToken)).Trim();
+                    if (body == expectedAuthz || body.StartsWith(token, StringComparison.Ordinal))
+                    {
+                        verified = true;
+                        _logger.LogInformation("Pre-flight self-check passed: Direct probe verified HTTP-01 challenge response for '{Domain}' (HTTP 200).", domain);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Pre-flight probe warning for '{Domain}': Received HTTP {StatusCode}. If Let's Encrypt validation fails, verify router port 80 forwarding and IIS bindings.", domain, (int)response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Pre-flight probe warning for '{Domain}': {Message}. Ensure port 80 is forwarded to this machine and publicly accessible.", domain, ex.Message);
+            }
         }
     }
 }

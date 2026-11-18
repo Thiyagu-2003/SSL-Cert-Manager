@@ -58,6 +58,25 @@ public class MwaBindingTests
     }
 
     [Fact]
+    public void HttpChallengeServer_RegistersAndUnregistersTokensSafely()
+    {
+        using var server = new HttpChallengeServer(NullLogger<HttpChallengeServer>.Instance);
+        server.IsListening.Should().BeFalse();
+
+        server.RegisterToken("token123", "auth123");
+        server.UnregisterToken("token123");
+        server.UnregisterToken("nonexistent");
+    }
+
+    [Fact]
+    public async Task HttpChallengeServer_StopSafelyWhenNotStarted()
+    {
+        using var server = new HttpChallengeServer(NullLogger<HttpChallengeServer>.Instance);
+        await server.StopAsync();
+        server.IsListening.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task CertificateIssuanceWorkflow_ExecutesSelfSignedSuccessfully()
     {
         var services = new ServiceCollection();
