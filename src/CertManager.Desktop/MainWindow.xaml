@@ -9,6 +9,7 @@
         Title="CertFlow — Automated SSL/TLS Lifecycle Manager" 
         Icon="Assets/certflow.ico"
         Height="780" Width="1200" MinHeight="650" MinWidth="1000"
+        WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI, sans-serif"
         TextOptions.TextFormattingMode="Display"
