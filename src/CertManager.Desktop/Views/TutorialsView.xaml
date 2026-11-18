@@ -9,12 +9,12 @@
     <UserControl.Resources>
         <!-- Pill button style -->
         <Style x:Key="GuideTabBtn" TargetType="Button">
-            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
             <Setter Property="Foreground" Value="#475569"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="16,10"/>
-            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Padding" Value="15,9"/>
+            <Setter Property="Margin" Value="0,0,10,10"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BorderBrush" Value="#E2E8F0"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -25,12 +25,15 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="20" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="4" Opacity="0.04" ShadowDepth="1" Color="#0F172A"/>
+                            </Border.Effect>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#E2E8F0"/>
-                                <Setter Property="Foreground" Value="#0F172A"/>
+                                <Setter TargetName="border" Property="Opacity" Value="0.92"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#0284C7"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -76,105 +79,103 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Guide Category Tabs -->
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,24">
-                <StackPanel Orientation="Horizontal">
-                    <!-- Tab 1: Live Domain -->
-                    <Button Command="{Binding SelectGuideCommand}" CommandParameter="PublicDomain">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource GuideTabBtn}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedGuideKey}" Value="PublicDomain">
-                                        <Setter Property="Background" Value="#0284C7"/>
-                                        <Setter Property="Foreground" Value="#FFFFFF"/>
-                                        <Setter Property="BorderBrush" Value="#0284C7"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconGlobe}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Live IIS Hosted Site (HTTP-01)" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+            <!-- Guide Category Tabs (Responsive WrapPanel: Clean & Modern, No Truncation, No Horizontal Slider) -->
+            <WrapPanel Margin="0,0,0,20">
+                <!-- Tab 1: Live Domain -->
+                <Button Command="{Binding SelectGuideCommand}" CommandParameter="PublicDomain">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource GuideTabBtn}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedGuideKey}" Value="PublicDomain">
+                                    <Setter Property="Background" Value="#0284C7"/>
+                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                    <Setter Property="BorderBrush" Value="#0284C7"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconGlobe}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Live IIS Hosted Site (HTTP-01)" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
-                    <!-- Tab 2: Local / Self-Signed -->
-                    <Button Command="{Binding SelectGuideCommand}" CommandParameter="SelfSigned">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource GuideTabBtn}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedGuideKey}" Value="SelfSigned">
-                                        <Setter Property="Background" Value="#0284C7"/>
-                                        <Setter Property="Foreground" Value="#FFFFFF"/>
-                                        <Setter Property="BorderBrush" Value="#0284C7"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconBolt}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Local / Self-Signed Testing" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                <!-- Tab 2: Local / Self-Signed -->
+                <Button Command="{Binding SelectGuideCommand}" CommandParameter="SelfSigned">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource GuideTabBtn}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedGuideKey}" Value="SelfSigned">
+                                    <Setter Property="Background" Value="#0284C7"/>
+                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                    <Setter Property="BorderBrush" Value="#0284C7"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconBolt}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Local / Self-Signed Testing" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
-                    <!-- Tab 3: Wildcards -->
-                    <Button Command="{Binding SelectGuideCommand}" CommandParameter="Wildcard">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource GuideTabBtn}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedGuideKey}" Value="Wildcard">
-                                        <Setter Property="Background" Value="#0284C7"/>
-                                        <Setter Property="Foreground" Value="#FFFFFF"/>
-                                        <Setter Property="BorderBrush" Value="#0284C7"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconShieldCheck}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Wildcard (*.domain.com) DNS-01" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                <!-- Tab 3: Wildcards -->
+                <Button Command="{Binding SelectGuideCommand}" CommandParameter="Wildcard">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource GuideTabBtn}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedGuideKey}" Value="Wildcard">
+                                    <Setter Property="Background" Value="#0284C7"/>
+                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                    <Setter Property="BorderBrush" Value="#0284C7"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconShieldCheck}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Wildcard (*.domain.com) DNS-01" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
-                    <!-- Tab 4: 24/7 Windows Service -->
-                    <Button Command="{Binding SelectGuideCommand}" CommandParameter="AutoRenewal">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource GuideTabBtn}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedGuideKey}" Value="AutoRenewal">
-                                        <Setter Property="Background" Value="#0284C7"/>
-                                        <Setter Property="Foreground" Value="#FFFFFF"/>
-                                        <Setter Property="BorderBrush" Value="#0284C7"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="24/7 Background Service" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                <!-- Tab 4: 24/7 Windows Service -->
+                <Button Command="{Binding SelectGuideCommand}" CommandParameter="AutoRenewal">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource GuideTabBtn}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedGuideKey}" Value="AutoRenewal">
+                                    <Setter Property="Background" Value="#0284C7"/>
+                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                    <Setter Property="BorderBrush" Value="#0284C7"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="24/7 Background Service" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
-                    <!-- Tab 5: Troubleshooting -->
-                    <Button Command="{Binding SelectGuideCommand}" CommandParameter="Troubleshooting">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource GuideTabBtn}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedGuideKey}" Value="Troubleshooting">
-                                        <Setter Property="Background" Value="#0284C7"/>
-                                        <Setter Property="Foreground" Value="#FFFFFF"/>
-                                        <Setter Property="BorderBrush" Value="#0284C7"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconSearch}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Troubleshooting &amp; Firewall" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </ScrollViewer>
+                <!-- Tab 5: Troubleshooting -->
+                <Button Command="{Binding SelectGuideCommand}" CommandParameter="Troubleshooting">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource GuideTabBtn}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedGuideKey}" Value="Troubleshooting">
+                                    <Setter Property="Background" Value="#0284C7"/>
+                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                    <Setter Property="BorderBrush" Value="#0284C7"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconSearch}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Troubleshooting &amp; Firewall" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </WrapPanel>
 
             <!-- ============================================================ -->
             <!-- GUIDE 1: LIVE HOSTED SITE (HTTP-01)                           -->
