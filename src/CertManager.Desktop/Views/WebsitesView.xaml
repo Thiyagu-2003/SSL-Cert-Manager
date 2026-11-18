@@ -149,8 +149,8 @@
             </Grid>
 
             <!-- Status Banner -->
-            <Border Background="#F1F5F9" CornerRadius="8" Padding="14,10" Margin="0,0,0,24">
-                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#475569" FontWeight="Medium"/>
+            <Border Background="{DynamicResource MutedBgBrush}" CornerRadius="8" Padding="14,10" Margin="0,0,0,24">
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="Medium"/>
             </Border>
 
             <!-- Websites Items List -->
@@ -222,8 +222,8 @@
                                                                 </Style>
                                                             </TextBlock.Style>
                                                         </TextBlock>
-                                                        <TextBlock Text="{Binding Hostname, TargetNullValue='*'}" FontSize="11" Foreground="#334155"/>
-                                                        <TextBlock Text="{Binding Port, StringFormat=':{0}'}" FontSize="11" Foreground="#64748B"/>
+                                                        <TextBlock Text="{Binding Hostname, TargetNullValue='*'}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                        <TextBlock Text="{Binding Port, StringFormat=':{0}'}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                                     </StackPanel>
                                                 </Border>
                                             </DataTemplate>
@@ -338,7 +338,7 @@
                                         <Button Command="{Binding DataContext.VerifyLiveTlsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}"
                                                 Margin="0,4,0,0" Padding="10,5" Cursor="Hand" BorderThickness="1"
-                                                Background="#F8FAFC" BorderBrush="#E2E8F0" Foreground="#475569">
+                                                Background="{DynamicResource ButtonSecBgBrush}" BorderBrush="{DynamicResource ButtonSecBorderBrush}" Foreground="{DynamicResource ButtonSecFgBrush}">
                                             <Button.Resources>
                                                 <Style TargetType="Border">
                                                     <Setter Property="CornerRadius" Value="6"/>

@@ -44,9 +44,9 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0">
-                <TextBlock Text="Certificate Profiles" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                <TextBlock Text="Certificate Profiles" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                 <TextBlock Text="Pre-configured policy templates: Key algorithms, renewal thresholds, ARI, and challenge methods" 
-                           FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
+                           FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -60,7 +60,7 @@
         </Grid>
 
         <!-- Profiles Content -->
-        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20">
+        <Border Grid.Row="1" Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
             <Grid>
                 <!-- Empty State -->
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -75,9 +75,9 @@
                         </Style>
                     </StackPanel.Style>
                     <Path Data="{StaticResource IconProfiles}" Fill="#CBD5E1" Width="40" Height="40" Stretch="Uniform" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                    <TextBlock Text="No Profiles Created Yet" FontSize="16" FontWeight="SemiBold" Foreground="#334155" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No Profiles Created Yet" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
                     <TextBlock Text="Profiles are generated automatically during certificate issuance or configured manually." 
-                               FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                               FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- Profiles List -->
@@ -85,7 +85,7 @@
                     <ItemsControl ItemsSource="{Binding Profiles}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" 
+                                <Border Background="{DynamicResource MutedBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" 
                                         CornerRadius="10" Padding="16,14" Margin="0,0,0,12">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -95,33 +95,33 @@
 
                                         <StackPanel Grid.Column="0">
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                                <TextBlock Text="{Binding ProfileName}" FontSize="15" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,10,0"/>
+                                                <TextBlock Text="{Binding ProfileName}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,0"/>
                                                 <Border Background="#F0FDF4" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
                                                     <TextBlock Text="Active" FontSize="10" FontWeight="Bold" Foreground="#16A34A"/>
                                                 </Border>
                                             </StackPanel>
 
                                             <WrapPanel Orientation="Horizontal">
-                                                <Border Background="#E2E8F0" CornerRadius="4" Padding="6,3" Margin="0,0,8,4">
-                                                    <TextBlock Text="{Binding AuthorityId, StringFormat='CA: {0}'}" FontSize="11" Foreground="#334155"/>
+                                                <Border Background="{DynamicResource ChipBgBrush}" BorderBrush="{DynamicResource ChipBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,3" Margin="0,0,8,4">
+                                                    <TextBlock Text="{Binding AuthorityId, StringFormat='CA: {0}'}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                 </Border>
-                                                <Border Background="#E2E8F0" CornerRadius="4" Padding="6,3" Margin="0,0,8,4">
-                                                    <TextBlock Text="{Binding ValidationMethod, StringFormat='Method: {0}'}" FontSize="11" Foreground="#334155"/>
+                                                <Border Background="{DynamicResource ChipBgBrush}" BorderBrush="{DynamicResource ChipBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,3" Margin="0,0,8,4">
+                                                    <TextBlock Text="{Binding ValidationMethod, StringFormat='Method: {0}'}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                 </Border>
-                                                <Border Background="#E2E8F0" CornerRadius="4" Padding="6,3" Margin="0,0,8,4">
-                                                    <TextBlock Text="{Binding KeyAlgorithm, StringFormat='Key: {0}'}" FontSize="11" Foreground="#334155"/>
+                                                <Border Background="{DynamicResource ChipBgBrush}" BorderBrush="{DynamicResource ChipBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,3" Margin="0,0,8,4">
+                                                    <TextBlock Text="{Binding KeyAlgorithm, StringFormat='Key: {0}'}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                 </Border>
-                                                <Border Background="#E2E8F0" CornerRadius="4" Padding="6,3" Margin="0,0,8,4">
-                                                    <TextBlock Text="{Binding RenewalThreshold, StringFormat='Renewal: {0}'}" FontSize="11" Foreground="#334155"/>
+                                                <Border Background="{DynamicResource ChipBgBrush}" BorderBrush="{DynamicResource ChipBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,3" Margin="0,0,8,4">
+                                                    <TextBlock Text="{Binding RenewalThreshold, StringFormat='Renewal: {0}'}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                 </Border>
-                                                <Border Background="#E2E8F0" CornerRadius="4" Padding="6,3" Margin="0,0,8,4">
-                                                    <TextBlock Text="{Binding UseAri, StringFormat='ARI: {0}'}" FontSize="11" Foreground="#334155"/>
+                                                <Border Background="{DynamicResource ChipBgBrush}" BorderBrush="{DynamicResource ChipBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,3" Margin="0,0,8,4">
+                                                    <TextBlock Text="{Binding UseAri, StringFormat='ARI: {0}'}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                 </Border>
                                             </WrapPanel>
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                            <TextBlock Text="{Binding CreatedAtLocal, StringFormat='Created: {0}'}" FontSize="11" Foreground="#64748B"/>
+                                            <TextBlock Text="{Binding CreatedAtLocal, StringFormat='Created: {0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>

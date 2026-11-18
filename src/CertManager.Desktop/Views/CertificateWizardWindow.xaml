@@ -9,7 +9,7 @@
         Height="660" Width="600" MinHeight="580" MinWidth="520"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
-        Background="#F8FAFC">
+        Background="{DynamicResource AppBgBrush}">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
@@ -35,9 +35,9 @@
             </Border>
 
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Automated Certificate Wizard" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                <TextBlock Text="Automated Certificate Wizard" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                 <TextBlock Text="Let's Encrypt ACME issuance with IIS binding &amp; rollback protection" 
-                           FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
+                           FontSize="12" Foreground="{DynamicResource TextHeaderLabelBrush}" Margin="0,2,0,0"/>
             </StackPanel>
         </Grid>
 
@@ -52,11 +52,11 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Target IIS Website" FontSize="11" FontWeight="Bold" Foreground="#64748B"/>
-                            <TextBlock Text="{Binding SiteName}" FontSize="14" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,2,0,0"/>
+                            <TextBlock Text="Target IIS Website" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextHeaderLabelBrush}"/>
+                            <TextBlock Text="{Binding SiteName}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,2,0,0"/>
                         </StackPanel>
                         <Border Grid.Column="1" Background="#E2E8F0" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding SiteId, StringFormat='Site ID: {0}'}" FontSize="11" FontWeight="Medium" Foreground="#475569"/>
+                            <TextBlock Text="{Binding SiteId, StringFormat='Site ID: {0}'}" FontSize="11" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </Border>
                     </Grid>
                 </Border>
@@ -86,7 +86,7 @@
                          Style="{StaticResource ModernTextBox}" Margin="0,0,0,10"/>
 
                 <!-- Pre-flight Readiness Diagnostic Result Card -->
-                <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,16">
+                <Border Background="{DynamicResource AppBgBrush}" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,16">
                     <Border.Style>
                         <Style TargetType="Border">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -111,15 +111,15 @@
                                     </Style>
                                 </Path.Style>
                             </Path>
-                            <TextBlock Text="PRE-FLIGHT READINESS REPORT" FontSize="11" FontWeight="Bold" Foreground="#334155" VerticalAlignment="Center"/>
+                            <TextBlock Text="PRE-FLIGHT READINESS REPORT" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
 
                         <!-- DNS & IP Check -->
-                        <TextBlock Text="{Binding ReadinessResult.DnsStatusMessage, StringFormat='• DNS: {0}'}" FontSize="11.5" Foreground="#475569" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding ReadinessResult.DnsStatusMessage, StringFormat='• DNS: {0}'}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                         <!-- Port 80 & Firewall Check -->
-                        <TextBlock Text="{Binding ReadinessResult.Port80StatusMessage, StringFormat='• Port 80: {0}'}" FontSize="11.5" Foreground="#475569" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding ReadinessResult.Port80StatusMessage, StringFormat='• Port 80: {0}'}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                         <!-- Challenge Endpoint Check -->
-                        <TextBlock Text="{Binding ReadinessResult.ChallengeStatusMessage, StringFormat='• Challenge: {0}'}" FontSize="11.5" Foreground="#475569" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding ReadinessResult.ChallengeStatusMessage, StringFormat='• Challenge: {0}'}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
 
                         <!-- Recommendations list -->
                         <ItemsControl ItemsSource="{Binding ReadinessResult.Recommendations}" Margin="0,4,0,0">
@@ -133,15 +133,15 @@
                 </Border>
 
                 <!-- Global ACME Contact Identity (Managed Globally) -->
-                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,16">
+                <Border Background="{DynamicResource AppBgBrush}" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,16">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="GLOBAL CONTACT IDENTITY" FontSize="10.5" FontWeight="Bold" Foreground="#64748B"/>
-                            <TextBlock Text="{Binding ContactEmail}" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,2,0,0"/>
+                            <TextBlock Text="GLOBAL CONTACT IDENTITY" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextHeaderLabelBrush}"/>
+                            <TextBlock Text="{Binding ContactEmail}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,2,0,0"/>
                             <TextBlock Text="Applied automatically from global settings across all websites" FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
                         </StackPanel>
                         <Button Grid.Column="1" Command="{Binding ChangeGlobalEmailCommand}" Content="Change" 
@@ -158,17 +158,17 @@
 
                 <!-- Field 3: Certificate Authority & Multi-CA Fallback -->
                 <TextBlock Text="CERTIFICATE AUTHORITY &amp; MULTI-CA ENGINE" Style="{StaticResource FormFieldLabel}"/>
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,0,18">
+                <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,0,18">
                     <StackPanel>
                         <!-- CA Selection Row -->
-                        <TextBlock Text="Primary Certificate Authority (Instant Switcher)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,6"/>
+                        <TextBlock Text="Primary Certificate Authority (Instant Switcher)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                         <ComboBox ItemsSource="{Binding CertificateAuthorities}"
                                   SelectedItem="{Binding SelectedCertificateAuthority, Mode=TwoWay}"
                                   Style="{StaticResource ModernComboBox}"
                                   Height="36" Margin="0,0,0,10"/>
 
                         <!-- Custom CA URL Box if Custom CA Selected -->
-                        <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10">
+                        <Border Background="{DynamicResource AppBgBrush}" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -180,7 +180,7 @@
                                 </Style>
                             </Border.Style>
                             <StackPanel>
-                                <TextBlock Text="Custom RFC 8555 Directory URL" FontSize="11" FontWeight="SemiBold" Foreground="#334155" Margin="0,0,0,4"/>
+                                <TextBlock Text="Custom RFC 8555 Directory URL" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                 <TextBox Text="{Binding CustomCaDirectoryUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
                             </StackPanel>
                         </Border>
@@ -193,7 +193,7 @@
                             </Grid.ColumnDefinitions>
                             <CheckBox Grid.Column="0" Content="Enable Multi-CA Auto-Fallback on Rate Limit or Downtime"
                                       IsChecked="{Binding EnableCaFallback}"
-                                      FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center" Cursor="Hand"/>
+                                      FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Cursor="Hand"/>
                             <Border Grid.Column="1" Background="#ECFDF5" CornerRadius="4" Padding="6,2">
                                 <TextBlock Text="High Availability" FontSize="10" FontWeight="Bold" Foreground="#059669"/>
                             </Border>
@@ -222,24 +222,24 @@
 
                         <!-- Staging Sandbox Mode Checkbox -->
                         <CheckBox Content="Use ACME Staging Environment (Recommended for tests — safe rate limits)" 
-                                  IsChecked="{Binding IsStaging}" FontWeight="Medium" Foreground="#475569" Margin="0,2,0,0" Cursor="Hand"/>
+                                  IsChecked="{Binding IsStaging}" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" Cursor="Hand"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Field 3b: Modern Cryptography & Store Pruning -->
                 <TextBlock Text="CRYPTOGRAPHY &amp; STORE HYGIENE" Style="{StaticResource FormFieldLabel}"/>
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,0,18">
+                <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,0,18">
                     <StackPanel>
-                        <TextBlock Text="Key Algorithm (Elliptic Curves &amp; Modern RSA)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,6"/>
+                        <TextBlock Text="Key Algorithm (Elliptic Curves &amp; Modern RSA)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                         <ComboBox ItemsSource="{Binding KeyAlgorithms}"
                                   SelectedItem="{Binding SelectedKeyAlgorithm, Mode=TwoWay}"
                                   Style="{StaticResource ModernComboBox}"
                                   Height="36" Margin="0,0,0,6"/>
                         <TextBlock Text="⚡ ECDSA (P-256) delivers 10x faster TLS handshakes, smaller certificates, and maximum security." 
-                                   FontSize="10.5" Foreground="#64748B" Margin="0,0,0,10"/>
+                                   FontSize="10.5" Foreground="{DynamicResource TextHeaderLabelBrush}" Margin="0,0,0,10"/>
 
                         <!-- Store Pruning Toggle -->
-                        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10">
+                        <Border Background="{DynamicResource AppBgBrush}" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -248,9 +248,9 @@
                                 <StackPanel Grid.Column="0">
                                     <CheckBox Content="Auto-Prune Expired &amp; Superseded Certificates" 
                                               IsChecked="{Binding AutoPruneSupersededCerts}"
-                                              FontWeight="SemiBold" Foreground="#0F172A" Cursor="Hand"/>
+                                              FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
                                     <TextBlock Text="Removes older superseded certificates from LocalMachine\My to prevent certificate store bloat." 
-                                               FontSize="10.5" Foreground="#64748B" Margin="20,2,0,0"/>
+                                               FontSize="10.5" Foreground="{DynamicResource TextHeaderLabelBrush}" Margin="20,2,0,0"/>
                                 </StackPanel>
                                 <Border Grid.Column="1" Background="#EFF6FF" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
                                     <TextBlock Text="Clean Store" FontSize="10" FontWeight="Bold" Foreground="#0284C7"/>
@@ -262,17 +262,17 @@
 
                 <!-- Field 4: Validation Method Selection -->
                 <TextBlock Text="ACME VALIDATION METHOD &amp; WILDCARDS" Style="{StaticResource FormFieldLabel}"/>
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,0,18">
+                <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,0,18">
                     <StackPanel>
                         <RadioButton Content="HTTP-01 Validation (Local IIS Web Server)" 
                                      GroupName="ValidationMethod"
-                                     IsChecked="{Binding IsHttp01}" FontWeight="Medium" Foreground="#1E293B" Margin="0,0,0,8" Cursor="Hand"/>
+                                     IsChecked="{Binding IsHttp01}" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" Cursor="Hand"/>
                         <RadioButton Content="DNS-01 Validation (Required for Wildcards *.domain.com)" 
                                      GroupName="ValidationMethod"
-                                     IsChecked="{Binding IsDns01}" FontWeight="Medium" Foreground="#1E293B" Cursor="Hand"/>
+                                     IsChecked="{Binding IsDns01}" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
 
                         <!-- DNS-01 Configuration Panel (Visible when IsDns01 is True) -->
-                        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,12,0,0">
+                        <Border Background="{DynamicResource AppBgBrush}" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,12,0,0">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -284,7 +284,7 @@
                                 </Style>
                             </Border.Style>
                             <StackPanel>
-                                <TextBlock Text="DNS PROVIDER &amp; AUTHENTICATION" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,8"/>
+                                <TextBlock Text="DNS PROVIDER &amp; AUTHENTICATION" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
                                 
                                 <Grid Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions>
@@ -292,14 +292,14 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <RadioButton Grid.Column="0" GroupName="DnsProviderType" Content="Cloudflare API" IsChecked="{Binding IsCloudflareDns}" FontWeight="SemiBold" Foreground="#0284C7"/>
-                                    <RadioButton Grid.Column="1" GroupName="DnsProviderType" Content="Manual DNS" IsChecked="{Binding IsManualDns}" FontWeight="Medium" Foreground="#64748B"/>
+                                    <RadioButton Grid.Column="1" GroupName="DnsProviderType" Content="Manual DNS" IsChecked="{Binding IsManualDns}" FontWeight="Medium" Foreground="{DynamicResource TextHeaderLabelBrush}"/>
                                 </Grid>
 
-                                <TextBlock Text="Cloudflare API Token (Requires Zone:DNS:Edit)" FontSize="11" FontWeight="SemiBold" Foreground="#334155" Margin="0,4,0,4"/>
+                                <TextBlock Text="Cloudflare API Token (Requires Zone:DNS:Edit)" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,4"/>
                                 <TextBox Text="{Binding DnsApiToken, UpdateSourceTrigger=PropertyChanged}" 
                                          Style="{StaticResource ModernTextBox}" Margin="0,0,0,6"/>
                                 <TextBlock Text="Token is used only in-memory to create and delete the temporary _acme-challenge TXT record." 
-                                           FontSize="10" Foreground="#64748B"/>
+                                           FontSize="10" Foreground="{DynamicResource TextHeaderLabelBrush}"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -349,16 +349,16 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Thumbprint:" FontSize="11" FontWeight="Bold" Foreground="#64748B" Margin="0,0,8,0"/>
-                            <TextBlock Grid.Column="1" Text="{Binding IssuedThumbprint}" FontSize="11" FontFamily="Consolas" FontWeight="Medium" Foreground="#0F172A"/>
+                            <TextBlock Grid.Column="0" Text="Thumbprint:" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextHeaderLabelBrush}" Margin="0,0,8,0"/>
+                            <TextBlock Grid.Column="1" Text="{Binding IssuedThumbprint}" FontSize="11" FontFamily="Consolas" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Grid>
                         <Grid Margin="0,4,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Valid Until:" FontSize="11" FontWeight="Bold" Foreground="#64748B" Margin="0,0,8,0"/>
-                            <TextBlock Grid.Column="1" Text="{Binding IssuedExpiration}" FontSize="11" Foreground="#0F172A"/>
+                            <TextBlock Grid.Column="0" Text="Valid Until:" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextHeaderLabelBrush}" Margin="0,0,8,0"/>
+                            <TextBlock Grid.Column="1" Text="{Binding IssuedExpiration}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -393,7 +393,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Button Grid.Column="1" Content="Close" Click="Close_Click"
-                        Background="#F1F5F9" Foreground="#334155" FontWeight="SemiBold" 
+                        Background="#F1F5F9" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="SemiBold" 
                         BorderThickness="0" Padding="16,9" Margin="0,0,10,0" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">

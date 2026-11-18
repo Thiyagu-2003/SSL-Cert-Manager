@@ -221,7 +221,7 @@
                 <!-- Refresh Button & Timestamp -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="{Binding LastRefreshed, StringFormat='Synced: {0}'}" 
-                               Foreground="#475569" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,14,0"/>
                     <Button Command="{Binding RefreshCommand}" Style="{StaticResource ModernToolbarPrimaryBtn}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0"/>
@@ -237,12 +237,12 @@
                     <Style TargetType="Border">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
-                                <Setter Property="Background" Value="#F0FDF4"/>
-                                <Setter Property="BorderBrush" Value="#86EFAC"/>
+                                <Setter Property="Background" Value="{DynamicResource BannerSuccessBgBrush}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource BannerSuccessBorderBrush}"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
-                                <Setter Property="Background" Value="#FEF2F2"/>
-                                <Setter Property="BorderBrush" Value="#FECACA"/>
+                                <Setter Property="Background" Value="{DynamicResource BannerErrorBgBrush}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource BannerErrorBorderBrush}"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
@@ -294,7 +294,7 @@
                                 <Style TargetType="Ellipse">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
-                                            <Setter Property="Fill" Value="#15803D"/>
+                                            <Setter Property="Fill" Value="#10B981"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
                                             <Setter Property="Fill" Value="#DC2626"/>
@@ -311,17 +311,17 @@
                                 <Style TargetType="TextBlock">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsServiceConnected}" Value="True">
-                                            <Setter Property="Foreground" Value="#15803D"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource BannerSuccessTextBrush}"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding IsServiceConnected}" Value="False">
-                                            <Setter Property="Foreground" Value="#991B1B"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource BannerErrorTextBrush}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
                         <TextBlock Text="Named Pipe: CertManager.Ipc • Renewals run autonomously without UI active" 
-                                   FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,3,0,0"/>
+                                   FontSize="12" FontWeight="Medium" Foreground="{DynamicResource BannerSuccessSubtextBrush}" Margin="0,3,0,0"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
@@ -347,11 +347,11 @@
                                 <TextBlock Text="Start In-Process Engine"/>
                             </StackPanel>
                         </Button>
-                        <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="9,4" Margin="0,0,8,0">
-                            <TextBlock Text="{Binding Version}" FontSize="11.5" FontWeight="Bold" Foreground="#0F172A"/>
+                        <Border Background="{DynamicResource ChipBgBrush}" BorderBrush="{DynamicResource ChipBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="9,4" Margin="0,0,8,0">
+                            <TextBlock Text="{Binding Version}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Border>
-                        <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="9,4">
-                            <TextBlock Text="{Binding Uptime, StringFormat='Uptime: {0}'}" FontSize="11.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                        <Border Background="{DynamicResource ChipBgBrush}" BorderBrush="{DynamicResource ChipBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="9,4">
+                            <TextBlock Text="{Binding Uptime, StringFormat='Uptime: {0}'}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Border>
                     </StackPanel>
                 </Grid>
@@ -370,11 +370,11 @@
                 <Border Grid.Column="0" Style="{StaticResource MetricCardBorder}">
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
-                            <TextBlock Text="TOTAL CERTS" FontSize="11.5" FontWeight="Bold" Foreground="#334155"/>
+                            <TextBlock Text="TOTAL CERTS" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextHeaderLabelBrush}"/>
                             <Path Data="{StaticResource IconShieldCheck}" Fill="#0284C7" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Right"/>
                         </Grid>
-                        <TextBlock Text="{Binding TotalCertificates}" FontSize="34" FontWeight="Bold" Foreground="#0F172A"/>
-                        <TextBlock Text="Active in Windows Store" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,6,0,0"/>
+                        <TextBlock Text="{Binding TotalCertificates}" FontSize="34" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Active in Windows Store" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -382,11 +382,11 @@
                 <Border Grid.Column="1" Style="{StaticResource MetricCardBorder}">
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
-                            <TextBlock Text="EXPIRING SOON" FontSize="11.5" FontWeight="Bold" Foreground="#B45309"/>
-                            <Path Data="{StaticResource IconWarning}" Fill="#D97706" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Right"/>
+                            <TextBlock Text="EXPIRING SOON" FontSize="11.5" FontWeight="Bold" Foreground="#F59E0B"/>
+                            <Path Data="{StaticResource IconWarning}" Fill="#F59E0B" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Right"/>
                         </Grid>
-                        <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="34" FontWeight="Bold" Foreground="#D97706"/>
-                        <TextBlock Text="Due within 30 days" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,6,0,0"/>
+                        <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="34" FontWeight="Bold" Foreground="#F59E0B"/>
+                        <TextBlock Text="Due within 30 days" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -394,11 +394,11 @@
                 <Border Grid.Column="2" Style="{StaticResource MetricCardBorder}">
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
-                            <TextBlock Text="ACTIVE ACME ORDERS" FontSize="11.5" FontWeight="Bold" Foreground="#1D4ED8"/>
-                            <Path Data="{StaticResource IconRefresh}" Fill="#2563EB" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Right"/>
+                            <TextBlock Text="ACTIVE ACME ORDERS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8"/>
+                            <Path Data="{StaticResource IconRefresh}" Fill="#38BDF8" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Right"/>
                         </Grid>
-                        <TextBlock Text="{Binding ActiveOrdersCount}" FontSize="34" FontWeight="Bold" Foreground="#2563EB"/>
-                        <TextBlock Text="In-flight challenges" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,6,0,0"/>
+                        <TextBlock Text="{Binding ActiveOrdersCount}" FontSize="34" FontWeight="Bold" Foreground="#38BDF8"/>
+                        <TextBlock Text="In-flight challenges" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -406,17 +406,17 @@
                 <Border Grid.Column="3" Style="{StaticResource MetricCardBorder}" Margin="0">
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
-                            <TextBlock Text="RENEWAL POLICY" FontSize="11.5" FontWeight="Bold" Foreground="#047857"/>
-                            <Path Data="{StaticResource IconBolt}" Fill="#047857" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Right"/>
+                            <TextBlock Text="RENEWAL POLICY" FontSize="11.5" FontWeight="Bold" Foreground="#10B981"/>
+                            <Path Data="{StaticResource IconBolt}" Fill="#10B981" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Right"/>
                         </Grid>
-                        <TextBlock Text="ARI + 33%" FontSize="24" FontWeight="Bold" Foreground="#047857" Margin="0,6,0,0"/>
-                        <TextBlock Text="Percentage &amp; ARI window" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,8,0,0"/>
+                        <TextBlock Text="ARI + 33%" FontSize="24" FontWeight="Bold" Foreground="#10B981" Margin="0,6,0,0"/>
+                        <TextBlock Text="Percentage &amp; ARI window" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
             <!-- Quick Action Cards Section -->
-            <TextBlock Text="Quick Actions &amp; Lifecycle Management" FontSize="16" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,16"/>
+            <TextBlock Text="Quick Actions &amp; Lifecycle Management" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
             
             <Grid Margin="0,0,0,26">
                 <Grid.ColumnDefinitions>
@@ -477,21 +477,21 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="ACME PROTOCOL" FontSize="11" FontWeight="Bold" Foreground="#1E293B"/>
+                            <TextBlock Text="ACME PROTOCOL" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextHeaderLabelBrush}"/>
                             <TextBlock Text="RFC 8555 + RFC 8737 (ARI)" FontSize="12.5" FontWeight="Bold" Foreground="#0284C7" Margin="0,3,0,0"/>
-                            <TextBlock Text="Let's Encrypt Staging / Prod" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
+                            <TextBlock Text="Let's Encrypt Staging / Prod" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1">
-                            <TextBlock Text="SERVER INTEGRATION" FontSize="11" FontWeight="Bold" Foreground="#1E293B"/>
+                            <TextBlock Text="SERVER INTEGRATION" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextHeaderLabelBrush}"/>
                             <TextBlock Text="Microsoft IIS (MWA)" FontSize="12.5" FontWeight="Bold" Foreground="#0284C7" Margin="0,3,0,0"/>
-                            <TextBlock Text="Transactional binding with rollback" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
+                            <TextBlock Text="Transactional binding with rollback" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="LOCAL PERSISTENCE" FontSize="11" FontWeight="Bold" Foreground="#1E293B"/>
+                            <TextBlock Text="LOCAL PERSISTENCE" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextHeaderLabelBrush}"/>
                             <TextBlock Text="SQLite Database with WAL" FontSize="12.5" FontWeight="Bold" Foreground="#0284C7" Margin="0,3,0,0"/>
-                            <TextBlock Text="Idempotency locks &amp; audit ledger" FontSize="12" FontWeight="Medium" Foreground="#334155" Margin="0,2,0,0"/>
+                            <TextBlock Text="Idempotency locks &amp; audit ledger" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>

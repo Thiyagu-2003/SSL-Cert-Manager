@@ -6,7 +6,7 @@ namespace CertManager.Desktop.Services;
 
 /// <summary>
 /// Manages runtime dynamic application theming (Dark Mode and Light Mode).
-/// Dynamically updates brush resources in Application.Current.Resources and persists preference.
+/// Dynamically updates semantic brush resources in Application.Current.Resources and persists preference.
 /// </summary>
 public class ThemeManager
 {
@@ -43,38 +43,53 @@ public class ThemeManager
             {
                 if (IsDarkTheme)
                 {
-                    // Dark Mode Palette
+                    // High-Contrast Cybersecurity Dark Mode Palette
                     SetResource("AppBgBrush", "#0B0F19");
                     SetResource("ContentBgBrush", "#0B0F19");
                     SetResource("SidebarBgBrush", "#070B14");
                     SetResource("SidebarNavHoverBrush", "#1E293B");
                     SetResource("CardBgBrush", "#131B2E");
-                    SetResource("CardBorderBrush", "#223049");
-                    SetResource("TextPrimaryBrush", "#F8FAFC");
-                    SetResource("TextSecondaryBrush", "#94A3B8");
-                    SetResource("TextMutedBrush", "#64748B");
-                    SetResource("InputBgBrush", "#0F172A");
-                    SetResource("InputBorderBrush", "#334155");
-                    SetResource("MutedBgBrush", "#1A2438");
-                    SetResource("SubtleBorderBrush", "#223049");
+                    SetResource("CardBorderBrush", "#25334D");
+                    SetResource("TextPrimaryBrush", "#F8FAFC");       // Crisp white: 15.8:1 contrast
+                    SetResource("TextSecondaryBrush", "#CBD5E1");     // Light slate: readable and clean
+                    SetResource("TextMutedBrush", "#94A3B8");         // Medium slate: clear hints
+                    SetResource("TextHeaderLabelBrush", "#38BDF8");   // Sky blue: vibrant uppercase headers
+                    SetResource("InputBgBrush", "#0F172A");           // Dark input surface
+                    SetResource("InputBorderBrush", "#334155");       // Defined input border
+                    SetResource("MutedBgBrush", "#1A2438");           // Subtle container surface
+                    SetResource("SubtleBorderBrush", "#25334D");
                     SetResource("HeaderBgBrush", "#131B2E");
                     SetResource("GanttTrackBgBrush", "#1E293B");
                     SetResource("ButtonSecBgBrush", "#1E293B");
                     SetResource("ButtonSecBorderBrush", "#334155");
-                    SetResource("ButtonSecFgBrush", "#E2E8F0");
+                    SetResource("ButtonSecFgBrush", "#F1F5F9");
+                    SetResource("ChipBgBrush", "#1E293B");
+                    SetResource("ChipBorderBrush", "#334155");
+                    SetResource("ChipFgBrush", "#E2E8F0");
+                    SetResource("BannerSuccessBgBrush", "#064E3B");
+                    SetResource("BannerSuccessBorderBrush", "#059669");
+                    SetResource("BannerSuccessTextBrush", "#6EE7B7");
+                    SetResource("BannerSuccessSubtextBrush", "#A7F3D0");
+                    SetResource("BannerWarningBgBrush", "#451A03");
+                    SetResource("BannerWarningBorderBrush", "#B45309");
+                    SetResource("BannerWarningTextBrush", "#FDE68A");
+                    SetResource("BannerErrorBgBrush", "#450A0A");
+                    SetResource("BannerErrorBorderBrush", "#DC2626");
+                    SetResource("BannerErrorTextBrush", "#FCA5A5");
                 }
                 else
                 {
-                    // Light Mode Palette
+                    // Clean Modern Light Mode Enterprise Palette
                     SetResource("AppBgBrush", "#F8FAFC");
                     SetResource("ContentBgBrush", "#F8FAFC");
                     SetResource("SidebarBgBrush", "#0F172A");
                     SetResource("SidebarNavHoverBrush", "#1E293B");
                     SetResource("CardBgBrush", "#FFFFFF");
-                    SetResource("CardBorderBrush", "#E2E8F0");
-                    SetResource("TextPrimaryBrush", "#0F172A");
-                    SetResource("TextSecondaryBrush", "#475569");
-                    SetResource("TextMutedBrush", "#94A3B8");
+                    SetResource("CardBorderBrush", "#CBD5E1");
+                    SetResource("TextPrimaryBrush", "#0F172A");       // Near black
+                    SetResource("TextSecondaryBrush", "#475569");     // Dark slate
+                    SetResource("TextMutedBrush", "#64748B");         // Medium slate
+                    SetResource("TextHeaderLabelBrush", "#0369A1");   // Ocean blue tag
                     SetResource("InputBgBrush", "#FFFFFF");
                     SetResource("InputBorderBrush", "#CBD5E1");
                     SetResource("MutedBgBrush", "#F1F5F9");
@@ -84,6 +99,19 @@ public class ThemeManager
                     SetResource("ButtonSecBgBrush", "#FFFFFF");
                     SetResource("ButtonSecBorderBrush", "#CBD5E1");
                     SetResource("ButtonSecFgBrush", "#334155");
+                    SetResource("ChipBgBrush", "#F8FAFC");
+                    SetResource("ChipBorderBrush", "#E2E8F0");
+                    SetResource("ChipFgBrush", "#475569");
+                    SetResource("BannerSuccessBgBrush", "#F0FDF4");
+                    SetResource("BannerSuccessBorderBrush", "#86EFAC");
+                    SetResource("BannerSuccessTextBrush", "#15803D");
+                    SetResource("BannerSuccessSubtextBrush", "#166534");
+                    SetResource("BannerWarningBgBrush", "#FFFBEB");
+                    SetResource("BannerWarningBorderBrush", "#FDE68A");
+                    SetResource("BannerWarningTextBrush", "#B45309");
+                    SetResource("BannerErrorBgBrush", "#FEF2F2");
+                    SetResource("BannerErrorBorderBrush", "#FECACA");
+                    SetResource("BannerErrorTextBrush", "#991B1B");
                 }
             };
 

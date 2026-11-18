@@ -58,6 +58,7 @@
         <SolidColorBrush x:Key="TextPrimaryBrush" Color="#0F172A"/>
         <SolidColorBrush x:Key="TextSecondaryBrush" Color="#475569"/>
         <SolidColorBrush x:Key="TextMutedBrush" Color="#94A3B8"/>
+        <SolidColorBrush x:Key="TextHeaderLabelBrush" Color="#0369A1"/>
         <SolidColorBrush x:Key="InputBgBrush" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="InputBorderBrush" Color="#CBD5E1"/>
         <SolidColorBrush x:Key="MutedBgBrush" Color="#F1F5F9"/>
@@ -67,6 +68,19 @@
         <SolidColorBrush x:Key="ButtonSecBgBrush" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="ButtonSecBorderBrush" Color="#CBD5E1"/>
         <SolidColorBrush x:Key="ButtonSecFgBrush" Color="#334155"/>
+        <SolidColorBrush x:Key="ChipBgBrush" Color="#F8FAFC"/>
+        <SolidColorBrush x:Key="ChipBorderBrush" Color="#E2E8F0"/>
+        <SolidColorBrush x:Key="ChipFgBrush" Color="#475569"/>
+        <SolidColorBrush x:Key="BannerSuccessBgBrush" Color="#F0FDF4"/>
+        <SolidColorBrush x:Key="BannerSuccessBorderBrush" Color="#86EFAC"/>
+        <SolidColorBrush x:Key="BannerSuccessTextBrush" Color="#15803D"/>
+        <SolidColorBrush x:Key="BannerSuccessSubtextBrush" Color="#166534"/>
+        <SolidColorBrush x:Key="BannerWarningBgBrush" Color="#FFFBEB"/>
+        <SolidColorBrush x:Key="BannerWarningBorderBrush" Color="#FDE68A"/>
+        <SolidColorBrush x:Key="BannerWarningTextBrush" Color="#B45309"/>
+        <SolidColorBrush x:Key="BannerErrorBgBrush" Color="#FEF2F2"/>
+        <SolidColorBrush x:Key="BannerErrorBorderBrush" Color="#FECACA"/>
+        <SolidColorBrush x:Key="BannerErrorTextBrush" Color="#991B1B"/>
 
         <!-- Application-Wide Implicit View-ViewModel Mappings -->
         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
@@ -96,6 +110,7 @@
 
         <!-- Global Crisp Typography & ClearType Configuration -->
         <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
             <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
             <Setter Property="RenderOptions.ClearTypeHint" Value="Enabled"/>

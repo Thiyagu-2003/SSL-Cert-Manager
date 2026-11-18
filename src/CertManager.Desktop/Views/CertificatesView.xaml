@@ -243,7 +243,7 @@
 
                                         <!-- Position Progress Bar -->
                                         <ProgressBar Grid.Row="1" Value="{Binding ProgressPercent}" Height="4" Margin="0,2,0,0"
-                                                     BorderThickness="0" Background="Transparent" Foreground="#0F172A"/>
+                                                     BorderThickness="0" Background="Transparent" Foreground="#0284C7"/>
                                     </Grid>
 
                                     <!-- Status Badge -->
