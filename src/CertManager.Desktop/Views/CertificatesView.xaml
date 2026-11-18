@@ -96,14 +96,23 @@
                                FontSize="13" Foreground="#64748B" Margin="0,5,0,0"/>
                 </StackPanel>
 
-                <Button Grid.Column="1" Command="{Binding RefreshCommand}" 
-                        Style="{StaticResource ModernToolbarPrimaryBtn}"
-                        VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal">
-                        <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0"/>
-                        <TextBlock Text="Refresh Inventory"/>
-                    </StackPanel>
-                </Button>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding ExportVaultBackupCommand}" 
+                            Style="{StaticResource ModernToolbarRefreshBtn}"
+                            Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconShieldCheck}" Fill="#0284C7" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0"/>
+                            <TextBlock Text="Backup Vault (.vault)"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding RefreshCommand}" 
+                            Style="{StaticResource ModernToolbarPrimaryBtn}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0"/>
+                            <TextBlock Text="Refresh Inventory"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
 
             <!-- Metrics Strip -->
@@ -254,13 +263,39 @@
                                         </StackPanel>
                                     </Button>
 
-                                    <!-- Export Buttons Group -->
+                                    <!-- Export & Diagnostic Buttons Group -->
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Command="{Binding DataContext.InspectLiveTlsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Background="#F8FAFC" BorderBrush="#BAE6FD" BorderThickness="1"
+                                                Foreground="#0284C7" FontWeight="SemiBold" FontSize="11"
+                                                Padding="9,5" Cursor="Hand" Margin="0,0,6,0">
+                                            <Button.Resources>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="CornerRadius" Value="6"/>
+                                                </Style>
+                                            </Button.Resources>
+                                            <TextBlock Text="Verify Live TLS"/>
+                                        </Button>
+
+                                        <Button Command="{Binding DataContext.BindToRdpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1"
+                                                Foreground="#334155" FontWeight="Medium" FontSize="11"
+                                                Padding="9,5" Cursor="Hand" Margin="0,0,6,0">
+                                            <Button.Resources>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="CornerRadius" Value="6"/>
+                                                </Style>
+                                            </Button.Resources>
+                                            <TextBlock Text="Bind RDP"/>
+                                        </Button>
+
                                         <Button Command="{Binding DataContext.ExportPfxCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}"
                                                 Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1"
                                                 Foreground="#334155" FontWeight="Medium" FontSize="11"
-                                                Padding="10,5" Cursor="Hand" Margin="0,0,6,0">
+                                                Padding="9,5" Cursor="Hand" Margin="0,0,6,0">
                                             <Button.Resources>
                                                 <Style TargetType="Border">
                                                     <Setter Property="CornerRadius" Value="6"/>
@@ -273,13 +308,13 @@
                                                 CommandParameter="{Binding}"
                                                 Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1"
                                                 Foreground="#334155" FontWeight="Medium" FontSize="11"
-                                                Padding="10,5" Cursor="Hand">
+                                                Padding="9,5" Cursor="Hand">
                                             <Button.Resources>
                                                 <Style TargetType="Border">
                                                     <Setter Property="CornerRadius" Value="6"/>
                                                 </Style>
                                             </Button.Resources>
-                                            <TextBlock Text="Export PEM (CRT/KEY)"/>
+                                            <TextBlock Text="Export PEM"/>
                                         </Button>
                                     </StackPanel>
                                 </StackPanel>

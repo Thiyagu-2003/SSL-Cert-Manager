@@ -45,6 +45,13 @@ public class WebsitesViewModel : ViewModelBase
                 OpenCertificateWizard(site);
             }
         });
+        VerifyLiveTlsCommand = new RelayCommand(async param =>
+        {
+            if (param is DiscoveredIisSite site)
+            {
+                await VerifySiteTlsAsync(site);
+            }
+        });
 
         _ = ScanWebsitesAsync();
     }
@@ -84,6 +91,34 @@ public class WebsitesViewModel : ViewModelBase
     public ICommand ScanCommand { get; }
     public ICommand ToggleHttpsRedirectCommand { get; }
     public ICommand RequestCertificateCommand { get; }
+    public ICommand VerifyLiveTlsCommand { get; }
+
+    public async Task VerifySiteTlsAsync(DiscoveredIisSite site)
+    {
+        string? targetHost = site.Hostnames.FirstOrDefault(h => !string.IsNullOrWhiteSpace(h));
+        if (string.IsNullOrWhiteSpace(targetHost))
+        {
+            StatusMessage = $"Site {site.SiteName} has no valid hostnames configured for TLS probe.";
+            return;
+        }
+
+        IsBusy = true;
+        StatusMessage = $"Running live TLS diagnostic probe for {targetHost}:443...";
+        try
+        {
+            var inspector = new CertManager.Infrastructure.Diagnostics.LiveTlsInspector();
+            var res = await inspector.InspectLiveDomainAsync(targetHost);
+            StatusMessage = $"[{res.OverallGrade}] {targetHost} -> {res.NegotiatedProtocol} ({res.CipherSuite}). Trust Chain: {res.ChainStatus}. HSTS: {(res.HstsHeaderPresent ? "Enabled" : "Disabled")}. Valid: {res.DaysRemaining}d remaining.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Live TLS probe failed for {targetHost}: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 
     public void OpenCertificateWizard(DiscoveredIisSite site)
     {

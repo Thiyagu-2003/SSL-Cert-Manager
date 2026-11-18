@@ -79,6 +79,21 @@ public class CertificatesViewModel : ViewModelBase
                 await ExportCertificateAsync(item, CertificateExportFormat.PemBundle);
             }
         });
+        BindToRdpCommand = new RelayCommand(async param =>
+        {
+            if (param is CertificateItemViewModel item)
+            {
+                await BindToRdpAsync(item);
+            }
+        });
+        InspectLiveTlsCommand = new RelayCommand(async param =>
+        {
+            if (param is CertificateItemViewModel item)
+            {
+                await InspectLiveTlsAsync(item);
+            }
+        });
+        ExportVaultBackupCommand = new RelayCommand(async () => await ExportVaultBackupAsync());
 
         _ = LoadCertificatesAsync();
     }
@@ -88,6 +103,9 @@ public class CertificatesViewModel : ViewModelBase
     public ICommand ForceRenewCommand { get; }
     public ICommand ExportPfxCommand { get; }
     public ICommand ExportPemCommand { get; }
+    public ICommand BindToRdpCommand { get; }
+    public ICommand InspectLiveTlsCommand { get; }
+    public ICommand ExportVaultBackupCommand { get; }
 
     public bool IsBusy
     {
@@ -251,6 +269,96 @@ public class CertificatesViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusMessage = $"Export error: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task BindToRdpAsync(CertificateItemViewModel item)
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        StatusMessage = $"Binding certificate {item.Subject} to Windows Remote Desktop (RDP)...";
+
+        try
+        {
+            var binder = new CertManager.Infrastructure.Rds.RdsCertificateBinder();
+            var res = await binder.BindCertificateToRdsAsync(item.Thumbprint);
+            StatusMessage = res.Success ? res.Message : $"RDP Binding failed: {res.Message}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"RDP binding error: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task InspectLiveTlsAsync(CertificateItemViewModel item)
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        string domain = item.Subject.TrimStart('*', '.');
+        StatusMessage = $"Probing live TLS handshake for {domain}:443...";
+
+        try
+        {
+            var inspector = new CertManager.Infrastructure.Diagnostics.LiveTlsInspector();
+            var res = await inspector.InspectLiveDomainAsync(domain);
+            StatusMessage = $"[{res.OverallGrade}] {domain} - {res.NegotiatedProtocol} ({res.CipherSuite}). Trust Chain: {res.ChainStatus}. HSTS: {(res.HstsHeaderPresent ? "Active" : "None")}. Remaining: {res.DaysRemaining}d.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Live TLS inspection error: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task ExportVaultBackupAsync()
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        StatusMessage = "Creating encrypted CertFlow vault backup archive...";
+
+        try
+        {
+            string backupDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CertFlow", "Backups");
+            Directory.CreateDirectory(backupDir);
+            string backupPath = Path.Combine(backupDir, $"CertFlow_Vault_Backup_{DateTime.UtcNow:yyyyMMdd_HHmmss}.vault");
+
+            var manager = new CertManager.Infrastructure.Vault.VaultBackupManager();
+            string payload = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                CertificatesCount = TotalCertificates,
+                ExportedAtUtc = DateTime.UtcNow,
+                Machine = Environment.MachineName
+            });
+
+            bool success = await manager.ExportVaultToFileAsync(backupPath, "CertFlow-Master-Passphrase-2026", payload);
+            if (success)
+            {
+                StatusMessage = $"Encrypted vault backup created at: {backupPath}";
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = backupDir,
+                        UseShellExecute = true
+                    });
+                }
+                catch { }
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Vault backup error: {ex.Message}";
         }
         finally
         {

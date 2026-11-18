@@ -6,20 +6,25 @@
 
 ## 🌟 Executive Summary: CertFlow vs. Competitors
 
-| Feature Category | CertFlow (v2.1) | Traditional GUI ACME Tools | win-acme (wacs) |
+| Feature Category | CertFlow (v2.2) | Traditional GUI ACME Tools | win-acme (wacs) |
 | :--- | :--- | :--- | :--- |
 | **User Interface** | Modern WPF, vector icons, dark accent sidebar | Legacy WPF Metro, dense tabbed dialogs | Console / CLI interactive only |
 | **Challenge Engine** | Embedded HTTP.sys (`http://+:80/.well-known/...`) | Embedded HTTP.sys server | Self-hosted HTTP listener or IIS webroot |
 | **Pre-Flight Diagnostics** | 🔍 1-Click "Test Readiness" (DNS, IP, Port 80, HTTP.sys) | Internal retry loop (no standalone UI test) | Basic verification flags |
-| **IIS Hardening** | 🔀 1-Click "Enforce HTTPS Redirect" in `web.config` | Manual configuration / scripts required | Plugin available |
+| **IIS Hardening & HSTS** | 🔀 1-Click "Enforce HTTPS Redirect" + HSTS in `web.config` | Manual configuration / scripts required | Plugin available |
+| **Schannel TLS Hardener** | 🛡️ 1-Click Windows Registry TLS 1.3/1.2 & Insecure Cipher Blocker | Requires 3rd-party tools (e.g. IIS Crypto) | Not included |
 | **Certificate Export** | 📦 1-Click PFX, PEM (CRT+KEY for Nginx/Apache), & CCS | Custom PowerShell scripts required | CLI flags / manual export |
 | **Team Alerts & Webhooks** | 🔔 Native Discord, Slack, Teams, Telegram, Pushover, Gotify & SMTP | Paid / complex email relays | Email / script execution |
 | **Multi-CA & Failover** | 🌐 Instant Switcher: Let's Encrypt, ZeroSSL, Google, BuyPass + Auto-Failover | Multi-tab configuration / complex setup | CLI argument flags |
 | **Modern Cryptography** | ⚡ 1-Click ECDSA (P-256 / P-384) + Auto-Prune Superseded Certs | Legacy RSA 2048 default / unbounded store bloat | Manual flags / basic store |
-| **Multi-Domain & Wildcards** | HTTP-01 + Cloudflare DNS-01 + Manual DNS | HTTP-01 + PoshACME plugins | HTTP-01 + DNS plugins |
+| **Multi-Domain & Wildcards** | HTTP-01 + Cloudflare, AWS Route 53, Azure DNS, Manual DNS | HTTP-01 + PoshACME plugins | HTTP-01 + DNS plugins |
+| **Remote Desktop (RDP)** | 🖥️ 1-Click Bind Certificate to Windows RDP Listener | Manual WMI / PowerShell required | Plugin / script required |
+| **Live TLS Diagnostic** | 🔎 In-App Live TLS Handshake & SSL Labs Grade Check | Not supported (requires external browser) | Not supported |
+| **Post-Renewal Hooks** | ⚙️ PowerShell (`.ps1`), Batch (`.bat`), & Service Restarts | PowerShell scripts only | Process execution |
+| **Encrypted Vault Backup** | 🔐 1-Click AES-256-GCM Encrypted Vault Export/Import | Unencrypted XML/JSON registry exports | File copies |
 | **Runtime Architecture** | Standalone In-Process OR Windows Service | Strict client-service requirement (`127.0.0.2:9696`) | Scheduled Task |
 | **ACME ARI Support** | ✅ RFC-draft ACME Renewal Information (ARI) | ✅ ARI supported | ⚠️ Basic schedule window |
-| **Unit Test Coverage** | 119 automated xUnit tests passing | Closed source core / partial repo | Open source tests |
+| **Unit Test Coverage** | 128 automated xUnit tests passing | Closed source core / partial repo | Open source tests |
 
 ---
 
@@ -122,6 +127,63 @@
 ---
 
 ### 9. Modern Desktop Experience
-* **Vector XAML Icons**: Clean, resolution-independent SVG vector path geometry throughout all 10 views (zero blurry emojis or raster bitmaps).
+* **Vector XAML Icons**: Clean, resolution-independent SVG vector path geometry throughout all views (zero blurry emojis or raster bitmaps).
 * **Global Account Setup**: Configure Let's Encrypt email and environment once across all websites without repetitive prompts.
 * **Built-in Guides & Tutorials**: Step-by-step documentation for IIS setup, DNS-01 Cloudflare automation, router port forwarding, and background service setup.
+
+---
+
+### 10. 1-Click Windows TLS & Schannel Security Hardening *(NEW)*
+* **Native Windows Schannel Registry Optimizer**: Eliminates the need for separate tools to secure Windows Server.
+* **1-Click TLS 1.3 & 1.2 Enforcer**: Explicitly enables modern TLS 1.2 and TLS 1.3 protocol handlers for Server and Client subkeys.
+* **Legacy Protocol Deprecation**: Disables SSL 2.0, SSL 3.0, TLS 1.0, and TLS 1.1 across `HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols`.
+* **Insecure Cipher & Hash Elimination**: Blocks RC4 (128/64/56/40), Triple DES 168 (3DES), DES, NULL ciphers, and MD5 hashes.
+* **PCI-DSS & HIPAA Compliance**: Instant evaluation and automated compliance scoring achieving Qualys SSL Labs A+ grade.
+* **1-Click HSTS Deployment**: Enforces HTTP Strict Transport Security (`max-age=31536000; includeSubDomains; preload`) directly into IIS site bindings and `web.config`.
+
+---
+
+### 11. Live In-App TLS Health & Handshake Diagnostic Probe *(NEW)*
+* **Zero-Browser Verification**: Tests live HTTPS websites directly from the CertFlow UI without opening external browsers or third-party web scanners.
+* **Port 443 Handshake Probe**: Performs an authentic client TLS handshake sending Server Name Indication (SNI) and negotiates cipher suites in real time.
+* **Comprehensive Health Inspection**:
+  * **Negotiated Protocol**: Inspects live negotiated TLS version (TLS 1.3 / TLS 1.2).
+  * **Negotiated Cipher Suite**: Displays active encryption algorithm and key exchange parameters.
+  * **Trust Chain Completeness**: Validates intermediate CA certificates and root CA trust status.
+  * **HSTS Header Detection**: Queries HTTP response headers for active `Strict-Transport-Security` enforcement.
+  * **Automated SSL Health Grade**: Assigns an instant grade (**A+**, **A**, **B**, **C**, **F**) with actionable remediation tips.
+
+---
+
+### 12. Remote Desktop Services (RDP/RDS) Auto-Binding *(NEW)*
+* **Beyond IIS Workloads**: Extends certificate management to Windows Server Remote Desktop Services.
+* **1-Click RDP Certificate Deployment**: Automatically updates the Windows Remote Desktop listener (`WinStations\RDP-Tcp\SSLCertificateSHA1Hash`).
+* **Private Key Permission Management**: Grants read permissions to `NETWORK SERVICE` ensuring smooth TLS RDP connections.
+* **Zero Security Warnings**: Eliminates client-side "The identity of the remote computer cannot be verified" warnings during RDP sessions.
+
+---
+
+### 13. Expanded Cloud DNS-01 Provider Ecosystem *(NEW)*
+* **Cloudflare DNS**: Full automated TXT record provisioning and automatic cleanup.
+* **AWS Route 53 Integration**: Automated zone discovery and TXT record UPSERT using AWS IAM credentials.
+* **Azure DNS Integration**: Resource Group and DNS Zone automated provisioning for Azure-hosted virtual machines and apps.
+* **Manual DNS Interactive Mode**: Step-by-step TXT record instructions for unsupported registrars.
+
+---
+
+### 14. Post-Renewal Automation Hooks & Custom Script Triggers *(NEW)*
+* **Flexible Automation Hooks**: Executes custom tasks immediately following successful certificate issuance or renewal.
+* **Supported Hook Types**:
+  * **PowerShell Scripts (`.ps1`)**: Runs scripts with `-ExecutionPolicy Bypass` and parameter interpolation.
+  * **Batch Files (`.bat` / `.cmd`)**: Windows shell commands for legacy orchestration.
+  * **Windows Service Restarts**: 1-Click safe restarts of dependent services (e.g. `FTPSVC`, `MSExchangeIS`, `W3SVC`, `OpenVPN`).
+  * **Custom Executables**: Invokes arbitrary binaries with custom timeout handling and output capture.
+* **Dynamic Variable Substitution**: Automatically injects `{Domain}`, `{Thumbprint}`, `{PfxPath}`, and `{Expires}` into script arguments.
+
+---
+
+### 15. 1-Click Encrypted Vault Backup & Server Migration *(NEW)*
+* **Disaster Recovery & Migration**: Back up the entire CertFlow state in seconds for seamless transfer between servers.
+* **Military-Grade Encryption**: Protects backup archives using **AES-256-GCM** authenticated encryption with PBKDF2 (100,000 SHA256 iterations) and 16-byte random salts.
+* **Complete State Preservation**: Archives ACME account private keys, certificate records, notification webhook configurations, and profile policies into a portable `.vault` bundle.
+* **1-Click Restore**: Instant passphrase-verified decryption and database restoration on any new server with zero manual re-entry.

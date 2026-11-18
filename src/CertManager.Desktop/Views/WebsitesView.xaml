@@ -333,6 +333,32 @@
                                                 </TextBlock>
                                             </StackPanel>
                                         </Button>
+
+                                        <!-- 1-Click Live TLS Handshake & Grade Probe -->
+                                        <Button Command="{Binding DataContext.VerifyLiveTlsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Margin="0,4,0,0" Padding="10,5" Cursor="Hand" BorderThickness="1"
+                                                Background="#F8FAFC" BorderBrush="#E2E8F0" Foreground="#475569">
+                                            <Button.Resources>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="CornerRadius" Value="6"/>
+                                                </Style>
+                                            </Button.Resources>
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasHttps}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Data="{StaticResource IconSearch}" Fill="#0284C7" Width="10" Height="10" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Probe Live TLS &amp; Grade" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>
