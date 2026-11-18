@@ -106,6 +106,42 @@ public class AcmeAccountsViewModel : ViewModelBase
             TermsOfService = "Accepted (v2)"
         });
 
+        // ZeroSSL Account
+        Accounts.Add(new AcmeAccountItemViewModel
+        {
+            DirectoryName = "ZeroSSL Production (DV90 Free & Fast)",
+            DirectoryUrl = "https://acme.zerossl.com/v2/DV90",
+            ContactEmail = contact,
+            Status = "Active & Ready (Multi-CA Failover)",
+            EnvironmentBadgeColor = "#8B5CF6",
+            EnvironmentBadgeBackground = "#F5F3FF",
+            TermsOfService = "Accepted (EAB Compatible)"
+        });
+
+        // Google Trust Services Account
+        Accounts.Add(new AcmeAccountItemViewModel
+        {
+            DirectoryName = "Google Trust Services (Google Public CA)",
+            DirectoryUrl = "https://dv.acme-v02.api.pki.goog/directory",
+            ContactEmail = contact,
+            Status = "Active & Ready (Global Anycast)",
+            EnvironmentBadgeColor = "#EA580C",
+            EnvironmentBadgeBackground = "#FFF7ED",
+            TermsOfService = "Accepted (GTS ACME)"
+        });
+
+        // BuyPass Go SSL Account
+        Accounts.Add(new AcmeAccountItemViewModel
+        {
+            DirectoryName = "BuyPass Go SSL (European CA)",
+            DirectoryUrl = "https://api.buypass.com/acme/directory",
+            ContactEmail = contact,
+            Status = "Active & Ready (180-day certs)",
+            EnvironmentBadgeColor = "#0D9488",
+            EnvironmentBadgeBackground = "#F0FDFA",
+            TermsOfService = "Accepted (BuyPass v2)"
+        });
+
         return Task.CompletedTask;
     }
 

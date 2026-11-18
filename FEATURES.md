@@ -14,26 +14,32 @@
 | **IIS Hardening** | 🔀 1-Click "Enforce HTTPS Redirect" in `web.config` | Manual configuration / scripts required | Plugin available |
 | **Certificate Export** | 📦 1-Click PFX, PEM (CRT+KEY for Nginx/Apache), & CCS | Custom PowerShell scripts required | CLI flags / manual export |
 | **Team Alerts & Webhooks** | 🔔 Native Discord, Slack, Teams, & Telegram cards | Paid / complex email relays | Email / script execution |
+| **Multi-CA & Failover** | 🌐 Instant Switcher: Let's Encrypt, ZeroSSL, Google, BuyPass + Auto-Failover | Multi-tab configuration / complex setup | CLI argument flags |
+| **Modern Cryptography** | ⚡ 1-Click ECDSA (P-256 / P-384) + Auto-Prune Superseded Certs | Legacy RSA 2048 default / unbounded store bloat | Manual flags / basic store |
 | **Multi-Domain & Wildcards** | HTTP-01 + Cloudflare DNS-01 + Manual DNS | HTTP-01 + PoshACME plugins | HTTP-01 + DNS plugins |
 | **Runtime Architecture** | Standalone In-Process OR Windows Service | Strict client-service requirement (`127.0.0.2:9696`) | Scheduled Task |
 | **ACME ARI Support** | ✅ RFC-draft ACME Renewal Information (ARI) | ✅ ARI supported | ⚠️ Basic schedule window |
-| **Unit Test Coverage** | 101 automated xUnit tests passing | Closed source core / partial repo | Open source tests |
+| **Unit Test Coverage** | 113 automated xUnit tests passing | Closed source core / partial repo | Open source tests |
 
 ---
 
 ## 🛠️ Complete Feature Inventory
 
-### 1. ACME Protocol & Certificate Issuance
+### 1. ACME Protocol & Multi-CA Engine *(NEW)*
 * **RFC 8555 Standard Compliance**: Full automated ACME order creation, authorizations, challenge responses, and certificate finalization.
+* **Instant Multi-CA Switcher**: 1-click switcher between trusted public Certificate Authorities:
+  * **Let's Encrypt Production**: Official public trusted certificates (`https://acme-v02.api.letsencrypt.org/directory`).
+  * **ZeroSSL**: Fast DV90 ACME certificates (`https://acme.zerossl.com/v2/DV90`).
+  * **Google Trust Services (GTS)**: High-availability Google public ACME CA (`https://dv.acme-v02.api.pki.goog/directory`).
+  * **BuyPass Go SSL**: European CA with 180-day certificates (`https://api.buypass.com/acme/directory`).
+  * **Custom ACME Directory**: Enterprise or private internal ACME endpoints (e.g. Smallstep, HashiCorp Vault, Microsoft Active Directory CS).
+  * **Self-Signed / Local Development**: Instant local certificate generator for test environments with zero external dependencies.
+* **Automatic Multi-CA Failover**: If the primary CA encounters rate limits (`too many orders`), maintenance downtime, or authorization errors, CertFlow automatically fails over to the designated secondary CA (e.g. ZeroSSL or Google Trust Services) without burning rate limits or failing deployment.
 * **Dual Validation Modes**:
   * **HTTP-01**: Automatic web server challenge validation over HTTP port 80.
   * **DNS-01**: Automatic TXT record provisioning for apex and wildcard certificates (`*.domain.com`).
 * **Cloudflare DNS Provider Integration**: Instant automatic DNS-01 verification with automatic TXT cleanup upon order completion.
 * **Manual DNS Fallback**: Interactive DNS-01 instructions for unsupported DNS registrars.
-* **Multi-Environment Support**:
-  * **Let's Encrypt Production**: Official public trusted certificates.
-  * **Let's Encrypt Staging**: Safe test environment with generous rate limits.
-  * **Self-Signed / Local Development**: Instant RSA-2048 local certificate generator for test environments with zero external dependencies.
 
 ---
 
@@ -73,7 +79,18 @@
 
 ---
 
-### 6. Automated Renewal & ARI Monitoring
+### 6. Modern Cryptography & Automated Store Pruning *(NEW)*
+* **Next-Gen Elliptic Curve Cryptography (ECDSA)**:
+  * **ECDSA P-256 (ES256)**: 10x faster TLS handshakes, smaller certificates, and modern browser compliance.
+  * **ECDSA P-384 (ES384)**: High-security curve for enterprise compliance (CNSA / FIPS requirements).
+  * **RSA 2048 & RSA 4096**: Full backward compatibility for legacy clients and older intermediate infrastructure.
+* **Automated Certificate Store Pruning**:
+  * Seamlessly cleans up superseded historical certificates for the domain from `LocalMachine\My`.
+  * Prevents Windows Certificate Store bloat, TLS performance degradation, and administrative clutter while preserving the active binding thumbprint.
+
+---
+
+### 7. Automated Renewal & ARI Monitoring
 * **ACME Renewal Information (ARI)**: Polls the ACME CA for optimal certificate renewal windows rather than arbitrary static dates.
 * **Configurable Renewal Thresholds**: Default 33% remaining lifetime policy (typically renewing at 60 days for a 90-day certificate).
 * **Background Windows Service**: Headless worker service (`Worker.cs`) that monitors, renews, and re-binds certificates autonomously.
@@ -81,7 +98,7 @@
 
 ---
 
-### 7. Observability, Audit Logs & Notifications
+### 8. Observability, Audit Logs & Notifications
 * **Real-Time Audit Trail**: Complete log of certificate issuance, challenge attempts, and binding updates in SQLite (`certmanager.db`).
 * **KPI Metric Strip**: Real-time counters for Total Events, Informational, Warnings, and Critical Errors.
 * **Export & Search**: Instant full-text search, level filter (Errors, Warnings, Info), CSV export, and TXT raw log export.
@@ -93,7 +110,7 @@
 
 ---
 
-### 8. Modern Desktop Experience
+### 9. Modern Desktop Experience
 * **Vector XAML Icons**: Clean, resolution-independent SVG vector path geometry throughout all 10 views (zero blurry emojis or raster bitmaps).
 * **Global Account Setup**: Configure Let's Encrypt email and environment once across all websites without repetitive prompts.
 * **Built-in Guides & Tutorials**: Step-by-step documentation for IIS setup, DNS-01 Cloudflare automation, router port forwarding, and background service setup.

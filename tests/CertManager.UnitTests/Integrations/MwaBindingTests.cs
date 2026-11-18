@@ -192,6 +192,9 @@ public class MwaBindingTests
         public Task<string> InitializeAccountAsync(string email, bool isStaging, CancellationToken cancellationToken = default) =>
             Task.FromResult("https://acme.test/account/1");
 
+        public Task<string> InitializeAccountWithDirectoryAsync(string email, Uri directoryUri, CancellationToken cancellationToken = default) =>
+            Task.FromResult("https://acme.test/account/1");
+
         public Task<IReadOnlyList<AcmeChallengeItem>> CreateOrderAndGetChallengesAsync(
             IReadOnlyList<string> domains, string validationMethod = "Http01", CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<AcmeChallengeItem>>(Array.Empty<AcmeChallengeItem>());
@@ -200,7 +203,7 @@ public class MwaBindingTests
             Task.FromResult(true);
 
         public Task<byte[]> FinalizeOrderAndExportPfxAsync(
-            string friendlyName, string password, IReadOnlyList<string>? sanDomains = null, CancellationToken cancellationToken = default) =>
+            string friendlyName, string password, IReadOnlyList<string>? sanDomains = null, string keyAlgorithm = "RS256", CancellationToken cancellationToken = default) =>
             Task.FromResult(Array.Empty<byte>());
     }
 

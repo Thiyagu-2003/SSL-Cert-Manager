@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -33,6 +34,12 @@ public class CertificateWizardViewModel : ViewModelBase
     private string _errorMessage = string.Empty;
     private bool _isCheckingReadiness;
     private DomainReadinessResult? _readinessResult;
+    private string _selectedCertificateAuthority = "Let's Encrypt";
+    private string _customCaDirectoryUrl = string.Empty;
+    private bool _enableCaFallback = true;
+    private string _selectedFallbackCa = "ZeroSSL";
+    private string _selectedKeyAlgorithm = "ECDSA P-256 (ES256 - Modern & Fast)";
+    private bool _autoPruneSupersededCerts = true;
 
     public CertificateWizardViewModel() : this(1, "Default Web Site", "example.com")
     {
@@ -245,6 +252,84 @@ public class CertificateWizardViewModel : ViewModelBase
         }
     }
 
+    public ObservableCollection<string> CertificateAuthorities { get; } = new()
+    {
+        "Let's Encrypt",
+        "ZeroSSL",
+        "Google Trust Services",
+        "BuyPass Go SSL",
+        "Self-Signed (Local Dev)",
+        "Custom ACME Directory"
+    };
+
+    public ObservableCollection<string> FallbackCertificateAuthorities { get; } = new()
+    {
+        "ZeroSSL",
+        "Google Trust Services",
+        "Let's Encrypt",
+        "BuyPass Go SSL"
+    };
+
+    public ObservableCollection<string> KeyAlgorithms { get; } = new()
+    {
+        "ECDSA P-256 (ES256 - Modern & Fast)",
+        "ECDSA P-384 (ES384 - High-Security Curve)",
+        "RSA 2048 (RS256 - Standard Compatibility)",
+        "RSA 4096 (RS256 - High-Security RSA)"
+    };
+
+    public string SelectedCertificateAuthority
+    {
+        get => _selectedCertificateAuthority;
+        set
+        {
+            if (SetProperty(ref _selectedCertificateAuthority, value))
+            {
+                OnPropertyChanged(nameof(IsCustomCa));
+                if (value == "Self-Signed (Local Dev)")
+                {
+                    IsSelfSigned = true;
+                }
+                else if (IsSelfSigned)
+                {
+                    IsSelfSigned = false;
+                }
+            }
+        }
+    }
+
+    public bool IsCustomCa => _selectedCertificateAuthority == "Custom ACME Directory";
+
+    public string CustomCaDirectoryUrl
+    {
+        get => _customCaDirectoryUrl;
+        set => SetProperty(ref _customCaDirectoryUrl, value);
+    }
+
+    public bool EnableCaFallback
+    {
+        get => _enableCaFallback;
+        set => SetProperty(ref _enableCaFallback, value);
+    }
+
+    public string SelectedFallbackCa
+    {
+        get => _selectedFallbackCa;
+        set => SetProperty(ref _selectedFallbackCa, value);
+    }
+
+    public string SelectedKeyAlgorithm
+    {
+        get => _selectedKeyAlgorithm;
+        set => SetProperty(ref _selectedKeyAlgorithm, value);
+    }
+
+    public bool AutoPruneSupersededCerts
+    {
+        get => _autoPruneSupersededCerts;
+        set => SetProperty(ref _autoPruneSupersededCerts, value);
+    }
+
     public bool IsDns01
     {
         get => _isDns01;
@@ -419,6 +504,24 @@ public class CertificateWizardViewModel : ViewModelBase
 
             string validationMethod = IsSelfSigned ? "SelfSigned" : (IsDns01 ? "Dns01" : "Http01");
 
+            string mappedCa = "LetsEncrypt";
+            if (SelectedCertificateAuthority.Contains("ZeroSSL")) mappedCa = "ZeroSSL";
+            else if (SelectedCertificateAuthority.Contains("Google")) mappedCa = "GoogleTrustServices";
+            else if (SelectedCertificateAuthority.Contains("BuyPass")) mappedCa = "BuyPass";
+            else if (SelectedCertificateAuthority.Contains("Self-Signed")) mappedCa = "SelfSigned";
+            else if (SelectedCertificateAuthority.Contains("Custom")) mappedCa = "Custom";
+
+            string mappedFallbackCa = "ZeroSSL";
+            if (SelectedFallbackCa.Contains("Google")) mappedFallbackCa = "GoogleTrustServices";
+            else if (SelectedFallbackCa.Contains("Let's Encrypt")) mappedFallbackCa = "LetsEncrypt";
+            else if (SelectedFallbackCa.Contains("BuyPass")) mappedFallbackCa = "BuyPass";
+
+            string mappedKeyAlgo = "ES256";
+            if (SelectedKeyAlgorithm.Contains("P-384") || SelectedKeyAlgorithm.Contains("ES384")) mappedKeyAlgo = "ES384";
+            else if (SelectedKeyAlgorithm.Contains("4096")) mappedKeyAlgo = "RS4096";
+            else if (SelectedKeyAlgorithm.Contains("2048")) mappedKeyAlgo = "RS256";
+            else if (SelectedKeyAlgorithm.Contains("ES256") || SelectedKeyAlgorithm.Contains("P-256")) mappedKeyAlgo = "ES256";
+
             var request = new CertificateRequestModel
             {
                 SiteId = SiteId,
@@ -426,6 +529,12 @@ public class CertificateWizardViewModel : ViewModelBase
                 DomainName = DomainName.Trim(),
                 ContactEmail = ContactEmail.Trim(),
                 IsStaging = IsStaging,
+                CertificateAuthority = mappedCa,
+                CustomCaDirectoryUrl = CustomCaDirectoryUrl?.Trim(),
+                EnableCaFallback = EnableCaFallback,
+                FallbackCertificateAuthority = mappedFallbackCa,
+                KeyAlgorithm = mappedKeyAlgo,
+                AutoPruneSupersededCerts = AutoPruneSupersededCerts,
                 ValidationMethod = validationMethod,
                 DnsProvider = DnsProvider,
                 DnsApiToken = DnsApiToken?.Trim(),
@@ -435,14 +544,14 @@ public class CertificateWizardViewModel : ViewModelBase
             if (IsSelfSigned)
             {
                 CurrentStep = "Generating & Installing Self-Signed Certificate";
-                StatusMessage = "Generating RSA 2048 certificate, installing into Windows Store, and binding to IIS...";
+                StatusMessage = "Generating local certificate, installing into Windows Store, and binding to IIS...";
             }
             else
             {
-                CurrentStep = IsDns01 ? "DNS-01 ACME Challenge in Progress" : "Automated HTTP-01 Issuance in Progress";
+                CurrentStep = IsDns01 ? "DNS-01 ACME Challenge in Progress" : $"Automated HTTP-01 Issuance via {SelectedCertificateAuthority}";
                 StatusMessage = IsDns01 
-                    ? "Creating TXT records via DNS provider, checking propagation, and finalizing certificate..."
-                    : "Provisioning HTTP-01 challenge, finalizing certificate, and binding to IIS...";
+                    ? $"Creating TXT records, requesting {mappedKeyAlgo} cert from {SelectedCertificateAuthority}, and finalizing..."
+                    : $"Provisioning HTTP-01 challenge, requesting {mappedKeyAlgo} cert from {SelectedCertificateAuthority}, and binding to IIS...";
             }
 
             var result = await _ipcClient.RequestCertificateAsync(request);

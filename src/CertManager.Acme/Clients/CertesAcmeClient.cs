@@ -22,12 +22,13 @@ public record AcmeChallengeItem(
 public interface IAcmeCertificateClient
 {
     Task<string> InitializeAccountAsync(string email, bool isStaging, CancellationToken cancellationToken = default);
+    Task<string> InitializeAccountWithDirectoryAsync(string email, Uri directoryUri, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<AcmeChallengeItem>> CreateOrderAndGetChallengesAsync(
         IReadOnlyList<string> domains, 
         string validationMethod = "Http01", 
         CancellationToken cancellationToken = default);
     Task<bool> SubmitChallengeAsync(AcmeChallengeItem challengeItem, CancellationToken cancellationToken = default);
-    Task<byte[]> FinalizeOrderAndExportPfxAsync(string friendlyName, string password, IReadOnlyList<string>? sanDomains = null, CancellationToken cancellationToken = default);
+    Task<byte[]> FinalizeOrderAndExportPfxAsync(string friendlyName, string password, IReadOnlyList<string>? sanDomains = null, string keyAlgorithm = "RS256", CancellationToken cancellationToken = default);
 }
 
 public class CertesAcmeClient : IAcmeCertificateClient
@@ -37,15 +38,19 @@ public class CertesAcmeClient : IAcmeCertificateClient
     private readonly SemaphoreSlim _syncLock = new(1, 1);
     private readonly ConcurrentDictionary<string, (AcmeContext Context, string Location)> _accountCache = new();
 
-    public async Task<string> InitializeAccountAsync(string email, bool isStaging, CancellationToken cancellationToken = default)
+    public Task<string> InitializeAccountAsync(string email, bool isStaging, CancellationToken cancellationToken = default)
+    {
+        var directoryUri = isStaging 
+            ? WellKnownServers.LetsEncryptStagingV2 
+            : WellKnownServers.LetsEncryptV2;
+        return InitializeAccountWithDirectoryAsync(email, directoryUri, cancellationToken);
+    }
+
+    public async Task<string> InitializeAccountWithDirectoryAsync(string email, Uri directoryUri, CancellationToken cancellationToken = default)
     {
         await _syncLock.WaitAsync(cancellationToken);
         try
         {
-            var directoryUri = isStaging 
-                ? WellKnownServers.LetsEncryptStagingV2 
-                : WellKnownServers.LetsEncryptV2;
-
             string cacheKey = $"{email.Trim().ToLowerInvariant()}@{directoryUri}";
             if (_accountCache.TryGetValue(cacheKey, out var cached))
             {
@@ -198,6 +203,7 @@ public class CertesAcmeClient : IAcmeCertificateClient
         string friendlyName,
         string password,
         IReadOnlyList<string>? sanDomains = null,
+        string keyAlgorithm = "RS256",
         CancellationToken cancellationToken = default)
     {
         await _syncLock.WaitAsync(cancellationToken);
@@ -251,8 +257,16 @@ public class CertesAcmeClient : IAcmeCertificateClient
                 }
             }
 
-            // Generate RSA 2048 key and finalize certificate order
-            var key = KeyFactory.NewKey(KeyAlgorithm.RS256);
+            // Generate cryptographic key (RSA 2048, or ECDSA P-256 / P-384)
+            KeyAlgorithm algo = keyAlgorithm?.ToUpperInvariant() switch
+            {
+                "ES256" or "ECDSA256" or "P256" => KeyAlgorithm.ES256,
+                "ES384" or "ECDSA384" or "P384" => KeyAlgorithm.ES384,
+                "ES512" or "ECDSA521" => KeyAlgorithm.ES512,
+                _ => KeyAlgorithm.RS256
+            };
+
+            var key = KeyFactory.NewKey(algo);
             var csr = new CsrInfo
             {
                 CommonName = commonName

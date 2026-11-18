@@ -31,6 +31,7 @@ public interface ICertificateInstaller
 {
     Task<InstalledCertificate> InstallAsync(CertificateBundle certificate, InstallOptions options, CancellationToken cancellationToken = default);
     Task<bool> IsInstalledAsync(CertificateReference certificate, CancellationToken cancellationToken = default);
+    Task<int> CleanupSupersededCertificatesAsync(string subjectName, string keepThumbprint, InstallOptions options, CancellationToken cancellationToken = default);
 }
 
 public interface IServerAdapter

@@ -160,13 +160,31 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
                     request.ContactEmail = $"admin@{primaryDomain.TrimStart('*', '.')}";
                 }
 
-                // 2. Register ACME Account
-                string accountUrl = await _acmeClient.InitializeAccountAsync(request.ContactEmail, request.IsStaging, cancellationToken);
-                _logger.LogInformation("ACME account ready: {AccountUrl}", accountUrl);
+                // 2. Resolve Directory & Register ACME Account (Multi-CA support)
+                var primaryDirectoryUri = WellKnownAcmeDirectories.ResolveDirectoryUri(
+                    request.CertificateAuthority,
+                    request.IsStaging,
+                    request.CustomCaDirectoryUrl);
 
-                // 3. Create Order and retrieve challenges
+                string accountUrl = await _acmeClient.InitializeAccountWithDirectoryAsync(request.ContactEmail, primaryDirectoryUri, cancellationToken);
+                _logger.LogInformation("ACME account ready on {DirectoryUri}: {AccountUrl}", primaryDirectoryUri, accountUrl);
+
+                // 3. Create Order and retrieve challenges (with Multi-CA automatic failover)
                 string valMethod = isDnsValidation ? "Dns01" : "Http01";
-                var acmeChallenges = await _acmeClient.CreateOrderAndGetChallengesAsync(asciiDomainNames, valMethod, cancellationToken);
+                IReadOnlyList<AcmeChallengeItem> acmeChallenges;
+                try
+                {
+                    acmeChallenges = await _acmeClient.CreateOrderAndGetChallengesAsync(asciiDomainNames, valMethod, cancellationToken);
+                }
+                catch (Exception caEx) when (request.EnableCaFallback && !request.IsStaging && !string.IsNullOrWhiteSpace(request.FallbackCertificateAuthority))
+                {
+                    _logger.LogWarning(caEx, "Primary CA ({PrimaryCa}) order failed: {Msg}. Initiating Automatic Multi-CA Fallover to {FallbackCa}...", 
+                        request.CertificateAuthority, caEx.Message, request.FallbackCertificateAuthority);
+
+                    var fallbackUri = WellKnownAcmeDirectories.ResolveDirectoryUri(request.FallbackCertificateAuthority, false);
+                    await _acmeClient.InitializeAccountWithDirectoryAsync(request.ContactEmail, fallbackUri, cancellationToken);
+                    acmeChallenges = await _acmeClient.CreateOrderAndGetChallengesAsync(asciiDomainNames, valMethod, cancellationToken);
+                }
 
                 // If authorizations are already valid on Let's Encrypt (authz reuse), challenges list is empty
                 if (acmeChallenges.Count > 0)
@@ -286,8 +304,9 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
                     _logger.LogInformation("Domain authorizations are already valid on ACME authority; challenge provisioning not required.");
                 }
 
-                // 6. Finalize Order and Generate PFX
-                pfxBytes = await _acmeClient.FinalizeOrderAndExportPfxAsync(primaryDomain, pfxPassword, asciiDomainNames, cancellationToken);
+                // 6. Finalize Order and Generate PFX (RSA or ECDSA)
+                string keyAlgo = string.IsNullOrWhiteSpace(request.KeyAlgorithm) ? "RS256" : request.KeyAlgorithm;
+                pfxBytes = await _acmeClient.FinalizeOrderAndExportPfxAsync(primaryDomain, pfxPassword, asciiDomainNames, keyAlgo, cancellationToken);
 
                 // Extract thumbprint and validity
                 using var x509 = new X509Certificate2(pfxBytes, pfxPassword);
@@ -298,6 +317,23 @@ public class CertificateIssuanceWorkflow : ICertificateIssuanceWorkflow
             // 7. Install into Windows Certificate Store
             var bundle = new CertificateBundle(pfxBytes, pfxPassword, thumbprint);
             var installed = await _installer.InstallAsync(bundle, new InstallOptions("My", "LocalMachine"), cancellationToken);
+
+            // 7b. Automatically prune older superseded certificates for this domain to keep store clean
+            if (request.AutoPruneSupersededCerts)
+            {
+                try
+                {
+                    int pruned = await _installer.CleanupSupersededCertificatesAsync(primaryDomain, thumbprint, new InstallOptions("My", "LocalMachine"), cancellationToken);
+                    if (pruned > 0)
+                    {
+                        _logger.LogInformation("Auto-pruned {Count} superseded historical certificate(s) for {Domain} from Windows Certificate Store.", pruned, primaryDomain);
+                    }
+                }
+                catch (Exception pruneEx)
+                {
+                    _logger.LogWarning(pruneEx, "Non-fatal certificate cleanup warning: {Message}", pruneEx.Message);
+                }
+            }
 
             // 8. Update IIS Binding if a valid SiteId is provided
             if (request.SiteId > 0)
