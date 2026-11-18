@@ -50,10 +50,10 @@
                         <Border Background="#E0F2FE" CornerRadius="6" Padding="7,3" Margin="0,0,10,0" VerticalAlignment="Center">
                             <TextBlock Text="ALERTS &amp; WEBHOOKS" FontSize="10" FontWeight="Bold" Foreground="#0284C7"/>
                         </Border>
-                        <TextBlock Text="Notifications &amp; Team Alerts" FontSize="23" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="Notifications &amp; Team Alerts" FontSize="23" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBlock Text="Configure real-time broadcasts for certificate expirations, autonomous renewals, and errors across Teams, Discord, Slack, Telegram, Push, and Email." 
-                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
+                               FontSize="13" Foreground="#64748B" TextWrapping="Wrap" LineHeight="18"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -143,7 +143,7 @@
 
                 <!-- SECTION 1: Event Lifecycle Subscriptions & Expiry Policies -->
                 <TextBlock Text="ALERT EVENT SUBSCRIPTIONS &amp; EXPIRY POLICIES" Style="{StaticResource FormFieldLabel}" Margin="0,0,0,8"/>
-                <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,24">
+                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,24">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="8" Opacity="0.03" ShadowDepth="2" Color="#0F172A"/>
                     </Border.Effect>
@@ -158,19 +158,19 @@
                             <CheckBox Grid.Column="0" IsChecked="{Binding NotifyOnExpiryWarning}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Certificate Expiration Warning" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Certificate Expiration Warning" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A"/>
                                     <Border Background="#FEF3C7" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
                                         <TextBlock Text="Advance Notice" FontSize="9.5" FontWeight="Bold" Foreground="#D97706"/>
                                     </Border>
                                 </StackPanel>
                                 <TextBlock Text="Automated background service scans certificates every 60 seconds and notifies when expiry is within the selected threshold." 
-                                           FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,3,0,0"/>
+                                           FontSize="11.5" Foreground="#64748B" Margin="0,3,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="Alert when within:" FontSize="11.5" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="Alert when within:" FontSize="11.5" FontWeight="Medium" Foreground="#475569" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <ComboBox ItemsSource="{Binding AvailableExpiryDays}" SelectedItem="{Binding ExpiryWarningDays}" 
                                           Style="{StaticResource ModernComboBox}" Width="80" Height="32"/>
-                                <TextBlock Text="days" FontSize="11.5" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                <TextBlock Text="days" FontSize="11.5" FontWeight="Medium" Foreground="#475569" VerticalAlignment="Center" Margin="6,0,0,0"/>
                             </StackPanel>
                         </Grid>
 
@@ -192,12 +192,12 @@
                                 <CheckBox Grid.Column="0" IsChecked="{Binding NotifyOnRenewalSuccess}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="Autonomous Renewal Succeeded" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="Autonomous Renewal Succeeded" FontSize="13" FontWeight="Bold" Foreground="#0F172A"/>
                                         <Border Background="#DCFCE7" CornerRadius="4" Padding="6,2" Margin="6,0,0,0">
                                             <TextBlock Text="Success" FontSize="9.5" FontWeight="Bold" Foreground="#16A34A"/>
                                         </Border>
                                     </StackPanel>
-                                    <TextBlock Text="Delivers green success card with new thumbprint and validity window." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                    <TextBlock Text="Delivers green success card with new thumbprint and validity window." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Grid>
 
@@ -215,7 +215,7 @@
                                             <TextBlock Text="High Priority" FontSize="9.5" FontWeight="Bold" Foreground="#DC2626"/>
                                         </Border>
                                     </StackPanel>
-                                    <TextBlock Text="High-priority alert sent immediately if renewal encounters rate limits or DNS error." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                    <TextBlock Text="High-priority alert sent immediately if renewal encounters rate limits or DNS error." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Grid>
                         </Grid>
@@ -231,12 +231,12 @@
                             <CheckBox Grid.Column="0" IsChecked="{Binding NotifyOnManualIssuance}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Manual / Interactive Issuance Completed" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Manual / Interactive Issuance Completed" FontSize="13" FontWeight="Bold" Foreground="#0F172A"/>
                                     <Border Background="#F1F5F9" CornerRadius="4" Padding="6,2" Margin="6,0,0,0">
-                                        <TextBlock Text="Audit Trail" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="Audit Trail" FontSize="9.5" FontWeight="Bold" Foreground="#475569"/>
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Text="Sends an informational notification whenever an administrator requests a certificate via the Wizard." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Sends an informational notification whenever an administrator requests a certificate via the Wizard." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -260,12 +260,12 @@
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Microsoft Teams Webhook" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Microsoft Teams Webhook" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
                                     <Border Background="#EEF2FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
                                         <TextBlock Text="MessageCard &amp; Adaptive Card" FontSize="9.5" FontWeight="Bold" Foreground="#4F46E5"/>
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Text="Delivers rich Teams cards with status bands, activity facts, and certificate metadata." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Delivers rich Teams cards with status bands, activity facts, and certificate metadata." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <CheckBox Content="Enabled" IsChecked="{Binding TeamsEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
@@ -301,12 +301,12 @@
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Discord Channel Webhook" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Discord Channel Webhook" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
                                     <Border Background="#EEF2FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
                                         <TextBlock Text="Rich Embeds" FontSize="9.5" FontWeight="Bold" Foreground="#5865F2"/>
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Text="Delivers color-coded embeds with timestamps to any Discord text channel." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Delivers color-coded embeds with timestamps to any Discord text channel." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <CheckBox Content="Enabled" IsChecked="{Binding DiscordEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
@@ -342,12 +342,12 @@
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Slack Incoming Webhook" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Slack Incoming Webhook" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
                                     <Border Background="#FDF2F8" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
                                         <TextBlock Text="Attachments &amp; Colors" FontSize="9.5" FontWeight="Bold" Foreground="#DB2777"/>
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Text="Delivers formatted Slack message attachments with color status bars." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Delivers formatted Slack message attachments with color status bars." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <CheckBox Content="Enabled" IsChecked="{Binding SlackEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
@@ -383,12 +383,12 @@
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Telegram Bot Alerts" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Telegram Bot Alerts" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
                                     <Border Background="#F0F9FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
                                         <TextBlock Text="Direct Bot API" FontSize="9.5" FontWeight="Bold" Foreground="#0284C7"/>
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Text="Delivers instant markdown alerts to your personal Telegram chat or private DevOps channel." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Delivers instant markdown alerts to your personal Telegram chat or private DevOps channel." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <CheckBox Content="Enabled" IsChecked="{Binding TelegramEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
@@ -439,12 +439,12 @@
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Pushover (Mobile Push Alerts)" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Pushover (Mobile Push Alerts)" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
                                     <Border Background="#EFF6FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
                                         <TextBlock Text="iOS / Android" FontSize="9.5" FontWeight="Bold" Foreground="#2563EB"/>
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Text="Instant push notifications directly to smartphones and Apple Watch with emergency bypass." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Instant push notifications directly to smartphones and Apple Watch with emergency bypass." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <CheckBox Content="Enabled" IsChecked="{Binding PushoverEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
@@ -492,12 +492,12 @@
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Gotify (Self-Hosted Push)" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Gotify (Self-Hosted Push)" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
                                     <Border Background="#ECFDF5" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
                                         <TextBlock Text="On-Premises / Homelab" FontSize="9.5" FontWeight="Bold" Foreground="#059669"/>
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Text="Private self-hosted push notifications running inside Docker, Kubernetes, or internal network." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Private self-hosted push notifications running inside Docker, Kubernetes, or internal network." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <CheckBox Content="Enabled" IsChecked="{Binding GotifyEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
@@ -545,12 +545,12 @@
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Custom HTTP Webhook" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Custom HTTP Webhook" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
                                     <Border Background="#EEF2FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
                                         <TextBlock Text="JSON POST" FontSize="9.5" FontWeight="Bold" Foreground="#4F46E5"/>
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Text="Universal structured JSON payload for Zapier, n8n, Make, Datadog, PagerDuty, or custom backend services." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Universal structured JSON payload for Zapier, n8n, Make, Datadog, PagerDuty, or custom backend services." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <CheckBox Content="Enabled" IsChecked="{Binding GenericWebhookEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
@@ -586,12 +586,12 @@
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Email / SMTP Relay" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Email / SMTP Relay" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
                                     <Border Background="#FFF7ED" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
                                         <TextBlock Text="RFC 5322" FontSize="9.5" FontWeight="Bold" Foreground="#EA580C"/>
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Text="Standard email alert relay through company mail server or external SMTP provider with credential masking." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Standard email alert relay through company mail server or external SMTP provider with credential masking." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <CheckBox Content="Enabled" IsChecked="{Binding SmtpEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
@@ -645,7 +645,7 @@
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                     <TextBlock Text="RECIPIENT ADDRESSES (TO)" Style="{StaticResource FormFieldLabel}" Margin="0"/>
                                     <Border Background="#F1F5F9" CornerRadius="4" Padding="6,1" Margin="8,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock Text="Comma (,) or Semicolon (;) separated" FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="Comma (,) or Semicolon (;) separated" FontSize="9.5" FontWeight="SemiBold" Foreground="#475569"/>
                                     </Border>
                                 </StackPanel>
                                 <TextBox Text="{Binding SmtpToAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"
@@ -674,7 +674,7 @@
                 </Border>
 
                 <!-- Bottom Sticky Save Bar -->
-                <Border Background="{DynamicResource MutedBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18,16" Margin="0,0,0,16">
+                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="18,16" Margin="0,0,0,16">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="8" Opacity="0.04" ShadowDepth="2" Color="#0F172A"/>
                     </Border.Effect>
@@ -686,8 +686,8 @@
                         </Grid.ColumnDefinitions>
                         <Path Grid.Column="0" Data="{StaticResource IconShieldCheck}" Fill="#0284C7" Width="20" Height="20" Stretch="Uniform" Margin="0,0,12,0" VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Ready to persist configuration across background service and desktop UI?" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Settings apply immediately to the 24/7 autonomous renewal engine without requiring a service restart." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            <TextBlock Text="Ready to persist configuration across background service and desktop UI?" FontSize="13" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Settings apply immediately to the 24/7 autonomous renewal engine without requiring a service restart." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                         </StackPanel>
                         <Button Grid.Column="2" Command="{Binding SaveSettingsCommand}" Style="{StaticResource ModernToolbarPrimaryBtn}">
                             <StackPanel Orientation="Horizontal">
@@ -701,4 +701,3 @@
         </Grid>
     </ScrollViewer>
 </UserControl>
-

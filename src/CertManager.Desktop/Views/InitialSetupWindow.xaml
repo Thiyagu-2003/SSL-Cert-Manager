@@ -10,7 +10,7 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
-        Background="{DynamicResource AppBgBrush}">
+        Background="#F8FAFC">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
@@ -35,9 +35,9 @@
             </Border>
 
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Global Contact Configuration" FontSize="19" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="Global Contact Configuration" FontSize="19" FontWeight="Bold" Foreground="#0F172A"/>
                 <TextBlock Text="Set your official Let's Encrypt administrator email once for all websites" 
-                           FontSize="12" Foreground="{DynamicResource TextHeaderLabelBrush}" Margin="0,2,0,0"/>
+                           FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
             </StackPanel>
         </Grid>
 
@@ -52,25 +52,25 @@
             </Border>
 
             <!-- Contact Email Field -->
-            <TextBlock Text="GLOBAL CONTACT EMAIL ADDRESS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+            <TextBlock Text="GLOBAL CONTACT EMAIL ADDRESS" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,6"/>
             <TextBox Text="{Binding ContactEmail, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ModernTextBox}" Margin="0,0,0,16"/>
 
             <!-- Default Environment -->
-            <TextBlock Text="PREFERRED ENVIRONMENT DEFAULT" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
-            <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
+            <TextBlock Text="PREFERRED ENVIRONMENT DEFAULT" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,6"/>
+            <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
                 <StackPanel>
                     <RadioButton Content="Let's Encrypt Production (Official live public certificates)" 
                                  GroupName="InitialEnv"
-                                 IsChecked="{Binding IsProduction}" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" Cursor="Hand"/>
+                                 IsChecked="{Binding IsProduction}" FontWeight="Medium" Foreground="#1E293B" Margin="0,0,0,8" Cursor="Hand"/>
                     <RadioButton Content="Let's Encrypt Staging (Recommended for safe initial testing)" 
                                  GroupName="InitialEnv"
-                                 IsChecked="{Binding IsStaging}" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
+                                 IsChecked="{Binding IsStaging}" FontWeight="Medium" Foreground="#1E293B" Cursor="Hand"/>
                 </StackPanel>
             </Border>
 
             <!-- Optional Notification Webhook -->
-            <TextBlock Text="TEAM NOTIFICATION WEBHOOK (DISCORD, SLACK, TEAMS — OPTIONAL)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+            <TextBlock Text="TEAM NOTIFICATION WEBHOOK (DISCORD, SLACK, TEAMS — OPTIONAL)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,6"/>
             <TextBox Text="{Binding WebhookUrl, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ModernTextBox}" Margin="0,0,0,14"/>
 
@@ -90,7 +90,7 @@
             </Grid.ColumnDefinitions>
 
             <Button Grid.Column="1" Content="Skip for Now" Click="OnSkipClicked"
-                    Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextHeaderLabelBrush}" 
+                    Background="Transparent" BorderThickness="0" Foreground="#64748B" 
                     Padding="14,10" Cursor="Hand" Margin="0,0,10,0" FontWeight="Medium"/>
 
             <Button Grid.Column="2" Command="{Binding SaveCommand}" 
@@ -109,4 +109,3 @@
         </Grid>
     </Grid>
 </Window>
-

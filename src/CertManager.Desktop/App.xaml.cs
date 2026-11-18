@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
-using CertManager.Desktop.Services;
 using CertManager.Service;
 
 namespace CertManager.Desktop;
@@ -23,8 +22,6 @@ public partial class App : System.Windows.Application
             LogCrash(args.Exception);
             args.Handled = false;
         };
-
-        ThemeManager.Instance.Initialize();
 
         base.OnStartup(e);
     }

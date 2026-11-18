@@ -10,11 +10,11 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
 
         <Style x:Key="SiteCardBorder" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
             <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="Padding" Value="22"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="RenderTransform">
                 <Setter.Value>
@@ -91,9 +91,9 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0">
-                    <TextBlock Text="Microsoft IIS Websites" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Microsoft IIS Websites" FontSize="26" FontWeight="Bold" Foreground="#0F172A"/>
                     <TextBlock Text="Live site discovery, hostname bindings, and SSL/TLS coverage status" 
-                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0"/>
+                               FontSize="13" Foreground="#64748B" Margin="0,5,0,0"/>
                 </StackPanel>
 
                 <Button Grid.Column="1" Command="{Binding ScanCommand}" 
@@ -115,16 +115,16 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Metric 1: Total IIS Sites -->
-                <Border Grid.Column="0" Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" 
+                <Border Grid.Column="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" 
                         CornerRadius="12" Padding="18" Margin="0,0,14,0">
                     <StackPanel>
-                        <TextBlock Text="TOTAL IIS SITES" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        <TextBlock Text="{Binding TotalSitesCount}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,4,0,0"/>
+                        <TextBlock Text="TOTAL IIS SITES" FontSize="11" FontWeight="Bold" Foreground="#64748B"/>
+                        <TextBlock Text="{Binding TotalSitesCount}" FontSize="28" FontWeight="Bold" Foreground="#0F172A" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Metric 2: HTTPS Secured -->
-                <Border Grid.Column="1" Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" 
+                <Border Grid.Column="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" 
                         CornerRadius="12" Padding="18" Margin="0,0,14,0">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
@@ -136,7 +136,7 @@
                 </Border>
 
                 <!-- Metric 3: Needs Certificate -->
-                <Border Grid.Column="2" Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" 
+                <Border Grid.Column="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" 
                         CornerRadius="12" Padding="18">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
@@ -149,8 +149,8 @@
             </Grid>
 
             <!-- Status Banner -->
-            <Border Background="{DynamicResource MutedBgBrush}" CornerRadius="8" Padding="14,10" Margin="0,0,0,24">
-                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="Medium"/>
+            <Border Background="#F1F5F9" CornerRadius="8" Padding="14,10" Margin="0,0,0,24">
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#475569" FontWeight="Medium"/>
             </Border>
 
             <!-- Websites Items List -->
@@ -192,8 +192,8 @@
                                             </TextBlock>
                                         </Border>
 
-                                        <TextBlock Text="{Binding SiteName}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding SiteId, StringFormat='(ID: {0})'}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding SiteName}" FontSize="18" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding SiteId, StringFormat='(ID: {0})'}" FontSize="12" Foreground="#94A3B8" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Hostnames / Bindings Summary -->
@@ -205,7 +205,7 @@
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Background="{DynamicResource MutedBgBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" 
+                                                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" 
                                                         CornerRadius="6" Padding="8,4" Margin="0,0,8,8">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="{Binding Protocol}" FontWeight="Bold" FontSize="11" Margin="0,0,6,0">
@@ -222,8 +222,8 @@
                                                                 </Style>
                                                             </TextBlock.Style>
                                                         </TextBlock>
-                                                        <TextBlock Text="{Binding Hostname, TargetNullValue='*'}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                        <TextBlock Text="{Binding Port, StringFormat=':{0}'}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                        <TextBlock Text="{Binding Hostname, TargetNullValue='*'}" FontSize="11" Foreground="#334155"/>
+                                                        <TextBlock Text="{Binding Port, StringFormat=':{0}'}" FontSize="11" Foreground="#64748B"/>
                                                     </StackPanel>
                                                 </Border>
                                             </DataTemplate>
@@ -338,7 +338,7 @@
                                         <Button Command="{Binding DataContext.VerifyLiveTlsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}"
                                                 Margin="0,4,0,0" Padding="10,5" Cursor="Hand" BorderThickness="1"
-                                                Background="{DynamicResource ButtonSecBgBrush}" BorderBrush="{DynamicResource ButtonSecBorderBrush}" Foreground="{DynamicResource ButtonSecFgBrush}">
+                                                Background="#F8FAFC" BorderBrush="#E2E8F0" Foreground="#475569">
                                             <Button.Resources>
                                                 <Style TargetType="Border">
                                                     <Setter Property="CornerRadius" Value="6"/>

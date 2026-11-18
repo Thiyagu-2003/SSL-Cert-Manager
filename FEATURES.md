@@ -25,7 +25,6 @@
 | **Runtime Architecture** | Standalone In-Process OR Windows Service | Strict client-service requirement (`127.0.0.2:9696`) | Scheduled Task |
 | **ACME ARI Support** | ✅ RFC-draft ACME Renewal Information (ARI) | ✅ ARI supported | ⚠️ Basic schedule window |
 | **90-Day Renewal Gantt Chart** | 📊 Interactive 90-Day Horizon & Fleet Gantt Chart (Active, ARI 60-76d, Warning, Critical) | Basic date labels / single progress bar | Terminal dates only |
-| **Theming & UI Modes** | 🌓 1-Click Dark Mode & Light Mode with dynamic runtime brush switching | Light theme only | N/A (Console) |
 | **Unit Test Coverage** | 134 automated xUnit tests passing | Closed source core / partial repo | Open source tests |
 
 ---
@@ -201,13 +200,4 @@
   * 🔴 **Critical Emergency Phase (Days 87–90)**: Emergency notice phase (< 3 days remaining).
 * **Multi-Track Fleet Gantt Schedule**: 1-Click expandable "90-Day Gantt Schedule" view displaying all server certificates aligned across the 90-day horizon with real-time progress cursors and milestone ticks.
 * **Actionable Tooltips & Zone Badges**: Instant clarity into renewal deadlines, elapsed days, and days remaining until ARI auto-renewal triggers.
-
----
-
-### 17. 1-Click Dark Mode / Light Mode Dynamic Theme Switcher *(NEW)*
-* **Cybersecurity Dark Palette**: High-contrast, eye-friendly theme with deep slate navy (`#0B0F19`), elevated card surfaces (`#131B2E`), subtle borders (`#223049`), and crisp typography (`#F8FAFC`).
-* **Clean Light Enterprise Palette**: Crisp, modern corporate aesthetic (`#F8FAFC` background, pure white elevated cards, subtle slate borders).
-* **Instant Dynamic Switching**: Swaps theme brushes in real-time with zero screen flicker and no application restart required.
-* **Persistent Preference**: Automatically saves user theme preference to local settings and restores upon launch.
-* **Modern Nav Toggle Pill**: Quick-access Sun/Moon toggle pill positioned directly in the sidebar navigation footer.
 
