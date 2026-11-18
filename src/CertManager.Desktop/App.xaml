@@ -45,6 +45,8 @@
         <StreamGeometry x:Key="IconSend">M 2.01,21 L 23,12 L 2.01,3 L 2,10 L 17,12 L 2,14 Z</StreamGeometry>
         <StreamGeometry x:Key="IconTimeline">M 3,17 V 19 H 21 V 17 H 3 M 3,5 V 7 H 21 V 5 H 3 M 3,11 V 13 H 15 V 11 H 3 Z</StreamGeometry>
         <StreamGeometry x:Key="IconGantt">M 2,3 H 4 V 21 H 2 V 3 Z M 6,5 H 18 V 8 H 6 V 5 Z M 6,10 H 22 V 13 H 6 V 10 Z M 6,15 H 14 V 18 H 6 V 15 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconEye">M 12,4.5 C 7,4.5 2.73,7.61 1,12 C 2.73,16.39 7,19.5 12,19.5 C 17,19.5 21.27,16.39 23,12 C 21.27,7.61 17,4.5 12,4.5 Z M 12,17 C 9.24,17 7,14.76 7,12 C 7,9.24 9.24,7 12,7 C 14.76,7 17,9.24 17,12 C 17,14.76 14.76,17 12,17 Z M 12,9 C 10.34,9 9,10.34 9,12 C 9,13.66 10.34,15 12,15 C 13.66,15 15,13.66 15,12 C 15,10.34 13.66,9 12,9 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconEyeOff">M 12,7 C 14.76,7 17,9.24 17,12 C 17,12.64 16.87,13.26 16.64,13.82 L 19.57,16.75 C 21.07,15.5 22.27,13.86 23,12 C 21.27,7.61 17,4.5 12,4.5 C 10.6,4.5 9.27,4.78 8.05,5.28 L 10.18,7.41 C 10.74,7.15 11.35,7 12,7 Z M 2,4.27 L 4.28,6.55 L 4.74,7.01 C 3.08,8.3 1.78,10.01 1,12 C 2.73,16.39 7,19.5 12,19.5 C 13.55,19.5 15.03,19.2 16.38,18.66 L 16.81,19.09 L 19.73,22 L 21,20.73 L 3.27,3 L 2,4.27 Z M 7.53,9.8 L 9.08,11.35 C 9.03,11.56 9,11.77 9,12 C 9,13.66 10.34,15 12,15 C 12.23,15 12.44,14.97 12.65,14.92 L 14.2,16.47 C 13.53,16.8 12.79,17 12,17 C 9.24,17 7,14.76 7,12 C 7,11.21 7.2,10.47 7.53,9.8 Z</StreamGeometry>
 
         <!-- Application-Wide Implicit View-ViewModel Mappings -->
         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
@@ -154,6 +156,73 @@
                                         <DropShadowEffect BlurRadius="6" Opacity="0.12" ShadowDepth="1" Color="#0284C7"/>
                                     </Setter.Value>
                                 </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Standard PasswordBox -->
+        <Style x:Key="ModernPasswordBox" TargetType="PasswordBox">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="PasswordChar" Value="●"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PasswordBox">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8" SnapsToDevicePixels="True">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#94A3B8"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#0284C7"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="6" Opacity="0.12" ShadowDepth="1" Color="#0284C7"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Ghost Icon Button (for in-field toggles, dismiss buttons) -->
+        <Style x:Key="ModernGhostIconButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBorder" Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#E2E8F0"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#CBD5E1"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

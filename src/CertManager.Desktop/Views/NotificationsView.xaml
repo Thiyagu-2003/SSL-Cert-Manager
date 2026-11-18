@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:common="clr-namespace:CertManager.Desktop.Common"
              mc:Ignorable="d" 
              d:DesignHeight="1200" d:DesignWidth="980"
              FontFamily="Segoe UI Variable, Segoe UI, sans-serif">
@@ -97,13 +98,19 @@
                 </Border>
 
                 <!-- Test Feedback Alert Banner -->
-                <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="9" Padding="14,10" Margin="0,0,0,16">
+                <Border BorderThickness="1" CornerRadius="9" Padding="14,10" Margin="0,0,0,16">
                     <Border.Style>
                         <Style TargetType="Border">
+                            <Setter Property="Background" Value="#EFF6FF"/>
+                            <Setter Property="BorderBrush" Value="#BFDBFE"/>
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding HasTestStatus}" Value="True">
                                     <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding TestStatusIsError}" Value="True">
+                                    <Setter Property="Background" Value="#FEF2F2"/>
+                                    <Setter Property="BorderBrush" Value="#FECACA"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -112,14 +119,17 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Path Grid.Column="0" Data="{StaticResource IconInfo}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Path Grid.Column="0" Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center">
                             <Path.Style>
                                 <Style TargetType="Path">
+                                    <Setter Property="Data" Value="{StaticResource IconInfo}"/>
                                     <Setter Property="Fill" Value="#0284C7"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding TestStatusIsError}" Value="True">
-                                            <Setter Property="Fill" Value="#EF4444"/>
+                                            <Setter Property="Data" Value="{StaticResource IconError}"/>
+                                            <Setter Property="Fill" Value="#DC2626"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -131,12 +141,15 @@
                                     <Setter Property="Foreground" Value="#1E40AF"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding TestStatusIsError}" Value="True">
-                                            <Setter Property="Foreground" Value="#B91C1C"/>
+                                            <Setter Property="Foreground" Value="#991B1B"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
+                        <Button Grid.Column="2" Command="{Binding DismissTestStatusCommand}" Style="{StaticResource ModernGhostIconButton}" ToolTip="Dismiss" Margin="8,0,0,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource IconClose}" Fill="#94A3B8" Width="10" Height="10" Stretch="Uniform"/>
+                        </Button>
                     </Grid>
                 </Border>
             </StackPanel>
@@ -609,6 +622,76 @@
 
                         <Border Height="1" Background="#F1F5F9" Margin="0,0,0,14"/>
 
+                        <!-- In-Card SMTP Test Feedback Banner -->
+                        <Border BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,14">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="#ECFDF5"/>
+                                    <Setter Property="BorderBrush" Value="#A7F3D0"/>
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasSmtpTestStatus}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding SmtpTestStatusIsError}" Value="True">
+                                            <Setter Property="Background" Value="#FEF2F2"/>
+                                            <Setter Property="BorderBrush" Value="#FECACA"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Path Grid.Column="0" Width="16" Height="16" Stretch="Uniform" Margin="0,2,10,0" VerticalAlignment="Top">
+                                    <Path.Style>
+                                        <Style TargetType="Path">
+                                            <Setter Property="Data" Value="{StaticResource IconCheckCircle}"/>
+                                            <Setter Property="Fill" Value="#059669"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SmtpTestStatusIsError}" Value="True">
+                                                    <Setter Property="Data" Value="{StaticResource IconError}"/>
+                                                    <Setter Property="Fill" Value="#DC2626"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Path.Style>
+                                </Path>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding SmtpTestStatusTitle}" FontWeight="Bold" FontSize="12.5">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#065F46"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SmtpTestStatusIsError}" Value="True">
+                                                        <Setter Property="Foreground" Value="#991B1B"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding SmtpTestStatusMessage}" FontSize="12" Margin="0,2,0,0" TextWrapping="Wrap" LineHeight="16">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#047857"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SmtpTestStatusIsError}" Value="True">
+                                                        <Setter Property="Foreground" Value="#B91C1C"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                                <Button Grid.Column="2" Command="{Binding DismissSmtpTestStatusCommand}" Style="{StaticResource ModernGhostIconButton}" ToolTip="Dismiss" Margin="8,0,0,0" VerticalAlignment="Top">
+                                    <Path Data="{StaticResource IconClose}" Fill="#94A3B8" Width="10" Height="10" Stretch="Uniform"/>
+                                </Button>
+                            </Grid>
+                        </Border>
+
                         <!-- Row 1: Host, Port, SSL -->
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
@@ -670,7 +753,62 @@
 
                             <StackPanel Grid.Column="1" Margin="10,0,0,0">
                                 <TextBlock Text="SMTP PASSWORD (OPTIONAL)" Style="{StaticResource FormFieldLabel}"/>
-                                <TextBox Text="{Binding SmtpPassword, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                                <Grid Height="38">
+                                    <!-- Masked PasswordBox (Default) -->
+                                    <PasswordBox Padding="12,8,38,8"
+                                                 common:PasswordBoxHelper.BindPassword="True"
+                                                 common:PasswordBoxHelper.BoundPassword="{Binding SmtpPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                        <PasswordBox.Style>
+                                            <Style TargetType="PasswordBox" BasedOn="{StaticResource ModernPasswordBox}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSmtpPasswordVisible}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </PasswordBox.Style>
+                                    </PasswordBox>
+
+                                    <!-- Revealed Clear-Text TextBox -->
+                                    <TextBox Text="{Binding SmtpPassword, UpdateSourceTrigger=PropertyChanged}"
+                                             Padding="12,8,38,8">
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSmtpPasswordVisible}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
+
+                                    <!-- Eye Toggle Button inside the right edge of the password input -->
+                                    <Button Command="{Binding ToggleSmtpPasswordVisibilityCommand}"
+                                            Style="{StaticResource ModernGhostIconButton}"
+                                            ToolTip="{Binding SmtpPasswordToggleToolTip}"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Width="32" Height="32"
+                                            Margin="0,0,3,0">
+                                        <Path Width="16" Height="16" Stretch="Uniform">
+                                            <Path.Style>
+                                                <Style TargetType="Path">
+                                                    <Setter Property="Data" Value="{StaticResource IconEye}"/>
+                                                    <Setter Property="Fill" Value="#64748B"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsSmtpPasswordVisible}" Value="True">
+                                                            <Setter Property="Data" Value="{StaticResource IconEyeOff}"/>
+                                                            <Setter Property="Fill" Value="#0284C7"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Path.Style>
+                                        </Path>
+                                    </Button>
+                                </Grid>
                             </StackPanel>
                         </Grid>
                     </StackPanel>

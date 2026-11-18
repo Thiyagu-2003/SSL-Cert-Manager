@@ -21,6 +21,7 @@ namespace CertManager.Infrastructure.Notifications;
 public interface INotificationChannel
 {
     string ChannelName { get; }
+    string? LastError { get; }
     Task<bool> SendAsync(NotificationMessage message, CancellationToken cancellationToken = default);
 }
 
@@ -47,13 +48,22 @@ public class SmtpNotificationChannel : INotificationChannel
     }
 
     public string ChannelName => "SMTP";
+    public string? LastError { get; private set; }
 
     public async Task<bool> SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
 
+        if (string.IsNullOrWhiteSpace(_options.Host))
+        {
+            LastError = "SMTP server hostname or IP address cannot be empty.";
+            _logger.LogWarning("SMTP host is not configured. Skipping email notification.");
+            return false;
+        }
+
         if (string.IsNullOrWhiteSpace(_options.ToAddress))
         {
+            LastError = "Recipient email address is not configured.";
             _logger.LogWarning("SMTP recipient address is not configured. Skipping email notification.");
             return false;
         }
@@ -67,6 +77,7 @@ public class SmtpNotificationChannel : INotificationChannel
             var recipients = _options.ToAddress.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             if (recipients.Length == 0)
             {
+                LastError = "No recipient email addresses were provided.";
                 _logger.LogWarning("No valid SMTP recipient addresses configured.");
                 return false;
             }
@@ -87,6 +98,7 @@ public class SmtpNotificationChannel : INotificationChannel
 
             if (validRecipients == 0)
             {
+                LastError = $"Recipient address '{_options.ToAddress}' is not a valid email format.";
                 _logger.LogWarning("No valid SMTP recipients parsed from: {ToAddress}", _options.ToAddress);
                 return false;
             }
@@ -105,13 +117,45 @@ public class SmtpNotificationChannel : INotificationChannel
 
             await client.SendMailAsync(mail, cancellationToken);
             _logger.LogInformation("Sent notification email to {Recipient}: {Subject}", MaskEmail(_options.ToAddress), message.Subject);
+            LastError = null;
             return true;
+        }
+        catch (SmtpException ex)
+        {
+            string detail = FormatSmtpException(ex, _options);
+            _logger.LogError(ex, "Failed to deliver SMTP notification: {Message}", detail);
+            LastError = detail;
+            return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to deliver SMTP notification: {Message}", ex.Message);
+            string detail = $"SMTP delivery failed: {ex.Message}" + (ex.InnerException != null ? $" ({ex.InnerException.Message})" : "");
+            _logger.LogError(ex, "Failed to deliver SMTP notification: {Message}", detail);
+            LastError = detail;
             return false;
         }
+    }
+
+    private static string FormatSmtpException(SmtpException ex, SmtpChannelOptions options)
+    {
+        string statusInfo = ex.StatusCode != SmtpStatusCode.GeneralFailure ? $" [Code: {(int)ex.StatusCode} {ex.StatusCode}]" : "";
+        string inner = ex.InnerException != null ? $": {ex.InnerException.Message}" : "";
+
+        if (ex.StatusCode == SmtpStatusCode.MustIssueStartTlsFirst || 
+            ex.Message.Contains("STARTTLS", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"SMTP server requires SSL/TLS. Please enable the 'Enable SSL/TLS' option for {options.Host}:{options.Port}.";
+        }
+        if (ex.StatusCode == SmtpStatusCode.MailboxUnavailable)
+        {
+            return $"SMTP mailbox unavailable (550). Check sender '{options.FromAddress}' and recipient '{options.ToAddress}'.";
+        }
+        if (ex.StatusCode == SmtpStatusCode.ClientNotPermitted || ex.Message.Contains("Authentication", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"SMTP authentication failed{statusInfo}. Please verify username and password for {options.Host}.";
+        }
+
+        return $"SMTP error{statusInfo}: {ex.Message}{inner}";
     }
 
     private static string MaskEmail(string email)
@@ -160,6 +204,7 @@ public class TelegramNotificationChannel : INotificationChannel, IDisposable
     }
 
     public string ChannelName => "Telegram";
+    public string? LastError { get; private set; }
 
     public async Task<bool> SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
@@ -167,6 +212,7 @@ public class TelegramNotificationChannel : INotificationChannel, IDisposable
 
         if (string.IsNullOrWhiteSpace(_options.BotToken) || string.IsNullOrWhiteSpace(_options.ChatId))
         {
+            LastError = "Telegram bot token and chat ID must both be configured.";
             _logger.LogDebug("Telegram bot token or chat ID is not configured. Skipping.");
             return false;
         }
@@ -196,16 +242,19 @@ public class TelegramNotificationChannel : INotificationChannel, IDisposable
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation("Telegram alert delivered successfully for: {Subject}", message.Subject);
+                LastError = null;
                 return true;
             }
 
             string err = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogWarning("Telegram delivery returned status {Status}: {Response}", response.StatusCode, err);
+            LastError = $"Telegram API returned HTTP {(int)response.StatusCode}: {err}";
             return false;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to deliver Telegram notification: {Message}", ex.Message);
+            LastError = $"Telegram delivery failed: {ex.Message}";
             return false;
         }
     }
@@ -235,6 +284,7 @@ public class WebhookNotificationChannel : INotificationChannel, IDisposable
     }
 
     public string ChannelName => "Webhook";
+    public string? LastError { get; private set; }
 
     public async Task<bool> SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
@@ -242,6 +292,7 @@ public class WebhookNotificationChannel : INotificationChannel, IDisposable
 
         if (string.IsNullOrWhiteSpace(_options.WebhookUrl))
         {
+            LastError = "Webhook endpoint URL is empty.";
             return false;
         }
 
@@ -354,16 +405,19 @@ public class WebhookNotificationChannel : INotificationChannel, IDisposable
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation("Webhook alert delivered successfully for: {Subject}", message.Subject);
+                LastError = null;
                 return true;
             }
 
             string err = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogWarning("Webhook delivery failed with HTTP {Status}: {Err}", response.StatusCode, err);
+            LastError = $"Webhook server returned HTTP {(int)response.StatusCode}: {err}";
             return false;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to deliver Webhook notification: {Message}", ex.Message);
+            LastError = $"Webhook delivery failed: {ex.Message}";
             return false;
         }
     }
@@ -399,11 +453,16 @@ public class PushoverNotificationChannel : INotificationChannel, IDisposable
     }
 
     public string ChannelName => "Pushover";
+    public string? LastError { get; private set; }
 
     public async Task<bool> SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
-        if (string.IsNullOrWhiteSpace(_options.AppToken) || string.IsNullOrWhiteSpace(_options.UserKey)) return false;
+        if (string.IsNullOrWhiteSpace(_options.AppToken) || string.IsNullOrWhiteSpace(_options.UserKey))
+        {
+            LastError = "Pushover App Token and User Key are required.";
+            return false;
+        }
 
         try
         {
@@ -425,11 +484,20 @@ public class PushoverNotificationChannel : INotificationChannel, IDisposable
 
             using var content = new FormUrlEncodedContent(postData);
             using var response = await _httpClient.PostAsync("https://api.pushover.net/1/messages.json", content, cancellationToken);
-            return response.IsSuccessStatusCode;
+            if (response.IsSuccessStatusCode)
+            {
+                LastError = null;
+                return true;
+            }
+
+            string err = await response.Content.ReadAsStringAsync(cancellationToken);
+            LastError = $"Pushover API returned HTTP {(int)response.StatusCode}: {err}";
+            return false;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to deliver Pushover notification: {Message}", ex.Message);
+            LastError = $"Pushover delivery failed: {ex.Message}";
             return false;
         }
     }
@@ -462,11 +530,16 @@ public class GotifyNotificationChannel : INotificationChannel, IDisposable
     }
 
     public string ChannelName => "Gotify";
+    public string? LastError { get; private set; }
 
     public async Task<bool> SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
-        if (string.IsNullOrWhiteSpace(_options.ServerUrl) || string.IsNullOrWhiteSpace(_options.AppToken)) return false;
+        if (string.IsNullOrWhiteSpace(_options.ServerUrl) || string.IsNullOrWhiteSpace(_options.AppToken))
+        {
+            LastError = "Gotify Server URL and App Token are required.";
+            return false;
+        }
 
         try
         {
@@ -490,11 +563,20 @@ public class GotifyNotificationChannel : INotificationChannel, IDisposable
             request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
             using var response = await _httpClient.SendAsync(request, cancellationToken);
-            return response.IsSuccessStatusCode;
+            if (response.IsSuccessStatusCode)
+            {
+                LastError = null;
+                return true;
+            }
+
+            string err = await response.Content.ReadAsStringAsync(cancellationToken);
+            LastError = $"Gotify API returned HTTP {(int)response.StatusCode}: {err}";
+            return false;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to deliver Gotify notification: {Message}", ex.Message);
+            LastError = $"Gotify delivery failed: {ex.Message}";
             return false;
         }
     }
@@ -782,6 +864,10 @@ public class NotificationDispatcher : INotificationProvider
 
                 case "smtp":
                 case "email":
+                    if (string.IsNullOrWhiteSpace(request.SmtpHost))
+                    {
+                        return new NotificationTestResult { Success = false, Message = "SMTP server host is required." };
+                    }
                     if (string.IsNullOrWhiteSpace(request.SmtpTo))
                     {
                         return new NotificationTestResult { Success = false, Message = "Recipient email address is required." };
@@ -789,13 +875,13 @@ public class NotificationDispatcher : INotificationProvider
                     channel = new SmtpNotificationChannel(
                         new SmtpChannelOptions
                         {
-                            Host = request.SmtpHost ?? "localhost",
+                            Host = request.SmtpHost.Trim(),
                             Port = request.SmtpPort ?? 25,
                             EnableSsl = request.SmtpSsl ?? true,
                             Username = request.SmtpUser,
                             Password = request.SmtpPass,
-                            FromAddress = request.SmtpFrom ?? "certflow@local",
-                            ToAddress = request.SmtpTo
+                            FromAddress = string.IsNullOrWhiteSpace(request.SmtpFrom) ? "certflow@local" : request.SmtpFrom.Trim(),
+                            ToAddress = request.SmtpTo.Trim()
                         },
                         Microsoft.Extensions.Logging.Abstractions.NullLogger<SmtpNotificationChannel>.Instance);
                     break;
@@ -827,11 +913,12 @@ public class NotificationDispatcher : INotificationProvider
             }
 
             bool delivered = await channel.SendAsync(msg, cancellationToken);
+            string? channelError = channel.LastError;
             if (channel is IDisposable d) d.Dispose();
 
             return delivered
                 ? new NotificationTestResult { Success = true, Message = $"Test notification delivered to {request.ChannelType} successfully!" }
-                : new NotificationTestResult { Success = false, Message = $"Delivery to {request.ChannelType} failed. Please verify endpoint credentials." };
+                : new NotificationTestResult { Success = false, Message = channelError ?? $"Delivery to {request.ChannelType} failed. Please verify endpoint credentials." };
         }
         catch (Exception ex)
         {

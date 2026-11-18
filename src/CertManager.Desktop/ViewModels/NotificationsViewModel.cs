@@ -58,8 +58,16 @@ public class NotificationsViewModel : ViewModelBase
     private bool _smtpEnableSsl = true;
     private string _smtpUsername = string.Empty;
     private string _smtpPassword = string.Empty;
+    private bool _isSmtpPasswordVisible;
     private string _smtpFromAddress = "certflow@local";
     private string _smtpToAddress = string.Empty;
+
+    // In-Card SMTP Test Feedback
+    private string _smtpTestStatusTitle = string.Empty;
+    private string _smtpTestStatusMessage = string.Empty;
+    private bool _smtpTestStatusIsError;
+    private bool _hasSmtpTestStatus;
+    private bool _isTestingSmtp;
 
     // Pushover
     private bool _pushoverEnabled;
@@ -87,6 +95,10 @@ public class NotificationsViewModel : ViewModelBase
         TestPushoverCommand = new RelayCommand(async () => await TestChannelAsync("Pushover", null, PushoverAppToken, PushoverUserKey));
         TestGotifyCommand = new RelayCommand(async () => await TestChannelAsync("Gotify", GotifyServerUrl, GotifyAppToken));
 
+        ToggleSmtpPasswordVisibilityCommand = new RelayCommand(() => IsSmtpPasswordVisible = !IsSmtpPasswordVisible);
+        DismissSmtpTestStatusCommand = new RelayCommand(() => HasSmtpTestStatus = false);
+        DismissTestStatusCommand = new RelayCommand(() => TestStatusMessage = string.Empty);
+
         _ = LoadSettingsAsync();
     }
 
@@ -102,6 +114,9 @@ public class NotificationsViewModel : ViewModelBase
     public ICommand TestSmtpCommand { get; }
     public ICommand TestPushoverCommand { get; }
     public ICommand TestGotifyCommand { get; }
+    public ICommand ToggleSmtpPasswordVisibilityCommand { get; }
+    public ICommand DismissSmtpTestStatusCommand { get; }
+    public ICommand DismissTestStatusCommand { get; }
 
     #region Properties
 
@@ -300,6 +315,50 @@ public class NotificationsViewModel : ViewModelBase
         set => SetProperty(ref _smtpPassword, value);
     }
 
+    public bool IsSmtpPasswordVisible
+    {
+        get => _isSmtpPasswordVisible;
+        set
+        {
+            if (SetProperty(ref _isSmtpPasswordVisible, value))
+            {
+                OnPropertyChanged(nameof(SmtpPasswordToggleToolTip));
+            }
+        }
+    }
+
+    public string SmtpPasswordToggleToolTip => _isSmtpPasswordVisible ? "Hide password" : "Show password";
+
+    public string SmtpTestStatusTitle
+    {
+        get => _smtpTestStatusTitle;
+        set => SetProperty(ref _smtpTestStatusTitle, value);
+    }
+
+    public string SmtpTestStatusMessage
+    {
+        get => _smtpTestStatusMessage;
+        set => SetProperty(ref _smtpTestStatusMessage, value);
+    }
+
+    public bool SmtpTestStatusIsError
+    {
+        get => _smtpTestStatusIsError;
+        set => SetProperty(ref _smtpTestStatusIsError, value);
+    }
+
+    public bool HasSmtpTestStatus
+    {
+        get => _hasSmtpTestStatus;
+        set => SetProperty(ref _hasSmtpTestStatus, value);
+    }
+
+    public bool IsTestingSmtp
+    {
+        get => _isTestingSmtp;
+        set => SetProperty(ref _isTestingSmtp, value);
+    }
+
     public string SmtpFromAddress
     {
         get => _smtpFromAddress;
@@ -436,11 +495,34 @@ public class NotificationsViewModel : ViewModelBase
 
     public async Task TestSmtpAsync()
     {
-        if (IsTesting) return;
+        if (IsTesting || IsTestingSmtp) return;
+
+        // Upfront validation with immediate, clear error feedback directly in the SMTP card
+        if (string.IsNullOrWhiteSpace(SmtpHost))
+        {
+            SetSmtpFeedback(true, "Missing SMTP Server Host", "Please enter your SMTP server hostname or IP address (e.g. smtp.yourdomain.com).");
+            return;
+        }
+
+        if (SmtpPort <= 0 || SmtpPort > 65535)
+        {
+            SetSmtpFeedback(true, "Invalid SMTP Port Number", "SMTP port must be a valid number between 1 and 65535 (standard ports: 587, 465, or 25).");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(SmtpToAddress))
+        {
+            SetSmtpFeedback(true, "Missing Recipient Email Address", "Please enter at least one recipient email address to send the test alert to.");
+            return;
+        }
+
         IsTesting = true;
+        IsTestingSmtp = true;
         TestingChannel = "SMTP";
-        TestStatusMessage = "Sending test email notification...";
+        TestStatusMessage = $"Sending test email to {SmtpToAddress.Trim()}...";
         TestStatusIsError = false;
+
+        SetSmtpFeedback(false, "Connecting to Mail Server...", $"Connecting to {SmtpHost.Trim()}:{SmtpPort} and delivering verification message to {SmtpToAddress.Trim()}...", inProgress: true);
 
         try
         {
@@ -449,28 +531,48 @@ public class NotificationsViewModel : ViewModelBase
             var req = new NotificationTestRequest
             {
                 ChannelType = "Smtp",
-                SmtpHost = SmtpHost,
+                SmtpHost = SmtpHost?.Trim(),
                 SmtpPort = SmtpPort,
                 SmtpSsl = SmtpEnableSsl,
-                SmtpUser = SmtpUsername,
+                SmtpUser = SmtpUsername?.Trim(),
                 SmtpPass = SmtpPassword,
-                SmtpFrom = SmtpFromAddress,
-                SmtpTo = SmtpToAddress
+                SmtpFrom = SmtpFromAddress?.Trim(),
+                SmtpTo = SmtpToAddress?.Trim()
             };
 
             var res = await _ipcClient.SendTestNotificationAsync(req);
             TestStatusMessage = res.Message;
             TestStatusIsError = !res.Success;
+
+            if (res.Success)
+            {
+                SetSmtpFeedback(false, "Test Email Delivered!", res.Message);
+            }
+            else
+            {
+                SetSmtpFeedback(true, "SMTP Delivery Error", res.Message);
+            }
         }
         catch (Exception ex)
         {
-            TestStatusMessage = $"Test email failed: {ex.Message}";
+            string err = $"Test email delivery failed: {ex.Message}";
+            TestStatusMessage = err;
             TestStatusIsError = true;
+            SetSmtpFeedback(true, "SMTP Connection Error", err);
         }
         finally
         {
             IsTesting = false;
+            IsTestingSmtp = false;
         }
+    }
+
+    private void SetSmtpFeedback(bool isError, string title, string message, bool inProgress = false)
+    {
+        SmtpTestStatusIsError = isError;
+        SmtpTestStatusTitle = title;
+        SmtpTestStatusMessage = message;
+        HasSmtpTestStatus = true;
     }
 
     private void ApplySettings(NotificationSettings s)

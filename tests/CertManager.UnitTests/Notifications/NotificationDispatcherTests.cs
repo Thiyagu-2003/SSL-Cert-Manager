@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using CertManager.Core.Interfaces;
+using CertManager.Core.Models;
 using CertManager.Infrastructure.Data;
 using CertManager.Infrastructure.Notifications;
 using FluentAssertions;
@@ -88,9 +89,40 @@ public class NotificationDispatcherTests : IDisposable
         mockChannel.DispatchedMessages.Should().ContainSingle(m => m.Subject == testSubject);
     }
 
+    [Fact]
+    public async Task SendTestAlertAsync_Smtp_ReturnsErrorWhenRecipientMissing()
+    {
+        var req = new NotificationTestRequest
+        {
+            ChannelType = "Smtp",
+            SmtpHost = "smtp.example.com",
+            SmtpTo = ""
+        };
+
+        var res = await NotificationDispatcher.SendTestAlertAsync(req);
+        res.Success.Should().BeFalse();
+        res.Message.Should().Contain("Recipient email address is required");
+    }
+
+    [Fact]
+    public async Task SendTestAlertAsync_Smtp_ReturnsErrorWhenHostMissing()
+    {
+        var req = new NotificationTestRequest
+        {
+            ChannelType = "Smtp",
+            SmtpHost = "",
+            SmtpTo = "admin@example.com"
+        };
+
+        var res = await NotificationDispatcher.SendTestAlertAsync(req);
+        res.Success.Should().BeFalse();
+        res.Message.Should().Contain("SMTP server host is required");
+    }
+
     private class TestNotificationChannel : INotificationChannel
     {
         public string ChannelName => "TestChannel";
+        public string? LastError => null;
         public System.Collections.Generic.List<NotificationMessage> DispatchedMessages { get; } = new();
 
         public Task<bool> SendAsync(NotificationMessage message, System.Threading.CancellationToken cancellationToken = default)
