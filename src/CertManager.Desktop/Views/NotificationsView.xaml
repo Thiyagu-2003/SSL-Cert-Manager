@@ -4,23 +4,23 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" 
-             d:DesignHeight="1100" d:DesignWidth="950"
+             d:DesignHeight="1200" d:DesignWidth="980"
              FontFamily="Segoe UI Variable, Segoe UI, sans-serif">
 
-    <!-- Page Entrance Animation -->
+    <!-- Smooth Page Entrance Animation -->
     <UserControl.RenderTransform>
-        <TranslateTransform x:Name="PageTransform" Y="15"/>
+        <TranslateTransform x:Name="PageTransform" Y="12"/>
     </UserControl.RenderTransform>
     <UserControl.Triggers>
         <EventTrigger RoutedEvent="FrameworkElement.Loaded">
             <BeginStoryboard>
                 <Storyboard>
-                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.3">
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.25">
                         <DoubleAnimation.EasingFunction>
                             <CubicEase EasingMode="EaseOut"/>
                         </DoubleAnimation.EasingFunction>
                     </DoubleAnimation>
-                    <DoubleAnimation Storyboard.TargetName="PageTransform" Storyboard.TargetProperty="Y" From="15" To="0" Duration="0:0:0.35">
+                    <DoubleAnimation Storyboard.TargetName="PageTransform" Storyboard.TargetProperty="Y" From="12" To="0" Duration="0:0:0.3">
                         <DoubleAnimation.EasingFunction>
                             <CubicEase EasingMode="EaseOut"/>
                         </DoubleAnimation.EasingFunction>
@@ -31,49 +31,49 @@
     </UserControl.Triggers>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <Grid Margin="32,24,32,32">
+        <Grid Margin="32,24,32,36">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <Grid Grid.Row="0" Margin="0,0,0,18">
+            <!-- Top Header & Primary Action Bar -->
+            <Grid Grid.Row="0" Margin="0,0,0,22">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0">
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <Border Background="#E0F2FE" CornerRadius="6" Padding="6,2" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <Border Background="#E0F2FE" CornerRadius="6" Padding="7,3" Margin="0,0,10,0" VerticalAlignment="Center">
                             <TextBlock Text="ALERTS &amp; WEBHOOKS" FontSize="10" FontWeight="Bold" Foreground="#0284C7"/>
                         </Border>
-                        <TextBlock Text="Notifications &amp; Team Alerts" FontSize="22" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                        <TextBlock Text="Notifications &amp; Team Alerts" FontSize="23" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <TextBlock Text="Configure real-time alerts for certificate expirations, autonomous renewals, and errors across Teams, Discord, Slack, Telegram, Push, and Email." 
-                               FontSize="12.5" Foreground="#64748B"/>
+                    <TextBlock Text="Configure real-time broadcasts for certificate expirations, autonomous renewals, and errors across Teams, Discord, Slack, Telegram, Push, and Email." 
+                               FontSize="13" Foreground="#64748B" LineHeight="18"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Command="{Binding RefreshCommand}" Style="{StaticResource ModernToolbarRefreshBtn}" Margin="0,0,8,0">
+                    <Button Command="{Binding RefreshCommand}" Style="{StaticResource ModernToolbarRefreshBtn}" Margin="0,0,10,0">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconRefresh}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
                             <TextBlock Text="Reload"/>
                         </StackPanel>
                     </Button>
-                    <Button Command="{Binding SaveSettingsCommand}" Style="{StaticResource ModernPrimaryActionBtn}">
+                    <Button Command="{Binding SaveSettingsCommand}" Style="{StaticResource ModernToolbarPrimaryBtn}">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconSave}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
+                            <Path Data="{StaticResource IconSave}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0"/>
                             <TextBlock Text="Save Alert Settings"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
             </Grid>
 
-            <!-- Feedback / Toast Banner -->
-            <Border Grid.Row="1" Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,16">
+            <!-- Success Toast Banner -->
+            <Border Grid.Row="1" Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="9" Padding="14,10" Margin="0,0,0,16">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -89,13 +89,13 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Path Grid.Column="0" Data="{StaticResource IconCheckCircle}" Fill="#059669" Width="16" Height="16" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="1" Text="{Binding ToastMessage}" Foreground="#065F46" FontWeight="SemiBold" FontSize="12.5" VerticalAlignment="Center"/>
+                    <Path Grid.Column="0" Data="{StaticResource IconCheckCircle}" Fill="#059669" Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding ToastMessage}" Foreground="#065F46" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
                 </Grid>
             </Border>
 
-            <!-- Test Feedback Alert -->
-            <Border Grid.Row="1" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,16">
+            <!-- Test Feedback Alert Banner -->
+            <Border Grid.Row="1" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="9" Padding="14,10" Margin="0,0,0,16">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -111,7 +111,7 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Path Grid.Column="0" Data="{StaticResource IconInfo}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <Path Grid.Column="0" Data="{StaticResource IconInfo}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center">
                         <Path.Style>
                             <Style TargetType="Path">
                                 <Setter Property="Fill" Value="#0284C7"/>
@@ -123,7 +123,7 @@
                             </Style>
                         </Path.Style>
                     </Path>
-                    <TextBlock Grid.Column="1" Text="{Binding TestStatusMessage}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center">
+                    <TextBlock Grid.Column="1" Text="{Binding TestStatusMessage}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="#1E40AF"/>
@@ -141,490 +141,549 @@
             <!-- Main Content Container -->
             <StackPanel Grid.Row="2">
 
-                <!-- SECTION 1: Event Lifecycle Subscriptions & Thresholds -->
-                <TextBlock Text="ALERT EVENT SUBSCRIPTIONS &amp; EXPIRY POLICIES" Style="{StaticResource FormFieldLabel}"/>
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,20">
+                <!-- SECTION 1: Event Lifecycle Subscriptions & Expiry Policies -->
+                <TextBlock Text="ALERT EVENT SUBSCRIPTIONS &amp; EXPIRY POLICIES" Style="{StaticResource FormFieldLabel}" Margin="0,0,0,8"/>
+                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,24">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" Opacity="0.03" ShadowDepth="2" Color="#0F172A"/>
+                    </Border.Effect>
                     <StackPanel>
-                        <Grid Margin="0,0,0,12">
+                        <!-- Policy Row 1: Certificate Expiration Warning -->
+                        <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <CheckBox Content="Certificate Expiration Warning" IsChecked="{Binding NotifyOnExpiryWarning}" FontWeight="SemiBold" Foreground="#0F172A" Cursor="Hand"/>
-                                <TextBlock Text="Automated background service scans all active certificates every 60 seconds and notifies when expiration is within the threshold." 
-                                           FontSize="11" Foreground="#64748B" Margin="22,2,0,0"/>
+                            <CheckBox Grid.Column="0" IsChecked="{Binding NotifyOnExpiryWarning}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Certificate Expiration Warning" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <Border Background="#FEF3C7" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                        <TextBlock Text="Advance Notice" FontSize="9.5" FontWeight="Bold" Foreground="#D97706"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Automated background service scans certificates every 60 seconds and notifies when expiry is within the selected threshold." 
+                                           FontSize="11.5" Foreground="#64748B" Margin="0,3,0,0"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="Alert when within:" FontSize="11" Foreground="#475569" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Alert when within:" FontSize="11.5" FontWeight="Medium" Foreground="#475569" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <ComboBox ItemsSource="{Binding AvailableExpiryDays}" SelectedItem="{Binding ExpiryWarningDays}" 
-                                          Style="{StaticResource ModernComboBox}" Width="80" Height="30"/>
-                                <TextBlock Text="days" FontSize="11" Foreground="#475569" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                          Style="{StaticResource ModernComboBox}" Width="80" Height="32"/>
+                                <TextBlock Text="days" FontSize="11.5" FontWeight="Medium" Foreground="#475569" VerticalAlignment="Center" Margin="6,0,0,0"/>
                             </StackPanel>
                         </Grid>
 
-                        <Separator Background="#F1F5F9" Margin="0,0,0,12"/>
+                        <Border Height="1" Background="#F1F5F9" Margin="0,0,0,14"/>
 
-                        <Grid Margin="0,0,0,10">
+                        <!-- Policy Row 2: Renewal Events (Success & Failure) -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Sub-item: Autonomous Renewal Succeeded -->
+                            <Grid Grid.Column="0" Margin="0,0,16,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox Grid.Column="0" IsChecked="{Binding NotifyOnRenewalSuccess}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Autonomous Renewal Succeeded" FontSize="13" FontWeight="Bold" Foreground="#0F172A"/>
+                                        <Border Background="#DCFCE7" CornerRadius="4" Padding="6,2" Margin="6,0,0,0">
+                                            <TextBlock Text="Success" FontSize="9.5" FontWeight="Bold" Foreground="#16A34A"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Delivers green success card with new thumbprint and validity window." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Sub-item: Autonomous Renewal Failed -->
+                            <Grid Grid.Column="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox Grid.Column="0" IsChecked="{Binding NotifyOnRenewalFailure}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Autonomous Renewal Failed" FontSize="13" FontWeight="Bold" Foreground="#DC2626"/>
+                                        <Border Background="#FEE2E2" CornerRadius="4" Padding="6,2" Margin="6,0,0,0">
+                                            <TextBlock Text="High Priority" FontSize="9.5" FontWeight="Bold" Foreground="#DC2626"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="High-priority alert sent immediately if renewal encounters rate limits or DNS error." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+
+                        <Border Height="1" Background="#F1F5F9" Margin="0,0,0,14"/>
+
+                        <!-- Policy Row 3: Manual Issuance -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" IsChecked="{Binding NotifyOnManualIssuance}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Manual / Interactive Issuance Completed" FontSize="13" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <Border Background="#F1F5F9" CornerRadius="4" Padding="6,2" Margin="6,0,0,0">
+                                        <TextBlock Text="Audit Trail" FontSize="9.5" FontWeight="Bold" Foreground="#475569"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Sends an informational notification whenever an administrator requests a certificate via the Wizard." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- SECTION 2: Collaboration & Team Channels -->
+                <TextBlock Text="COLLABORATION &amp; TEAM CHANNELS" Style="{StaticResource FormFieldLabel}" Margin="0,0,0,8"/>
+
+                <!-- Channel 1: Microsoft Teams -->
+                <Border Style="{StaticResource ModernChannelCard}">
+                    <StackPanel>
+                        <!-- Card Header -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="38" Height="38" Background="#464EB8" CornerRadius="9" Margin="0,0,12,0" VerticalAlignment="Center">
+                                <TextBlock Text="T" Foreground="#FFFFFF" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Microsoft Teams Webhook" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <Border Background="#EEF2FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                        <TextBlock Text="MessageCard &amp; Adaptive Card" FontSize="9.5" FontWeight="Bold" Foreground="#4F46E5"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Delivers rich Teams cards with status bands, activity facts, and certificate metadata." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <CheckBox Content="Enabled" IsChecked="{Binding TeamsEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                                <Button Command="{Binding TestTeamsCommand}" Style="{StaticResource ModernChannelTestBtn}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource IconSend}" Fill="#0284C7" Width="10" Height="10" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Send Test" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="#F1F5F9" Margin="0,0,0,12"/>
+
+                        <!-- Field: Webhook URL -->
+                        <TextBlock Text="TEAMS WEBHOOK URL (OFFICE 365 CONNECTOR / POWER AUTOMATE)" Style="{StaticResource FormFieldLabel}"/>
+                        <TextBox Text="{Binding TeamsWebhookUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Channel 2: Discord -->
+                <Border Style="{StaticResource ModernChannelCard}">
+                    <StackPanel>
+                        <!-- Card Header -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="38" Height="38" Background="#5865F2" CornerRadius="9" Margin="0,0,12,0" VerticalAlignment="Center">
+                                <TextBlock Text="D" Foreground="#FFFFFF" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Discord Channel Webhook" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <Border Background="#EEF2FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                        <TextBlock Text="Rich Embeds" FontSize="9.5" FontWeight="Bold" Foreground="#5865F2"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Delivers color-coded embeds with timestamps to any Discord text channel." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <CheckBox Content="Enabled" IsChecked="{Binding DiscordEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                                <Button Command="{Binding TestDiscordCommand}" Style="{StaticResource ModernChannelTestBtn}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource IconSend}" Fill="#0284C7" Width="10" Height="10" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Send Test" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="#F1F5F9" Margin="0,0,0,12"/>
+
+                        <!-- Field: Webhook URL -->
+                        <TextBlock Text="DISCORD WEBHOOK URL" Style="{StaticResource FormFieldLabel}"/>
+                        <TextBox Text="{Binding DiscordWebhookUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Channel 3: Slack -->
+                <Border Style="{StaticResource ModernChannelCard}">
+                    <StackPanel>
+                        <!-- Card Header -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="38" Height="38" Background="#4A154B" CornerRadius="9" Margin="0,0,12,0" VerticalAlignment="Center">
+                                <TextBlock Text="S" Foreground="#FFFFFF" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Slack Incoming Webhook" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <Border Background="#FDF2F8" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                        <TextBlock Text="Attachments &amp; Colors" FontSize="9.5" FontWeight="Bold" Foreground="#DB2777"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Delivers formatted Slack message attachments with color status bars." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <CheckBox Content="Enabled" IsChecked="{Binding SlackEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                                <Button Command="{Binding TestSlackCommand}" Style="{StaticResource ModernChannelTestBtn}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource IconSend}" Fill="#0284C7" Width="10" Height="10" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Send Test" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="#F1F5F9" Margin="0,0,0,12"/>
+
+                        <!-- Field: Webhook URL -->
+                        <TextBlock Text="SLACK INCOMING WEBHOOK URL" Style="{StaticResource FormFieldLabel}"/>
+                        <TextBox Text="{Binding SlackWebhookUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Channel 4: Telegram -->
+                <Border Style="{StaticResource ModernChannelCard}">
+                    <StackPanel>
+                        <!-- Card Header -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="38" Height="38" Background="#229ED9" CornerRadius="9" Margin="0,0,12,0" VerticalAlignment="Center">
+                                <TextBlock Text="TG" Foreground="#FFFFFF" FontWeight="Bold" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Telegram Bot Alerts" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <Border Background="#F0F9FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                        <TextBlock Text="Direct Bot API" FontSize="9.5" FontWeight="Bold" Foreground="#0284C7"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Delivers instant markdown alerts to your personal Telegram chat or private DevOps channel." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <CheckBox Content="Enabled" IsChecked="{Binding TelegramEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                                <Button Command="{Binding TestTelegramCommand}" Style="{StaticResource ModernChannelTestBtn}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource IconSend}" Fill="#0284C7" Width="10" Height="10" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Send Test" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="#F1F5F9" Margin="0,0,0,12"/>
+
+                        <!-- Dual Fields: Bot Token & Chat ID -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="TELEGRAM BOT TOKEN" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding TelegramBotToken, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <TextBlock Text="CHAT ID / CHANNEL ID" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding TelegramChatId, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- SECTION 3: Mobile Push & Advanced Integrations -->
+                <TextBlock Text="MOBILE PUSH &amp; ADVANCED INTEGRATIONS" Style="{StaticResource FormFieldLabel}" Margin="0,8,0,8"/>
+
+                <!-- Channel 5: Pushover Mobile Push -->
+                <Border Style="{StaticResource ModernChannelCard}">
+                    <StackPanel>
+                        <!-- Card Header -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="38" Height="38" Background="#2F80ED" CornerRadius="9" Margin="0,0,12,0" VerticalAlignment="Center">
+                                <TextBlock Text="P" Foreground="#FFFFFF" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Pushover (Mobile Push Alerts)" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <Border Background="#EFF6FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                        <TextBlock Text="iOS / Android" FontSize="9.5" FontWeight="Bold" Foreground="#2563EB"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Instant push notifications directly to smartphones and Apple Watch with emergency bypass." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <CheckBox Content="Enabled" IsChecked="{Binding PushoverEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                                <Button Command="{Binding TestPushoverCommand}" Style="{StaticResource ModernChannelTestBtn}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource IconSend}" Fill="#0284C7" Width="10" Height="10" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Send Test" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="#F1F5F9" Margin="0,0,0,12"/>
+
+                        <!-- Dual Fields: App Token & User Key -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="APPLICATION API TOKEN" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding PushoverAppToken, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <TextBlock Text="USER / GROUP KEY" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding PushoverUserKey, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Channel 6: Gotify Self-Hosted Push -->
+                <Border Style="{StaticResource ModernChannelCard}">
+                    <StackPanel>
+                        <!-- Card Header -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="38" Height="38" Background="#10B981" CornerRadius="9" Margin="0,0,12,0" VerticalAlignment="Center">
+                                <TextBlock Text="G" Foreground="#FFFFFF" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Gotify (Self-Hosted Push)" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <Border Background="#ECFDF5" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                        <TextBlock Text="On-Premises / Homelab" FontSize="9.5" FontWeight="Bold" Foreground="#059669"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Private self-hosted push notifications running inside Docker, Kubernetes, or internal network." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <CheckBox Content="Enabled" IsChecked="{Binding GotifyEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                                <Button Command="{Binding TestGotifyCommand}" Style="{StaticResource ModernChannelTestBtn}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource IconSend}" Fill="#0284C7" Width="10" Height="10" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Send Test" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="#F1F5F9" Margin="0,0,0,12"/>
+
+                        <!-- Dual Fields: Server URL & App Token -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="GOTIFY SERVER URL (E.G. HTTPS://GOTIFY.CORP.LOCAL)" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding GotifyServerUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <TextBlock Text="APP TOKEN (CLIENT KEY)" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding GotifyAppToken, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Channel 7: Generic Custom Webhook -->
+                <Border Style="{StaticResource ModernChannelCard}">
+                    <StackPanel>
+                        <!-- Card Header -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="38" Height="38" Background="#6366F1" CornerRadius="9" Margin="0,0,12,0" VerticalAlignment="Center">
+                                <TextBlock Text="API" Foreground="#FFFFFF" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Custom HTTP Webhook" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <Border Background="#EEF2FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                        <TextBlock Text="JSON POST" FontSize="9.5" FontWeight="Bold" Foreground="#4F46E5"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Universal structured JSON payload for Zapier, n8n, Make, Datadog, PagerDuty, or custom backend services." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <CheckBox Content="Enabled" IsChecked="{Binding GenericWebhookEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                                <Button Command="{Binding TestGenericWebhookCommand}" Style="{StaticResource ModernChannelTestBtn}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource IconSend}" Fill="#0284C7" Width="10" Height="10" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Send Test" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="#F1F5F9" Margin="0,0,0,12"/>
+
+                        <!-- Field: Endpoint URL -->
+                        <TextBlock Text="TARGET ENDPOINT URL" Style="{StaticResource FormFieldLabel}"/>
+                        <TextBox Text="{Binding GenericWebhookUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Channel 8: Email / SMTP Relay -->
+                <Border Style="{StaticResource ModernChannelCard}" Margin="0,0,0,24">
+                    <StackPanel>
+                        <!-- Card Header -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="38" Height="38" Background="#EA580C" CornerRadius="9" Margin="0,0,12,0" VerticalAlignment="Center">
+                                <TextBlock Text="@" Foreground="#FFFFFF" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Email / SMTP Relay" FontSize="14.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <Border Background="#FFF7ED" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                        <TextBlock Text="RFC 5322" FontSize="9.5" FontWeight="Bold" Foreground="#EA580C"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Standard email alert relay through company mail server or external SMTP provider with credential masking." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <CheckBox Content="Enabled" IsChecked="{Binding SmtpEnabled}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,12,0"/>
+                                <Button Command="{Binding TestSmtpCommand}" Style="{StaticResource ModernChannelTestBtn}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource IconSend}" Fill="#0284C7" Width="10" Height="10" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Send Test" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="#F1F5F9" Margin="0,0,0,14"/>
+
+                        <!-- Row 1: Host, Port, SSL -->
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1.5*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="SMTP SERVER HOST" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding SmtpHost, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                <TextBlock Text="PORT" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding SmtpPort, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" VerticalAlignment="Bottom" Margin="0,0,0,6">
+                                <CheckBox Content="Enable SSL/TLS" IsChecked="{Binding SmtpEnableSsl}" Style="{StaticResource ModernToggleSwitch}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Row 2: From & To -->
+                        <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                                <CheckBox Content="Autonomous Renewal Succeeded" IsChecked="{Binding NotifyOnRenewalSuccess}" FontWeight="SemiBold" Foreground="#0F172A" Cursor="Hand"/>
-                                <TextBlock Text="Delivers green success card with new thumbprint and validity period." FontSize="11" Foreground="#64748B" Margin="22,2,0,0"/>
+                                <TextBlock Text="FROM SENDER ADDRESS" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding SmtpFromAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="1">
-                                <CheckBox Content="Autonomous Renewal Failed" IsChecked="{Binding NotifyOnRenewalFailure}" FontWeight="SemiBold" Foreground="#DC2626" Cursor="Hand"/>
-                                <TextBlock Text="High-priority alert sent immediately if renewal encounters rate limits or DNS failure." FontSize="11" Foreground="#64748B" Margin="22,2,0,0"/>
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <TextBlock Text="RECIPIENT ADDRESS (TO)" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding SmtpToAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
                             </StackPanel>
                         </Grid>
 
-                        <StackPanel Margin="0,2,0,0">
-                            <CheckBox Content="Manual / Interactive Issuance Completed" IsChecked="{Binding NotifyOnManualIssuance}" FontWeight="SemiBold" Foreground="#0F172A" Cursor="Hand"/>
-                            <TextBlock Text="Sends a notification when an administrator requests a certificate from the Wizard." FontSize="11" Foreground="#64748B" Margin="22,2,0,0"/>
-                        </StackPanel>
+                        <!-- Row 3: Credentials (Optional) -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="SMTP USERNAME (OPTIONAL)" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding SmtpUsername, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <TextBlock Text="SMTP PASSWORD (OPTIONAL)" Style="{StaticResource FormFieldLabel}"/>
+                                <TextBox Text="{Binding SmtpPassword, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                            </StackPanel>
+                        </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- SECTION 2: Collaboration & Team Chat Channels -->
-                <TextBlock Text="COLLABORATION &amp; TEAM CHANNELS" Style="{StaticResource FormFieldLabel}"/>
-
-                <!-- Channel 1: Microsoft Teams -->
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,14">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="32" Height="32" Background="#464EB8" CornerRadius="8" Margin="0,0,10,0" VerticalAlignment="Center">
-                                <TextBlock Text="T" Foreground="#FFFFFF" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Microsoft Teams Webhook" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <Border Background="#EEF2FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
-                                        <TextBlock Text="MessageCard &amp; Adaptive Card" FontSize="9.5" FontWeight="Bold" Foreground="#4F46E5"/>
-                                    </Border>
-                                </StackPanel>
-                                <TextBlock Text="Delivers rich Teams cards with status bands, activity facts, and certificate metadata." FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <CheckBox Content="Enabled" IsChecked="{Binding TeamsEnabled}" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,10,0" Cursor="Hand"/>
-                                <Button Command="{Binding TestTeamsCommand}" Content="Send Test" Padding="8,4" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
-                                    <Button.Resources>
-                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
-                                    </Button.Resources>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="130"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Teams Webhook URL:" FontSize="11" FontWeight="SemiBold" Foreground="#475569" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Text="{Binding TeamsWebhookUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0"/>
-                        </Grid>
-                    </Grid>
-                </Border>
-
-                <!-- Channel 2: Discord -->
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,14">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="32" Height="32" Background="#5865F2" CornerRadius="8" Margin="0,0,10,0" VerticalAlignment="Center">
-                                <TextBlock Text="D" Foreground="#FFFFFF" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Discord Channel Webhook" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <Border Background="#EEF2FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
-                                        <TextBlock Text="Rich Embeds" FontSize="9.5" FontWeight="Bold" Foreground="#5865F2"/>
-                                    </Border>
-                                </StackPanel>
-                                <TextBlock Text="Delivers color-coded embeds with timestamps to any Discord text channel." FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <CheckBox Content="Enabled" IsChecked="{Binding DiscordEnabled}" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,10,0" Cursor="Hand"/>
-                                <Button Command="{Binding TestDiscordCommand}" Content="Send Test" Padding="8,4" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
-                                    <Button.Resources>
-                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
-                                    </Button.Resources>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="130"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Discord Webhook URL:" FontSize="11" FontWeight="SemiBold" Foreground="#475569" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Text="{Binding DiscordWebhookUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0"/>
-                        </Grid>
-                    </Grid>
-                </Border>
-
-                <!-- Channel 3: Slack -->
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,14">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="32" Height="32" Background="#4A154B" CornerRadius="8" Margin="0,0,10,0" VerticalAlignment="Center">
-                                <TextBlock Text="S" Foreground="#FFFFFF" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Slack Incoming Webhook" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <Border Background="#FDF2F8" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
-                                        <TextBlock Text="Attachments &amp; Colors" FontSize="9.5" FontWeight="Bold" Foreground="#DB2777"/>
-                                    </Border>
-                                </StackPanel>
-                                <TextBlock Text="Delivers formatted Slack message attachments with color status bars." FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <CheckBox Content="Enabled" IsChecked="{Binding SlackEnabled}" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,10,0" Cursor="Hand"/>
-                                <Button Command="{Binding TestSlackCommand}" Content="Send Test" Padding="8,4" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
-                                    <Button.Resources>
-                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
-                                    </Button.Resources>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="130"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Slack Webhook URL:" FontSize="11" FontWeight="SemiBold" Foreground="#475569" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Text="{Binding SlackWebhookUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0"/>
-                        </Grid>
-                    </Grid>
-                </Border>
-
-                <!-- Channel 4: Telegram -->
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,14">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="32" Height="32" Background="#229ED9" CornerRadius="8" Margin="0,0,10,0" VerticalAlignment="Center">
-                                <TextBlock Text="TG" Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Telegram Bot Alerts" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <Border Background="#F0F9FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
-                                        <TextBlock Text="Direct Bot API" FontSize="9.5" FontWeight="Bold" Foreground="#0284C7"/>
-                                    </Border>
-                                </StackPanel>
-                                <TextBlock Text="Delivers instant markdown alerts to your personal Telegram chat or private DevOps channel." FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <CheckBox Content="Enabled" IsChecked="{Binding TelegramEnabled}" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,10,0" Cursor="Hand"/>
-                                <Button Command="{Binding TestTelegramCommand}" Content="Send Test" Padding="8,4" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
-                                    <Button.Resources>
-                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
-                                    </Button.Resources>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="Telegram Bot Token:" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding TelegramBotToken, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                <TextBlock Text="Chat ID / Channel ID:" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding TelegramChatId, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            </StackPanel>
-                        </Grid>
-                    </Grid>
-                </Border>
-
-                <!-- SECTION 3: Mobile Push & Self-Hosted Sources -->
-                <TextBlock Text="MOBILE PUSH &amp; ADVANCED INTEGRATIONS" Style="{StaticResource FormFieldLabel}" Margin="0,10,0,8"/>
-
-                <!-- Channel 5: Pushover Mobile Push -->
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,14">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="32" Height="32" Background="#2F80ED" CornerRadius="8" Margin="0,0,10,0" VerticalAlignment="Center">
-                                <TextBlock Text="P" Foreground="#FFFFFF" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Pushover (Mobile Push Alerts)" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <Border Background="#EFF6FF" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
-                                        <TextBlock Text="iOS / Android" FontSize="9.5" FontWeight="Bold" Foreground="#2563EB"/>
-                                    </Border>
-                                </StackPanel>
-                                <TextBlock Text="Instant push notifications directly to smartphones and Apple Watch with emergency bypass." FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <CheckBox Content="Enabled" IsChecked="{Binding PushoverEnabled}" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,10,0" Cursor="Hand"/>
-                                <Button Command="{Binding TestPushoverCommand}" Content="Send Test" Padding="8,4" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
-                                    <Button.Resources>
-                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
-                                    </Button.Resources>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="Application API Token:" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding PushoverAppToken, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                <TextBlock Text="User / Group Key:" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding PushoverUserKey, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            </StackPanel>
-                        </Grid>
-                    </Grid>
-                </Border>
-
-                <!-- Channel 6: Gotify Self-Hosted Push -->
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,14">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="32" Height="32" Background="#10B981" CornerRadius="8" Margin="0,0,10,0" VerticalAlignment="Center">
-                                <TextBlock Text="G" Foreground="#FFFFFF" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Gotify (Self-Hosted Push)" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <Border Background="#ECFDF5" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
-                                        <TextBlock Text="On-Premises / Homelab" FontSize="9.5" FontWeight="Bold" Foreground="#059669"/>
-                                    </Border>
-                                </StackPanel>
-                                <TextBlock Text="Private self-hosted push notifications running inside Docker, Kubernetes, or internal network." FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <CheckBox Content="Enabled" IsChecked="{Binding GotifyEnabled}" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,10,0" Cursor="Hand"/>
-                                <Button Command="{Binding TestGotifyCommand}" Content="Send Test" Padding="8,4" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
-                                    <Button.Resources>
-                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
-                                    </Button.Resources>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="Gotify Server URL (e.g. https://gotify.domain.local):" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding GotifyServerUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                <TextBlock Text="App Token (Client Key):" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding GotifyAppToken, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            </StackPanel>
-                        </Grid>
-                    </Grid>
-                </Border>
-
-                <!-- Channel 7: Generic Custom Webhook -->
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,14">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="32" Height="32" Background="#64748B" CornerRadius="8" Margin="0,0,10,0" VerticalAlignment="Center">
-                                <TextBlock Text="API" Foreground="#FFFFFF" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Custom HTTP Webhook" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <Border Background="#F1F5F9" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
-                                        <TextBlock Text="JSON POST" FontSize="9.5" FontWeight="Bold" Foreground="#475569"/>
-                                    </Border>
-                                </StackPanel>
-                                <TextBlock Text="Universal structured JSON payload for Zapier, n8n, Make, Datadog, or custom REST webhooks." FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <CheckBox Content="Enabled" IsChecked="{Binding GenericWebhookEnabled}" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,10,0" Cursor="Hand"/>
-                                <Button Command="{Binding TestGenericWebhookCommand}" Content="Send Test" Padding="8,4" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
-                                    <Button.Resources>
-                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
-                                    </Button.Resources>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="130"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Target Endpoint URL:" FontSize="11" FontWeight="SemiBold" Foreground="#475569" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Text="{Binding GenericWebhookUrl, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0"/>
-                        </Grid>
-                    </Grid>
-                </Border>
-
-                <!-- Channel 8: Email / SMTP -->
-                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,24">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="32" Height="32" Background="#EA580C" CornerRadius="8" Margin="0,0,10,0" VerticalAlignment="Center">
-                                <TextBlock Text="@" Foreground="#FFFFFF" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Email / SMTP Relay" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <Border Background="#FFF7ED" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
-                                        <TextBlock Text="RFC 5322" FontSize="9.5" FontWeight="Bold" Foreground="#EA580C"/>
-                                    </Border>
-                                </StackPanel>
-                                <TextBlock Text="Standard email alert relay through company mail server or external SMTP provider." FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <CheckBox Content="Enabled" IsChecked="{Binding SmtpEnabled}" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,10,0" Cursor="Hand"/>
-                                <Button Command="{Binding TestSmtpCommand}" Content="Send Test" Padding="8,4" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
-                                    <Button.Resources>
-                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
-                                    </Button.Resources>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Grid.Row="1">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*"/>
-                                <ColumnDefinition Width="1*"/>
-                                <ColumnDefinition Width="2*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
-                                <TextBlock Text="SMTP Host:" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding SmtpHost, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,8,8">
-                                <TextBlock Text="Port:" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding SmtpPort, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,8" VerticalAlignment="Center">
-                                <CheckBox Content="Enable SSL/TLS" IsChecked="{Binding SmtpEnableSsl}" FontWeight="SemiBold" Foreground="#475569" Margin="0,18,0,0" Cursor="Hand"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="From Address:" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding SmtpFromAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,0">
-                                <TextBlock Text="Recipient Address (To):" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding SmtpToAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
-                            </StackPanel>
-                        </Grid>
-                    </Grid>
-                </Border>
-
-                <!-- Bottom Save Action Strip -->
-                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,20">
+                <!-- Bottom Sticky Save Bar -->
+                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="18,16" Margin="0,0,0,16">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="8" Opacity="0.04" ShadowDepth="2" Color="#0F172A"/>
+                    </Border.Effect>
                     <Grid>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="Ready to persist configuration across background service and desktop UI?" FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
-                            <TextBlock Text="Settings apply immediately to the 24/7 autonomous renewal engine." FontSize="11" Foreground="#64748B"/>
+                        <Path Grid.Column="0" Data="{StaticResource IconShieldCheck}" Fill="#0284C7" Width="20" Height="20" Stretch="Uniform" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Ready to persist configuration across background service and desktop UI?" FontSize="13" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Settings apply immediately to the 24/7 autonomous renewal engine without requiring a service restart." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                         </StackPanel>
-                        <Button Grid.Column="1" Command="{Binding SaveSettingsCommand}" Style="{StaticResource ModernPrimaryActionBtn}">
+                        <Button Grid.Column="2" Command="{Binding SaveSettingsCommand}" Style="{StaticResource ModernToolbarPrimaryBtn}">
                             <StackPanel Orientation="Horizontal">
                                 <Path Data="{StaticResource IconSave}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0"/>
                                 <TextBlock Text="Save Alert Settings"/>

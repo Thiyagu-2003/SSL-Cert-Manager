@@ -42,6 +42,7 @@
         <StreamGeometry x:Key="IconPlay">M 8,5 V 19 L 19,12 L 8,5 Z</StreamGeometry>
         <StreamGeometry x:Key="IconPause">M 6,19 H 10 V 5 H 6 V 19 Z M 14,5 V 19 H 18 V 5 H 14 Z</StreamGeometry>
         <StreamGeometry x:Key="IconBell">M 12,22 C 13.1,22 14,21.1 14,20 H 10 C 10,21.1 10.9,22 12,22 Z M 18,16 V 11 C 18,7.93 16.37,5.36 13.5,4.68 V 4 C 13.5,3.17 12.83,2.5 12,2.5 C 11.17,2.5 10.5,3.17 10.5,4 V 4.68 C 7.64,5.36 6,7.92 6,11 V 16 L 4,18 V 19 H 20 V 18 L 18,16 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconSend">M 2.01,21 L 23,12 L 2.01,3 L 2,10 L 17,12 L 2,14 Z</StreamGeometry>
 
         <!-- Application-Wide Implicit View-ViewModel Mappings -->
         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
@@ -142,6 +143,102 @@
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern iOS/Fluent Style Toggle Switch for CheckBoxes -->
+        <Style x:Key="ModernToggleSwitch" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border x:Name="track" Width="38" Height="20" CornerRadius="10" Background="#CBD5E1" Margin="0,0,8,0">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="4" Opacity="0.08" ShadowDepth="1" Color="#000000"/>
+                                </Border.Effect>
+                                <Ellipse x:Name="thumb" Width="14" Height="14" Fill="#FFFFFF" HorizontalAlignment="Left" Margin="3,0,0,0">
+                                    <Ellipse.Effect>
+                                        <DropShadowEffect BlurRadius="3" Opacity="0.25" ShadowDepth="1" Color="#000000"/>
+                                    </Ellipse.Effect>
+                                </Ellipse>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center" TextElement.FontSize="12" TextElement.FontWeight="SemiBold" TextElement.Foreground="#334155"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="track" Property="Background" Value="#0284C7"/>
+                                <Setter TargetName="thumb" Property="HorizontalAlignment" Value="Right"/>
+                                <Setter TargetName="thumb" Property="Margin" Value="0,0,3,0"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="track" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="track" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Channel Test Button with Interactive Hover & Elevation -->
+        <Style x:Key="ModernChannelTestBtn" TargetType="Button">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="Foreground" Value="#0284C7"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBorder" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="7" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="4" Opacity="0.04" ShadowDepth="1" Color="#0F172A"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#F0F9FF"/>
+                                <Setter TargetName="btnBorder" Property="BorderBrush" Value="#0284C7"/>
+                                <Setter Property="Foreground" Value="#0369A1"/>
+                                <Setter TargetName="btnBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="8" Opacity="0.18" ShadowDepth="2" Color="#0284C7"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#E0F2FE"/>
+                                <Setter TargetName="btnBorder" Property="BorderBrush" Value="#0284C7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Channel Card Style with Subtle Hover Elevation -->
+        <Style x:Key="ModernChannelCard" TargetType="Border">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20,18"/>
+            <Setter Property="Margin" Value="0,0,0,14"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" Opacity="0.03" ShadowDepth="2" Color="#0F172A"/>
                 </Setter.Value>
             </Setter>
         </Style>
