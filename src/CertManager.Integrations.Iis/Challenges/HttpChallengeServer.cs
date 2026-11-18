@@ -126,7 +126,7 @@ public sealed class HttpChallengeServer : IHttpChallengeServer
             string path = request.Url?.AbsolutePath ?? string.Empty;
             string token = path.TrimEnd('/').Split('/').LastOrDefault() ?? string.Empty;
 
-            // Health check / configcheck probe support (compatible with Certify The Web diagnostics)
+            // Built-in health check and diagnostic probe support
             if (string.Equals(token, "configcheck", StringComparison.OrdinalIgnoreCase))
             {
                 byte[] okBytes = Encoding.UTF8.GetBytes("OK");

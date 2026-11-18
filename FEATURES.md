@@ -6,7 +6,7 @@
 
 ## 🌟 Executive Summary: CertFlow vs. Competitors
 
-| Feature Category | CertFlow (v2.1) | Certify The Web | win-acme (wacs) |
+| Feature Category | CertFlow (v2.1) | Traditional GUI ACME Tools | win-acme (wacs) |
 | :--- | :--- | :--- | :--- |
 | **User Interface** | Modern WPF, vector icons, dark accent sidebar | Legacy WPF Metro, dense tabbed dialogs | Console / CLI interactive only |
 | **Challenge Engine** | Embedded HTTP.sys (`http://+:80/.well-known/...`) | Embedded HTTP.sys server | Self-hosted HTTP listener or IIS webroot |

@@ -117,7 +117,7 @@ Open-Source SSL/TLS Certificate Manager is intended to be a reliable SSL/TLS cer
 
 The first release will focus on Windows and IIS. The architecture must leave room for additional web servers, DNS providers, certificate authorities and remote managed servers without requiring a rewrite of the core.
 
-The product should aim to be faster and easier to operate than manual certificate workflows and competitive with products such as Certify The Web. “Better” must be demonstrated through measurable reliability, usability, supported integrations, resource use and recovery behaviour—not assumed in advance.
+The product should aim to be faster and easier to operate than manual certificate workflows and competitive with existing commercial and enterprise tools. “Better” must be demonstrated through measurable reliability, usability, supported integrations, resource use and recovery behaviour—not assumed in advance.
 
 ## 1.1 Product goals
 
@@ -310,7 +310,7 @@ The MVP should include:
 
 The project aims to be competitive with existing Windows ACME tools. The table below is a **starting point for research**, not a claim. Every cell marked "verify" must be checked against the current version of each product before the comparison is published.
 
-| Aspect | CertManager target | Certify The Web | win-acme | Posh-ACME |
+| Aspect | CertManager target | Commercial GUI Tools | win-acme | Posh-ACME |
 |:-------|:-------------------|:----------------|:---------|:----------|
 | Interface | Desktop UI plus independent service | Desktop UI plus service (verify) | Console wizard and scheduled task (verify) | PowerShell module (verify) |
 | Primary platform | Windows and IIS first; Linux later | Windows (verify) | Windows (verify) | Cross-platform PowerShell (verify) |
@@ -2336,7 +2336,6 @@ Use official documentation as the source of truth during implementation. Product
 - Semantic Versioning: https://semver.org/
 - Sigstore: https://www.sigstore.dev/
 - OpenSSF Scorecard: https://securityscorecards.dev/
-- Certify The Web: https://certifytheweb.com/
 - Posh-ACME: https://poshac.me/
 
 ------------------------------------------------------------------------
