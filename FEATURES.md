@@ -13,13 +13,13 @@
 | **Pre-Flight Diagnostics** | 🔍 1-Click "Test Readiness" (DNS, IP, Port 80, HTTP.sys) | Internal retry loop (no standalone UI test) | Basic verification flags |
 | **IIS Hardening** | 🔀 1-Click "Enforce HTTPS Redirect" in `web.config` | Manual configuration / scripts required | Plugin available |
 | **Certificate Export** | 📦 1-Click PFX, PEM (CRT+KEY for Nginx/Apache), & CCS | Custom PowerShell scripts required | CLI flags / manual export |
-| **Team Alerts & Webhooks** | 🔔 Native Discord, Slack, Teams, & Telegram cards | Paid / complex email relays | Email / script execution |
+| **Team Alerts & Webhooks** | 🔔 Native Discord, Slack, Teams, Telegram, Pushover, Gotify & SMTP | Paid / complex email relays | Email / script execution |
 | **Multi-CA & Failover** | 🌐 Instant Switcher: Let's Encrypt, ZeroSSL, Google, BuyPass + Auto-Failover | Multi-tab configuration / complex setup | CLI argument flags |
 | **Modern Cryptography** | ⚡ 1-Click ECDSA (P-256 / P-384) + Auto-Prune Superseded Certs | Legacy RSA 2048 default / unbounded store bloat | Manual flags / basic store |
 | **Multi-Domain & Wildcards** | HTTP-01 + Cloudflare DNS-01 + Manual DNS | HTTP-01 + PoshACME plugins | HTTP-01 + DNS plugins |
 | **Runtime Architecture** | Standalone In-Process OR Windows Service | Strict client-service requirement (`127.0.0.2:9696`) | Scheduled Task |
 | **ACME ARI Support** | ✅ RFC-draft ACME Renewal Information (ARI) | ✅ ARI supported | ⚠️ Basic schedule window |
-| **Unit Test Coverage** | 113 automated xUnit tests passing | Closed source core / partial repo | Open source tests |
+| **Unit Test Coverage** | 119 automated xUnit tests passing | Closed source core / partial repo | Open source tests |
 
 ---
 
@@ -98,15 +98,26 @@
 
 ---
 
-### 8. Observability, Audit Logs & Notifications
+### 8. Observability, Notifications & Team Alerts *(EXPANDED)*
+* **Dedicated Notifications View**: Full-featured desktop management console (`Settings & System -> Notifications & Alerts`) to configure, enable/disable, and test all notification channels.
+* **1-Click "Send Test" Verification**: Immediate test dispatch with real-time feedback indicator confirming endpoint connectivity.
+* **Broadest Alert Channel Ecosystem**:
+  * **Microsoft Teams**: Office 365 Connector MessageCards and Adaptive Cards with color severity bands and activity facts.
+  * **Discord Webhooks**: Rich color-coded embeds with timestamps and footer attribution.
+  * **Slack Incoming Webhooks**: Formatted attachments with status colors and markdown.
+  * **Telegram Bot API**: Instant markdown messages delivered to private chats or DevOps groups.
+  * **Pushover**: Instant mobile push notifications to iOS and Android devices with priority levels.
+  * **Gotify**: Private self-hosted push notifications for internal homelabs and Kubernetes clusters.
+  * **Generic Custom Webhooks**: Structured JSON POST payloads for Zapier, n8n, Make, Datadog, and PagerDuty.
+  * **Email / SMTP Relay**: Direct SMTP server alerts with credentials masking.
+* **Automated Expiry & Lifecycle Triggers**:
+  * **Configurable Expiry Warnings**: 30-day, 14-day, 7-day, 3-day, and 1-day advance warnings with remaining time counters.
+  * **Autonomous Renewal Succeeded**: Real-time notification with new certificate thumbprint and expiration dates.
+  * **Autonomous Renewal Failed**: Critical alert dispatched immediately upon ACME or DNS validation errors.
+  * **Secret Masking**: Automatically redacts API keys, Bearer tokens, and passwords from logs and payloads.
 * **Real-Time Audit Trail**: Complete log of certificate issuance, challenge attempts, and binding updates in SQLite (`certmanager.db`).
 * **KPI Metric Strip**: Real-time counters for Total Events, Informational, Warnings, and Critical Errors.
 * **Export & Search**: Instant full-text search, level filter (Errors, Warnings, Info), CSV export, and TXT raw log export.
-* **Team Webhook Notifications *(NEW)***:
-  * **Discord Webhooks**: Rich embedded cards with color-coded alerts (green, amber, red) and timestamps.
-  * **Slack Webhooks**: Slack message attachments with formatted alert fields.
-  * **Microsoft Teams / Generic JSON**: Universal JSON webhook support for incident management systems.
-* **Telegram & SMTP Integration**: Built-in bot alerts and email notifications with secret masking (`Bearer ***`, `token=***`).
 
 ---
 

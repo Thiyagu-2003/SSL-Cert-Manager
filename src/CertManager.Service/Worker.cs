@@ -115,8 +115,11 @@ public class Worker : BackgroundService
                 domain = cert.Profile?.ProfileName ?? "example.com";
             }
 
-            // Expiry alert: notify if expiring in less than 14 days, throttled to once every 24 hours per certificate
-            if ((cert.NotAfter - now).TotalDays <= 14)
+            // Expiry alert: notify if expiring in less than configured threshold (default 14 days), throttled to once every 24 hours per certificate
+            var notifSettings = NotificationSettingsManager.CurrentSettings;
+            int warningDays = notifSettings.ExpiryWarningDays > 0 ? notifSettings.ExpiryWarningDays : 14;
+
+            if ((cert.NotAfter - now).TotalDays <= warningDays)
             {
                 if (!_lastExpiryAlertSent.TryGetValue(cert.CertificateId, out var lastSent) || (now - lastSent).TotalHours >= 24)
                 {

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mail;
@@ -10,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CertManager.Core.Entities;
 using CertManager.Core.Interfaces;
+using CertManager.Core.Models;
 using CertManager.Infrastructure.Data;
 using Microsoft.Extensions.Logging;
 
@@ -266,6 +269,40 @@ public class WebhookNotificationChannel : INotificationChannel, IDisposable
                     }
                 };
             }
+            else if (url.Contains("office.com", StringComparison.OrdinalIgnoreCase) ||
+                     url.Contains("logic.azure.com", StringComparison.OrdinalIgnoreCase) ||
+                     url.Contains("teams", StringComparison.OrdinalIgnoreCase))
+            {
+                string themeColor = message.Level.ToLowerInvariant() switch
+                {
+                    "error" => "E11D48",
+                    "warning" => "D97706",
+                    _ => "0284C7"
+                };
+
+                payload = new
+                {
+                    @type = "MessageCard",
+                    @context = "http://schema.org/extensions",
+                    themeColor = themeColor,
+                    summary = safeSubject,
+                    sections = new[]
+                    {
+                        new
+                        {
+                            activityTitle = safeSubject,
+                            activitySubtitle = "CertFlow Automated Lifecycle Manager",
+                            facts = new[]
+                            {
+                                new { name = "Severity", value = message.Level.ToUpperInvariant() },
+                                new { name = "Details", value = safeBody },
+                                new { name = "Timestamp", value = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC") }
+                            },
+                            markdown = true
+                        }
+                    }
+                };
+            }
             else
             {
                 payload = new
@@ -306,26 +343,269 @@ public class WebhookNotificationChannel : INotificationChannel, IDisposable
     }
 }
 
+public class PushoverChannelOptions
+{
+    public string AppToken { get; set; } = string.Empty;
+    public string UserKey { get; set; } = string.Empty;
+}
+
+public class PushoverNotificationChannel : INotificationChannel, IDisposable
+{
+    private readonly PushoverChannelOptions _options;
+    private readonly HttpClient _httpClient;
+    private readonly bool _ownsClient;
+    private readonly ILogger<PushoverNotificationChannel> _logger;
+
+    public PushoverNotificationChannel(PushoverChannelOptions options, HttpClient? httpClient, ILogger<PushoverNotificationChannel> logger)
+    {
+        _options = options;
+        _ownsClient = httpClient == null;
+        _httpClient = httpClient ?? new HttpClient();
+        _logger = logger;
+    }
+
+    public string ChannelName => "Pushover";
+
+    public async Task<bool> SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+        if (string.IsNullOrWhiteSpace(_options.AppToken) || string.IsNullOrWhiteSpace(_options.UserKey)) return false;
+
+        try
+        {
+            int priority = message.Level.ToLowerInvariant() switch
+            {
+                "error" => 1,
+                "warning" => 0,
+                _ => -1
+            };
+
+            var postData = new Dictionary<string, string>
+            {
+                { "token", _options.AppToken.Trim() },
+                { "user", _options.UserKey.Trim() },
+                { "title", $"[CertFlow {message.Level.ToUpperInvariant()}] {NotificationDispatcher.MaskSecrets(message.Subject)}" },
+                { "message", NotificationDispatcher.MaskSecrets(message.Body) },
+                { "priority", priority.ToString() }
+            };
+
+            using var content = new FormUrlEncodedContent(postData);
+            using var response = await _httpClient.PostAsync("https://api.pushover.net/1/messages.json", content, cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to deliver Pushover notification: {Message}", ex.Message);
+            return false;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_ownsClient) _httpClient.Dispose();
+    }
+}
+
+public class GotifyChannelOptions
+{
+    public string ServerUrl { get; set; } = string.Empty;
+    public string AppToken { get; set; } = string.Empty;
+}
+
+public class GotifyNotificationChannel : INotificationChannel, IDisposable
+{
+    private readonly GotifyChannelOptions _options;
+    private readonly HttpClient _httpClient;
+    private readonly bool _ownsClient;
+    private readonly ILogger<GotifyNotificationChannel> _logger;
+
+    public GotifyNotificationChannel(GotifyChannelOptions options, HttpClient? httpClient, ILogger<GotifyNotificationChannel> logger)
+    {
+        _options = options;
+        _ownsClient = httpClient == null;
+        _httpClient = httpClient ?? new HttpClient();
+        _logger = logger;
+    }
+
+    public string ChannelName => "Gotify";
+
+    public async Task<bool> SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+        if (string.IsNullOrWhiteSpace(_options.ServerUrl) || string.IsNullOrWhiteSpace(_options.AppToken)) return false;
+
+        try
+        {
+            int priority = message.Level.ToLowerInvariant() switch
+            {
+                "error" => 8,
+                "warning" => 5,
+                _ => 2
+            };
+
+            var payload = new
+            {
+                title = $"[CertFlow {message.Level.ToUpperInvariant()}] {NotificationDispatcher.MaskSecrets(message.Subject)}",
+                message = NotificationDispatcher.MaskSecrets(message.Body),
+                priority = priority
+            };
+
+            string endpoint = $"{_options.ServerUrl.TrimEnd('/')}/message";
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            request.Headers.Add("X-Gotify-Key", _options.AppToken.Trim());
+            request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to deliver Gotify notification: {Message}", ex.Message);
+            return false;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_ownsClient) _httpClient.Dispose();
+    }
+}
+
+public static class NotificationChannelFactory
+{
+    public static List<INotificationChannel> CreateChannelsFromSettings(
+        NotificationSettings settings,
+        ILoggerFactory? loggerFactory = null)
+    {
+        var channels = new List<INotificationChannel>();
+        var factory = loggerFactory ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance;
+
+        // Discord Webhook
+        if (settings.DiscordEnabled && !string.IsNullOrWhiteSpace(settings.DiscordWebhookUrl))
+        {
+            channels.Add(new WebhookNotificationChannel(
+                new WebhookChannelOptions { WebhookUrl = settings.DiscordWebhookUrl },
+                null,
+                factory.CreateLogger<WebhookNotificationChannel>()));
+        }
+
+        // Slack Webhook
+        if (settings.SlackEnabled && !string.IsNullOrWhiteSpace(settings.SlackWebhookUrl))
+        {
+            channels.Add(new WebhookNotificationChannel(
+                new WebhookChannelOptions { WebhookUrl = settings.SlackWebhookUrl },
+                null,
+                factory.CreateLogger<WebhookNotificationChannel>()));
+        }
+
+        // Teams Webhook
+        if (settings.TeamsEnabled && !string.IsNullOrWhiteSpace(settings.TeamsWebhookUrl))
+        {
+            channels.Add(new WebhookNotificationChannel(
+                new WebhookChannelOptions { WebhookUrl = settings.TeamsWebhookUrl },
+                null,
+                factory.CreateLogger<WebhookNotificationChannel>()));
+        }
+
+        // Generic Custom Webhook
+        if (settings.GenericWebhookEnabled && !string.IsNullOrWhiteSpace(settings.GenericWebhookUrl))
+        {
+            channels.Add(new WebhookNotificationChannel(
+                new WebhookChannelOptions { WebhookUrl = settings.GenericWebhookUrl },
+                null,
+                factory.CreateLogger<WebhookNotificationChannel>()));
+        }
+
+        // Telegram Bot
+        if (settings.TelegramEnabled && !string.IsNullOrWhiteSpace(settings.TelegramBotToken) && !string.IsNullOrWhiteSpace(settings.TelegramChatId))
+        {
+            channels.Add(new TelegramNotificationChannel(
+                new TelegramChannelOptions { BotToken = settings.TelegramBotToken, ChatId = settings.TelegramChatId },
+                null,
+                factory.CreateLogger<TelegramNotificationChannel>()));
+        }
+
+        // SMTP Email
+        if (settings.SmtpEnabled && !string.IsNullOrWhiteSpace(settings.SmtpToAddress))
+        {
+            channels.Add(new SmtpNotificationChannel(
+                new SmtpChannelOptions
+                {
+                    Host = settings.SmtpHost,
+                    Port = settings.SmtpPort,
+                    EnableSsl = settings.SmtpEnableSsl,
+                    Username = settings.SmtpUsername,
+                    Password = settings.SmtpPassword,
+                    FromAddress = settings.SmtpFromAddress,
+                    ToAddress = settings.SmtpToAddress
+                },
+                factory.CreateLogger<SmtpNotificationChannel>()));
+        }
+
+        // Pushover
+        if (settings.PushoverEnabled && !string.IsNullOrWhiteSpace(settings.PushoverAppToken) && !string.IsNullOrWhiteSpace(settings.PushoverUserKey))
+        {
+            channels.Add(new PushoverNotificationChannel(
+                new PushoverChannelOptions { AppToken = settings.PushoverAppToken, UserKey = settings.PushoverUserKey },
+                null,
+                factory.CreateLogger<PushoverNotificationChannel>()));
+        }
+
+        // Gotify
+        if (settings.GotifyEnabled && !string.IsNullOrWhiteSpace(settings.GotifyServerUrl) && !string.IsNullOrWhiteSpace(settings.GotifyAppToken))
+        {
+            channels.Add(new GotifyNotificationChannel(
+                new GotifyChannelOptions { ServerUrl = settings.GotifyServerUrl, AppToken = settings.GotifyAppToken },
+                null,
+                factory.CreateLogger<GotifyNotificationChannel>()));
+        }
+
+        return channels;
+    }
+}
+
 public class NotificationDispatcher : INotificationProvider
 {
     private readonly CertManagerDbContext _db;
     private readonly ILogger<NotificationDispatcher> _logger;
-    private readonly IEnumerable<INotificationChannel> _channels;
+    private readonly IEnumerable<INotificationChannel>? _explicitChannels;
+    private readonly ILoggerFactory? _loggerFactory;
     private static readonly ConcurrentDictionary<string, DateTime> CooldownCache = new();
 
     public NotificationDispatcher(
         CertManagerDbContext db,
         ILogger<NotificationDispatcher> logger,
-        IEnumerable<INotificationChannel>? channels = null)
+        IEnumerable<INotificationChannel>? channels = null,
+        ILoggerFactory? loggerFactory = null)
     {
         _db = db;
         _logger = logger;
-        _channels = channels ?? Array.Empty<INotificationChannel>();
+        _explicitChannels = channels;
+        _loggerFactory = loggerFactory;
     }
 
     public async Task SendAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
+
+        var settings = NotificationSettingsManager.CurrentSettings;
+
+        // Check event subscriptions
+        if (message.Subject.Contains("Expiring Soon", StringComparison.OrdinalIgnoreCase) && !settings.NotifyOnExpiryWarning)
+        {
+            _logger.LogInformation("Skipping notification dispatch for '{Subject}' because NotifyOnExpiryWarning is disabled.", message.Subject);
+            return;
+        }
+        if (message.Subject.Contains("Renewed Successfully", StringComparison.OrdinalIgnoreCase) && !settings.NotifyOnRenewalSuccess)
+        {
+            _logger.LogInformation("Skipping notification dispatch for '{Subject}' because NotifyOnRenewalSuccess is disabled.", message.Subject);
+            return;
+        }
+        if (message.Subject.Contains("Renewal Failed", StringComparison.OrdinalIgnoreCase) && !settings.NotifyOnRenewalFailure)
+        {
+            _logger.LogInformation("Skipping notification dispatch for '{Subject}' because NotifyOnRenewalFailure is disabled.", message.Subject);
+            return;
+        }
 
         // 1. Duplicate Suppression Check: prevent spamming identical alerts within 60 minutes
         string deduplicationKey = $"{message.Level}:{message.Subject}";
@@ -362,8 +642,19 @@ public class NotificationDispatcher : INotificationProvider
         // Always log to physical rolling file
         CertManager.Infrastructure.Logging.FileLoggerHelper.AppendLog(level, message.Subject, safeBody);
 
-        // 3. Dispatch to external channels (SMTP, Telegram, etc.)
-        foreach (var channel in _channels)
+        // 3. Resolve active dispatch channels
+        IEnumerable<INotificationChannel> channelsToDispatch;
+        if (_explicitChannels != null && _explicitChannels.Any())
+        {
+            channelsToDispatch = _explicitChannels;
+        }
+        else
+        {
+            channelsToDispatch = NotificationChannelFactory.CreateChannelsFromSettings(settings, _loggerFactory);
+        }
+
+        // Dispatch to external channels (Teams, Discord, Slack, Telegram, SMTP, Pushover, Gotify, Custom Webhook)
+        foreach (var channel in channelsToDispatch)
         {
             try
             {
@@ -394,6 +685,105 @@ public class NotificationDispatcher : INotificationProvider
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to save notification audit record in database.");
+        }
+    }
+
+    public static async Task<NotificationTestResult> SendTestAlertAsync(NotificationTestRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        string testSubject = $"Test Alert: {request.ChannelType}";
+        string testBody = $"This is a verification test notification sent by CertFlow SSL/TLS Automation Manager. Your {request.ChannelType} alert destination is successfully connected and ready to receive real-time certificate lifecycle events!";
+        var msg = new NotificationMessage(testSubject, testBody, "Info");
+
+        try
+        {
+            INotificationChannel? channel = null;
+
+            switch (request.ChannelType.ToLowerInvariant())
+            {
+                case "discord":
+                case "slack":
+                case "teams":
+                case "genericwebhook":
+                case "webhook":
+                    if (string.IsNullOrWhiteSpace(request.TargetUrl))
+                    {
+                        return new NotificationTestResult { Success = false, Message = "Webhook URL cannot be empty." };
+                    }
+                    channel = new WebhookNotificationChannel(
+                        new WebhookChannelOptions { WebhookUrl = request.TargetUrl.Trim() },
+                        null,
+                        Microsoft.Extensions.Logging.Abstractions.NullLogger<WebhookNotificationChannel>.Instance);
+                    break;
+
+                case "telegram":
+                    if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.SecondaryTokenOrChatId))
+                    {
+                        return new NotificationTestResult { Success = false, Message = "Telegram bot token and chat ID are required." };
+                    }
+                    channel = new TelegramNotificationChannel(
+                        new TelegramChannelOptions { BotToken = request.Token.Trim(), ChatId = request.SecondaryTokenOrChatId.Trim() },
+                        null,
+                        Microsoft.Extensions.Logging.Abstractions.NullLogger<TelegramNotificationChannel>.Instance);
+                    break;
+
+                case "smtp":
+                case "email":
+                    if (string.IsNullOrWhiteSpace(request.SmtpTo))
+                    {
+                        return new NotificationTestResult { Success = false, Message = "Recipient email address is required." };
+                    }
+                    channel = new SmtpNotificationChannel(
+                        new SmtpChannelOptions
+                        {
+                            Host = request.SmtpHost ?? "localhost",
+                            Port = request.SmtpPort ?? 25,
+                            EnableSsl = request.SmtpSsl ?? true,
+                            Username = request.SmtpUser,
+                            Password = request.SmtpPass,
+                            FromAddress = request.SmtpFrom ?? "certflow@local",
+                            ToAddress = request.SmtpTo
+                        },
+                        Microsoft.Extensions.Logging.Abstractions.NullLogger<SmtpNotificationChannel>.Instance);
+                    break;
+
+                case "pushover":
+                    if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.SecondaryTokenOrChatId))
+                    {
+                        return new NotificationTestResult { Success = false, Message = "Pushover App Token and User Key are required." };
+                    }
+                    channel = new PushoverNotificationChannel(
+                        new PushoverChannelOptions { AppToken = request.Token.Trim(), UserKey = request.SecondaryTokenOrChatId.Trim() },
+                        null,
+                        Microsoft.Extensions.Logging.Abstractions.NullLogger<PushoverNotificationChannel>.Instance);
+                    break;
+
+                case "gotify":
+                    if (string.IsNullOrWhiteSpace(request.TargetUrl) || string.IsNullOrWhiteSpace(request.Token))
+                    {
+                        return new NotificationTestResult { Success = false, Message = "Gotify server URL and app token are required." };
+                    }
+                    channel = new GotifyNotificationChannel(
+                        new GotifyChannelOptions { ServerUrl = request.TargetUrl.Trim(), AppToken = request.Token.Trim() },
+                        null,
+                        Microsoft.Extensions.Logging.Abstractions.NullLogger<GotifyNotificationChannel>.Instance);
+                    break;
+
+                default:
+                    return new NotificationTestResult { Success = false, Message = $"Unknown channel type '{request.ChannelType}'." };
+            }
+
+            bool delivered = await channel.SendAsync(msg, cancellationToken);
+            if (channel is IDisposable d) d.Dispose();
+
+            return delivered
+                ? new NotificationTestResult { Success = true, Message = $"Test notification delivered to {request.ChannelType} successfully!" }
+                : new NotificationTestResult { Success = false, Message = $"Delivery to {request.ChannelType} failed. Please verify endpoint credentials." };
+        }
+        catch (Exception ex)
+        {
+            return new NotificationTestResult { Success = false, Message = $"Error delivering test alert: {ex.Message}" };
         }
     }
 

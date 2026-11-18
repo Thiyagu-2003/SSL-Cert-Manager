@@ -232,6 +232,25 @@
                         </StackPanel>
                     </Button>
 
+                    <!-- Notifications & Alerts Nav Button -->
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="Notifications">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SidebarNavBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveSection}" Value="Notifications">
+                                        <Setter Property="Background" Value="#0284C7"/>
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconBell}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="15" Height="15" Stretch="Uniform" Margin="0,0,10,0"/>
+                            <TextBlock Text="Notifications &amp; Alerts"/>
+                        </StackPanel>
+                    </Button>
+
                     <!-- Activity Logs Nav Button -->
                     <Button Command="{Binding NavigateCommand}" CommandParameter="Logs">
                         <Button.Style>

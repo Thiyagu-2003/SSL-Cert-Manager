@@ -17,6 +17,7 @@ public class MainViewModel : ViewModelBase, IDisposable
         CertificatesVM = new CertificatesViewModel();
         ProfilesVM = new ProfilesViewModel();
         AcmeAccountsVM = new AcmeAccountsViewModel();
+        NotificationsVM = new NotificationsViewModel();
         TutorialsVM = new TutorialsViewModel(section => NavigateCommand?.Execute(section));
         LogsVM = new LogsViewModel((section, guideKey) =>
         {
@@ -56,6 +57,10 @@ public class MainViewModel : ViewModelBase, IDisposable
                         CurrentView = AcmeAccountsVM;
                         _ = AcmeAccountsVM.LoadAccountsAsync();
                         break;
+                    case "Notifications":
+                        CurrentView = NotificationsVM;
+                        _ = NotificationsVM.LoadSettingsAsync();
+                        break;
                     case "Logs":
                         CurrentView = LogsVM;
                         _ = LogsVM.LoadLogsAsync();
@@ -76,6 +81,7 @@ public class MainViewModel : ViewModelBase, IDisposable
     public CertificatesViewModel CertificatesVM { get; }
     public ProfilesViewModel ProfilesVM { get; }
     public AcmeAccountsViewModel AcmeAccountsVM { get; }
+    public NotificationsViewModel NotificationsVM { get; }
     public LogsViewModel LogsVM { get; }
     public TutorialsViewModel TutorialsVM { get; }
 

@@ -14,6 +14,7 @@ using CertManager.Core.Models;
 using CertManager.Infrastructure.Certificates;
 using CertManager.Infrastructure.Data;
 using CertManager.Infrastructure.Ipc;
+using CertManager.Infrastructure.Notifications;
 using CertManager.Integrations.Iis;
 using CertManager.Service.Workflows;
 using Microsoft.EntityFrameworkCore;
@@ -298,6 +299,46 @@ public class IpcHostService : BackgroundService
 
                     var result = await readinessChecker.CheckReadinessAsync(domain);
                     return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(result, JsonOptions));
+                }
+
+                case "GetNotificationSettings":
+                {
+                    var settings = NotificationSettingsManager.LoadSettings();
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(settings, JsonOptions));
+                }
+
+                case "SaveNotificationSettings":
+                {
+                    if (string.IsNullOrWhiteSpace(request.PayloadJson))
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Payload required: NotificationSettings.");
+                    }
+
+                    var newSettings = JsonSerializer.Deserialize<NotificationSettings>(request.PayloadJson, JsonOptions);
+                    if (newSettings == null)
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Malformed NotificationSettings payload.");
+                    }
+
+                    NotificationSettingsManager.SaveSettings(newSettings);
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(newSettings, JsonOptions));
+                }
+
+                case "SendTestNotification":
+                {
+                    if (string.IsNullOrWhiteSpace(request.PayloadJson))
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Payload required: NotificationTestRequest.");
+                    }
+
+                    var testReq = JsonSerializer.Deserialize<NotificationTestRequest>(request.PayloadJson, JsonOptions);
+                    if (testReq == null)
+                    {
+                        return IpcResponse.Fail(request.RequestId, "Malformed NotificationTestRequest payload.");
+                    }
+
+                    var testResult = await NotificationDispatcher.SendTestAlertAsync(testReq);
+                    return IpcResponse.Ok(request.RequestId, JsonSerializer.Serialize(testResult, JsonOptions));
                 }
 
                 default:

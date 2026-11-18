@@ -324,4 +324,74 @@ public class ServiceIpcClient
 
         return null;
     }
+
+    public async Task<NotificationSettings?> GetNotificationSettingsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default) cts.CancelAfter(TimeSpan.FromSeconds(8));
+
+            var request = new IpcRequest { Action = "GetNotificationSettings" };
+            var response = await _client.SendAsync(request, cts.Token);
+            if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
+            {
+                return JsonSerializer.Deserialize<NotificationSettings>(
+                    response.PayloadJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    public async Task<bool> SaveNotificationSettingsAsync(NotificationSettings settings, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default) cts.CancelAfter(TimeSpan.FromSeconds(8));
+
+            var request = new IpcRequest
+            {
+                Action = "SaveNotificationSettings",
+                PayloadJson = JsonSerializer.Serialize(settings)
+            };
+            var response = await _client.SendAsync(request, cts.Token);
+            return response.Success;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<NotificationTestResult> SendTestNotificationAsync(NotificationTestRequest testRequest, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (cancellationToken == default) cts.CancelAfter(TimeSpan.FromSeconds(15));
+
+            var request = new IpcRequest
+            {
+                Action = "SendTestNotification",
+                PayloadJson = JsonSerializer.Serialize(testRequest)
+            };
+            var response = await _client.SendAsync(request, cts.Token);
+            if (response.Success && !string.IsNullOrEmpty(response.PayloadJson))
+            {
+                return JsonSerializer.Deserialize<NotificationTestResult>(
+                    response.PayloadJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                    ?? new NotificationTestResult { Success = false, Message = "Empty response from service." };
+            }
+
+            return new NotificationTestResult { Success = false, Message = response.ErrorMessage ?? "Test failed." };
+        }
+        catch (Exception ex)
+        {
+            return new NotificationTestResult { Success = false, Message = ex.Message };
+        }
+    }
 }
