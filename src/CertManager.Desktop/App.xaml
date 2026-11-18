@@ -6,6 +6,9 @@
              xmlns:vm="clr-namespace:CertManager.Desktop.ViewModels"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <!-- Application-Wide Value Converters -->
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+
         <!-- Reusable High-Resolution Vector Icon Geometries -->
         <StreamGeometry x:Key="IconDashboard">M 3,3 H 10 V 10 H 3 Z M 14,3 H 21 V 10 H 14 Z M 3,14 H 10 V 21 H 3 Z M 14,14 H 21 V 21 H 14 Z</StreamGeometry>
         <StreamGeometry x:Key="IconGlobe">M 12,2 A 10,10 0 0,0 2,12 A 10,10 0 0,0 12,22 A 10,10 0 0,0 22,12 A 10,10 0 0,0 12,2 M 11,4.08 C 8.36,4.55 6.27,6.64 5.8,9.28 H 8.56 C 8.94,7.18 9.83,5.33 11,4.08 M 13,4.08 C 14.17,5.33 15.06,7.18 15.44,9.28 H 18.2 C 17.73,6.64 15.64,4.55 13,4.08 M 4.26,11.28 C 4.1,11.84 4,12.41 4,13 C 4,13.59 4.1,14.16 4.26,14.72 H 7.74 C 7.62,14.16 7.54,13.59 7.54,13 C 7.54,12.41 7.62,11.84 7.74,11.28 H 4.26 M 9.76,11.28 C 9.62,11.84 9.54,12.41 9.54,13 C 9.54,13.59 9.62,14.16 9.76,14.72 H 14.24 C 14.38,14.16 14.46,13.59 14.46,13 C 14.46,12.41 14.38,11.84 14.24,11.28 H 9.76 M 16.26,11.28 C 16.38,11.84 16.46,12.41 16.46,13 C 16.46,13.59 16.38,14.16 16.26,14.72 H 19.74 C 19.9,14.16 20,13.59 20,13 C 20,12.41 19.9,11.84 19.74,11.28 H 16.26 M 11,21.92 C 9.83,20.67 8.94,18.82 8.56,16.72 H 5.8 C 6.27,19.36 8.36,21.45 11,21.92 M 13,21.92 C 15.64,21.45 17.73,19.36 18.2,16.72 H 15.44 C 15.06,18.82 14.17,20.67 13,21.92 Z</StreamGeometry>

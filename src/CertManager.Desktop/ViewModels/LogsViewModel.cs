@@ -277,8 +277,16 @@ public class LogsViewModel : ViewModelBase, IDisposable
     public string ToastMessage
     {
         get => _toastMessage;
-        set => SetProperty(ref _toastMessage, value);
+        set
+        {
+            if (SetProperty(ref _toastMessage, value))
+            {
+                OnPropertyChanged(nameof(HasToastMessage));
+            }
+        }
     }
+
+    public bool HasToastMessage => !string.IsNullOrWhiteSpace(_toastMessage);
 
     public int TotalEventsCount
     {
@@ -338,30 +346,43 @@ public class LogsViewModel : ViewModelBase, IDisposable
                 .OrderBy(c => c)
                 .ToList();
 
-            string currentCh = ChannelFilter;
-            ChannelOptions.Clear();
-            ChannelOptions.Add("All Channels");
-            foreach (var ch in distinctChannels)
+            void UpdateUiState()
             {
-                ChannelOptions.Add(ch);
+                string currentCh = ChannelFilter;
+                ChannelOptions.Clear();
+                ChannelOptions.Add("All Channels");
+                foreach (var ch in distinctChannels)
+                {
+                    ChannelOptions.Add(ch);
+                }
+                if (ChannelOptions.Contains(currentCh))
+                {
+                    _channelFilter = currentCh;
+                }
+                else
+                {
+                    _channelFilter = "All Channels";
+                }
+                OnPropertyChanged(nameof(ChannelFilter));
+
+                // Update KPI metric counters
+                TotalEventsCount = _cachedRecords.Count;
+                ErrorCount = _cachedRecords.Count(r => string.Equals(r.Level, "Error", StringComparison.OrdinalIgnoreCase));
+                WarningCount = _cachedRecords.Count(r => string.Equals(r.Level, "Warning", StringComparison.OrdinalIgnoreCase));
+                InfoCount = _cachedRecords.Count(r => !string.Equals(r.Level, "Error", StringComparison.OrdinalIgnoreCase) && !string.Equals(r.Level, "Warning", StringComparison.OrdinalIgnoreCase));
+
+                ApplyFilter();
             }
-            if (ChannelOptions.Contains(currentCh))
+
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher != null && !dispatcher.CheckAccess())
             {
-                _channelFilter = currentCh;
+                dispatcher.Invoke(UpdateUiState);
             }
             else
             {
-                _channelFilter = "All Channels";
+                UpdateUiState();
             }
-            OnPropertyChanged(nameof(ChannelFilter));
-
-            // Update KPI metric counters
-            TotalEventsCount = _cachedRecords.Count;
-            ErrorCount = _cachedRecords.Count(r => string.Equals(r.Level, "Error", StringComparison.OrdinalIgnoreCase));
-            WarningCount = _cachedRecords.Count(r => string.Equals(r.Level, "Warning", StringComparison.OrdinalIgnoreCase));
-            InfoCount = _cachedRecords.Count(r => !string.Equals(r.Level, "Error", StringComparison.OrdinalIgnoreCase) && !string.Equals(r.Level, "Warning", StringComparison.OrdinalIgnoreCase));
-
-            ApplyFilter();
         }
         catch
         {
@@ -378,6 +399,13 @@ public class LogsViewModel : ViewModelBase, IDisposable
 
     private void ApplyFilter()
     {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher != null && !dispatcher.CheckAccess())
+        {
+            dispatcher.Invoke(ApplyFilter);
+            return;
+        }
+
         // Remember expanded IDs
         foreach (var l in Logs)
         {
@@ -597,14 +625,32 @@ public class LogsViewModel : ViewModelBase, IDisposable
 
     private void ShowToast(string message)
     {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher != null && !dispatcher.CheckAccess())
+        {
+            dispatcher.Invoke(() => ShowToast(message));
+            return;
+        }
+
         ToastMessage = message;
         Task.Delay(3000).ContinueWith(_ =>
         {
-            if (ToastMessage == message)
+            var d = System.Windows.Application.Current?.Dispatcher;
+            if (d != null)
+            {
+                d.InvokeAsync(() =>
+                {
+                    if (ToastMessage == message)
+                    {
+                        ToastMessage = string.Empty;
+                    }
+                });
+            }
+            else if (ToastMessage == message)
             {
                 ToastMessage = string.Empty;
             }
-        }, TaskScheduler.FromCurrentSynchronizationContext());
+        });
     }
 
     public void Dispose()

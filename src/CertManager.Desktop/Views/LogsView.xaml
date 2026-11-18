@@ -8,6 +8,9 @@
              FontFamily="Segoe UI Variable, Segoe UI, sans-serif">
 
     <UserControl.Resources>
+        <!-- Value Converters -->
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+
         <!-- KPI Card Border Style -->
         <Style x:Key="KpiCardButton" TargetType="Button">
             <Setter Property="Background" Value="#FFFFFF"/>
@@ -104,7 +107,7 @@
             <!-- Toast Feedback Banner -->
             <Border Grid.Column="1" Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" 
                     CornerRadius="8" Padding="14,6" VerticalAlignment="Center"
-                    Visibility="{Binding ToastMessage, Converter={StaticResource BoolToVisConverter}}">
+                    Visibility="{Binding HasToastMessage, Converter={StaticResource BoolToVisConverter}}">
                 <StackPanel Orientation="Horizontal">
                     <Path Data="{StaticResource IconCheck}" Fill="#16A34A" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding ToastMessage}" Foreground="#15803D" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
