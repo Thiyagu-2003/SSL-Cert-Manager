@@ -642,8 +642,14 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                                <TextBlock Text="RECIPIENT ADDRESS (TO)" Style="{StaticResource FormFieldLabel}"/>
-                                <TextBox Text="{Binding SmtpToAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <TextBlock Text="RECIPIENT ADDRESSES (TO)" Style="{StaticResource FormFieldLabel}" Margin="0"/>
+                                    <Border Background="#F1F5F9" CornerRadius="4" Padding="6,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="Comma (,) or Semicolon (;) separated" FontSize="9.5" FontWeight="SemiBold" Foreground="#475569"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBox Text="{Binding SmtpToAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="38"
+                                         ToolTip="Enter one or multiple email addresses separated by commas or semicolons (e.g. admin@corp.com, devops@corp.com)"/>
                             </StackPanel>
                         </Grid>
 

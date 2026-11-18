@@ -62,7 +62,19 @@ public class SmtpNotificationChannel : INotificationChannel
         {
             using var mail = new MailMessage();
             mail.From = new MailAddress(_options.FromAddress, "CertFlow Automation");
-            mail.To.Add(_options.ToAddress);
+
+            var recipients = _options.ToAddress.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (recipients.Length == 0)
+            {
+                _logger.LogWarning("No valid SMTP recipient addresses configured.");
+                return false;
+            }
+
+            foreach (var recipient in recipients)
+            {
+                mail.To.Add(recipient);
+            }
+
             mail.Subject = $"[CertFlow {message.Level.ToUpperInvariant()}] {message.Subject}";
             mail.Body = $"{message.Body}\n\n---\nSent automatically by CertFlow SSL/TLS Manager at {DateTime.UtcNow:u}";
             mail.IsBodyHtml = false;
@@ -87,9 +99,14 @@ public class SmtpNotificationChannel : INotificationChannel
 
     private static string MaskEmail(string email)
     {
-        int atIndex = email.IndexOf('@');
-        if (atIndex <= 1) return "***@domain.com";
-        return email[0] + "***" + email[atIndex..];
+        var parts = email.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length == 0) return "***@domain.com";
+        return string.Join(", ", parts.Select(p =>
+        {
+            int atIndex = p.IndexOf('@');
+            if (atIndex <= 1) return "***@domain.com";
+            return p[0] + "***" + p[atIndex..];
+        }));
     }
 }
 
